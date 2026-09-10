@@ -53,7 +53,8 @@ const state = {
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
   delayWeeks:0, extensions:0, rep:100,
-  hudSeen:{ time:false, rep:false },   // gauges appear once their dimension matters
+  hudSeen:{ time:false, rep:false, progress:false },   // gauges appear once their dimension matters
+  budgetOpen:false,            // the budget gauge unfolds into the spend chart
 
   // parked pressure events
   candidates:[],
@@ -112,7 +113,7 @@ function renderHUD(){
   const show = HUD_SCREENS.has(state.screen);
   document.getElementById("hud").style.display  = show ? "flex" : "none";
   document.getElementById("feed").style.display = FEED_SCREENS.has(state.screen) ? "flex" : "none";
-  if(!show) return;
+  if(!show){ document.getElementById("budget-panel").hidden=true; return; }
   const spent = BUDGET_START-state.budget;
   document.getElementById("hud-money").textContent   = eur(state.budget);
   document.getElementById("hud-spent").textContent   = spent>0 ? eur(spent)+" spent of "+eur(BUDGET_START) : "nothing spent yet";
@@ -123,7 +124,33 @@ function renderHUD(){
   document.getElementById("hud-deadline").textContent= hudDeadline();
   document.getElementById("hud-repword").textContent  = repWord();
   const f=document.getElementById("hud-repfill"); f.style.width=state.rep+"%"; f.style.background=repColor();
+  // progress: stations done, once the map exists
+  document.getElementById("g-progress").hidden = !state.hudSeen.progress;
+  const done=STATIONS.filter(st=>state.stations[st.key]==="done").length;
+  document.getElementById("hud-progress").textContent = `Station ${Math.min(done+1,STATIONS.length)} of ${STATIONS.length}`;
+  document.getElementById("hud-progfill").style.width = Math.round(done/STATIONS.length*100)+"%";
+  renderBudgetPanel();
 }
+/* the unfolded budget: one stacked bar over SPEND_CATS, legend only for
+   categories that actually hold money — an empty "Compensation" row would
+   announce a mechanic before it exists */
+function renderBudgetPanel(){
+  const panel=document.getElementById("budget-panel"), g=document.getElementById("g-money");
+  panel.hidden=!state.budgetOpen; g.setAttribute("aria-expanded",String(state.budgetOpen)); g.classList.toggle("open",state.budgetOpen);
+  if(!state.budgetOpen) return;
+  const stack=document.getElementById("budget-stack"), legend=document.getElementById("budget-legend");
+  stack.innerHTML=""; legend.innerHTML="";
+  let spentTotal=0;
+  SPEND_CATS.forEach(c=>{
+    const v=state.spend[c.key]||0; if(v<=0) return; spentTotal+=v;
+    stack.appendChild(el(`<i style="width:${v/BUDGET_START*100}%;background:${c.color}" title="${c.label}: ${eur(v)}"></i>`));
+    legend.appendChild(el(`<li><i style="background:${c.color}"></i>${c.label}<b>${eur(v)}</b><small>${Math.round(v/BUDGET_START*100)}%</small></li>`));
+  });
+  stack.appendChild(el(`<i class="rest" style="width:${Math.max(0,state.budget)/BUDGET_START*100}%" title="Remaining: ${eur(state.budget)}"></i>`));
+  legend.appendChild(el(`<li class="rest"><i></i>Remaining<b>${eur(state.budget)}</b><small>${Math.round(Math.max(0,state.budget)/BUDGET_START*100)}%</small></li>`));
+  if(spentTotal===0) legend.insertBefore(el(`<li class="none">Nothing spent yet.</li>`),legend.firstChild);
+}
+document.getElementById("g-money").onclick=()=>{ state.budgetOpen=!state.budgetOpen; renderBudgetPanel(); };
 function hudAddDelay(weeks){ state.delayWeeks+=weeks; state.hudSeen.time=true; spend("delay",weeks*WEEK_COST); hudFlash("g-time"); }
 function hudAddRep(delta){ state.rep=Math.max(0,Math.min(100,state.rep+delta)); state.hudSeen.rep=true; hudFlash("g-rep"); renderHUD(); }
 function hudFeed(src,text){ document.getElementById("feed").innerHTML=`<span class="src">${src}</span> — <b>${text}</b>`; }
@@ -802,6 +829,7 @@ function stationResult(key){
 }
 function rMap(){
   stage.innerHTML="";
+  if(!state.hudSeen.progress){ state.hudSeen.progress=true; renderHUD(); }
   const allDone = STATIONS.slice(0,2).every(st=>state.stations[st.key]==="done");
   const wrap=el(`<div class="slide wide">
     <h1>Campus Althangrund</h1>
@@ -955,7 +983,7 @@ function resetGame(){
   state.order=[]; state.selected=new Set(); state.invited=[];
   state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.extensions=0; state.rep=100;
-  state.hudSeen={time:false,rep:false};
+  state.hudSeen={time:false,rep:false,progress:false}; state.budgetOpen=false;
   state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
   state.stations=freshStations(); state.prAction=null;

@@ -15,11 +15,11 @@
     <span class="dots"><i></i><i></i><i></i></span>
   </div>
   <div class="hud" id="hud" style="display:none">
-    <div class="gauge money-gauge" id="g-money">
-      <div class="k">💶 Budget</div>
+    <button class="gauge money-gauge" id="g-money" type="button" aria-expanded="false" aria-controls="budget-panel">
+      <div class="k">💶 Budget <span class="caret">▾</span></div>
       <div class="v" id="hud-money">€3,000,000</div>
       <div class="sub" id="hud-spent">nothing spent yet</div>
-    </div>
+    </button>
     <div class="gauge time-gauge" id="g-time" hidden>
       <div class="k">📅 Schedule</div>
       <div class="v" id="hud-weeks">on time</div>
@@ -30,6 +30,15 @@
       <div class="v" id="hud-repword">Solid</div>
       <div class="bar"><div class="fill" id="hud-repfill" style="width:100%"></div></div>
     </div>
+    <div class="gauge progress" id="g-progress" hidden>
+      <div class="k">Progress</div>
+      <div class="v" id="hud-progress">Station 1 of 6</div>
+      <div class="bar"><div class="fill" id="hud-progfill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="budget-panel" id="budget-panel" hidden>
+    <div class="bstack" id="budget-stack"></div>
+    <ul class="legend" id="budget-legend"></ul>
   </div>
   <div class="feed" id="feed" style="display:none">
     <span class="src">Quiet news day</span> — the call has just opened.
