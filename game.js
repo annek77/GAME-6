@@ -1,6 +1,7 @@
 /* ==========================================================================
    POOL OF EXPERTS — game.js
-   Flow: intro → map (station 1 open) → brief → ONE selection (grid + field checklist) → letter →
+   Flow: intro → map (station 1 open) → brief → Chamber letter → ONE selection in two rounds
+         (deck: yes/maybe/no, then the table with hand and field slots) → letter →
          pool reveal → the outside world reacts → the brief again, one line marked
          → three ways (repair under
          pressure / sit it out / fund something alongside) → map (station 2:
@@ -26,8 +27,10 @@ function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; 
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
 const state = {
   screen:"intro",
-  order:[],                    // shuffled profile ids for the grid
+  order:[],                    // shuffled profile ids
   selected:new Set(),          // the selection in progress
+  deck:{ idx:0, yes:[], maybe:[], no:[] },   // round 1 piles
+  deckDone:false, showNo:false,
   invited:[],                  // the confirmed board (ids)
 
   // the brief as it was sent: term keys in the order shown. Fixed order —
@@ -313,111 +316,67 @@ function renderChamberMail(){
   document.getElementById("cm-go").onclick=()=>renderHandPick();
 }
 
-/* Also the repair screen: with state.repairing the grid opens pre-filled with
-   the current board, and every replacement costs REPAIR_WEEKS of delay. */
+/* Repair: the table opens with the current board, every replacement costs REPAIR_WEEKS. */
 const REPAIR_WEEKS = 2;
 function repairSwaps(){ return [...state.selected].filter(id=>!state.repairBase.includes(id)).length; }
 
+/* ---------- the selection, in two rounds ----------
+   Round 1, the deck: every candidate once, one at a time, big. Yes / Maybe / No.
+   Round 2, the table: the Yes and Maybe piles as compact cards, the hand of
+   chosen people and the six field slots always in view. The No pile stays
+   one click away. Repair mode skips the deck and shows everyone.           */
+const OWN_SEATS = JURY_SIZE - CHAMBER_SHARE;
+const SENIORITY_LABEL = ["under 5 years","5–10 years","10–20 years","20+ years"];
+function candidateOrder(){ return state.order.filter(id=>!isChamber(id)); }
+
 function renderHandPick(){
-  stage.innerHTML="";
   if(state.order.length===0) state.order=shuffle(PROFILES.map(p=>p.id));
   CHAMBER_NOMINATION.ids.forEach(id=>state.selected.add(id));   // the Chamber's seats are taken
+  if(state.repairing || state.deckDone) renderTable(); else renderDeck();
+}
 
+/* the sticky bar shared by both rounds: hand, slots, fees, confirm */
+function selectionBar(){
   const bar=el(`
-    <div class="selbar">
-      <div class="counter"><span id="cnt">0</span>/${JURY_SIZE}<small>chosen</small></div>
-      <p class="hint" id="task"></p>
-      <div class="fees" id="fees"></div>
-      <button class="btn" id="confirm" disabled>Confirm the board</button>
+    <div class="selbar two">
+      <div class="row1">
+        <div class="hand" id="hand"></div>
+        <div class="fees" id="fees"></div>
+        <button class="btn" id="confirm" disabled>Confirm the board</button>
+      </div>
+      <div class="row2">
+        <div class="slots" id="slots"></div>
+        <p class="hint" id="task"></p>
+      </div>
     </div>`);
-  bar.querySelector("#task").innerHTML = state.repairing
-    ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*WEEK_COST)}.`
-    : `<b>${JURY_SIZE} seats, ${CHAMBER_SHARE} of them filled by the Chamber. Cover all six fields with your ${JURY_SIZE-CHAMBER_SHARE}. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more.`;
-  stage.appendChild(bar);
-
-  const wrap=el(`<div class="selwrap"><div class="grid" id="grid"></div><aside class="board-panel" id="panel"></aside></div>`);
-  const grid=wrap.querySelector("#grid");
-  state.order.forEach(id=>grid.appendChild(makeCard(byId(id))));
-  stage.appendChild(wrap);
-  document.getElementById("confirm").onclick=onConfirmHandPick;
-  refreshSel();
-}
-
-/* The side panel: who is on the board, which fields are covered by whom,
-   and — for a missing field — everyone in the pool who could cover it.
-   All of it is data from the brief and the profiles; no ranking, no advice. */
-function renderPanel(){
-  const panel=document.getElementById("panel"); if(!panel) return;
-  const cov=coverageOf(state.selected);
-  const chosen=state.order.filter(id=>state.selected.has(id));
-  const members = chosen.length
-    ? chosen.map(id=>{ const p=byId(id); const tags=fieldsOf(id).map(k=>{const f=FIELDS.find(x=>x.key===k);return `<i style="background:${f.color}" title="${f.label}"></i>`;}).join("");
-        return isChamber(id)
-          ? `<li class="chamber" title="Nominated by the Chamber"><span class="who">${p.name}</span><span class="tags"><em>Chamber</em></span><span class="fee">${eur(expertFee(p))}</span></li>`
-          : `<li data-id="${id}" title="Remove"><span class="who">${p.name}</span><span class="tags">${tags}</span><span class="fee">${eur(expertFee(p))}</span></li>`; }).join("")
-    : `<li class="none">Nobody yet. Tap a card.</li>`;
-  const fields = FIELDS.map(f=>{
-    if(cov[f.key]){
-      const by=chosen.filter(id=>FIELD_MAP[f.key].includes(id)).map(id=>byId(id).name.split(" ").pop());
-      return `<li class="ok" style="--fc:${f.color}"><b>${f.short}</b><span>${by.join(", ")}</span></li>`;
-    }
-    const could=state.order.filter(id=>FIELD_MAP[f.key].includes(id) && !state.selected.has(id))
-      .map(id=>`<button class="link" data-jump="${id}">${byId(id).name}</button>`).join("");
-    return `<li class="missing" style="--fc:${f.color}"><b>${f.short}</b><span class="lab">missing · covered by</span><span class="could">${could}</span></li>`;
-  }).join("");
-  panel.innerHTML=`
-    <h4>Your board <small>${chosen.length}/${JURY_SIZE}</small></h4>
-    <ul class="members">${members}</ul>
-    <h4>Fields <small>${FIELDS.filter(f=>cov[f.key]).length}/${FIELDS.length}</small></h4>
-    <ul class="fieldlist">${fields}</ul>`;
-  panel.querySelectorAll(".members li[data-id]").forEach(li=>li.onclick=()=>{ const c=document.querySelector(`.card[data-id="${li.dataset.id}"]`); toggleCard(byId(li.dataset.id),c); });
-  panel.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{
-    const c=document.querySelector(`.card[data-id="${b.dataset.jump}"]`);
-    if(c.scrollIntoView) c.scrollIntoView({behavior:"smooth",block:"center"});
-    c.classList.remove("pulse"); void c.offsetWidth; c.classList.add("pulse");
-  });
-}
-
-function makeCard(p){
-  const c=el(`
-    <div class="card${state.selected.has(p.id)?" sel":""}${isChamber(p.id)?" chamber":""}" data-id="${p.id}">
-      <div class="nm">${p.name}</div>
-      <div class="ti">${p.title} · ${p.edu}</div>
-      <div class="sp">${p.spec}</div>
-      <div class="bio">${p.bio}</div>
-      <div class="fields"></div>
-      <div class="crit"></div>
-      <div class="fee">${eur(expertFee(p))} fee</div>
-    </div>`);
-  const fl=c.querySelector(".fields");
-  fieldsOf(p.id).forEach(k=>{
-    const f=FIELDS.find(x=>x.key===k);
-    fl.appendChild(el(`<span class="ftag" data-k="${k}" style="--fc:${f.color}" title="${f.label}">${f.short}</span>`));
-  });
-  const crit=c.querySelector(".crit");
-  CRITERIA.forEach(cr=>{
-    crit.appendChild(el(`<span class="chip shown" data-k="${cr.key}">${cr.label} <span class="val">${"●".repeat(p.sig[cr.key])||"–"}</span></span>`));
-  });
-  crit.appendChild(el(`<span class="chip comp shown">${COMPETENCE.label} <span class="val">${"●".repeat(p.sig.publicValue)||"–"}</span></span>`));
-  c.onclick=()=>toggleCard(p,c);
-  return c;
-}
-
-function toggleCard(p,c){
-  if(isChamber(p.id)){ c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); return; }
-  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); }
-  else{
-    if(state.selected.size>=JURY_SIZE){ flashFull(); return; }
-    state.selected.add(p.id); c.classList.add("sel");
-  }
-  refreshSel();
+  return bar;
 }
 
 function refreshSel(){
-  const n=state.selected.size;
-  document.getElementById("cnt").textContent=n;
-  const missing=missingFields(state.selected);
-  renderPanel();
+  const hand=document.getElementById("hand"), slots=document.getElementById("slots");
+  if(!hand) return;
+  const n=state.selected.size, missing=missingFields(state.selected), cov=coverageOf(state.selected);
+  // the hand: chosen people as small cards, chamber first
+  const ids=[...CHAMBER_NOMINATION.ids, ...state.order.filter(id=>state.selected.has(id)&&!isChamber(id))];
+  hand.innerHTML="";
+  ids.forEach(id=>{ const p=byId(id); const c=el(`<div class="hcard${isChamber(id)?" chamber":""}" title="${isChamber(id)?"Nominated by the Chamber":"Remove "+p.name}"><b>${p.name.split(" ").pop()}</b><small>${isChamber(id)?"Chamber":eur(expertFee(p))}</small></div>`);
+    if(!isChamber(id)) c.onclick=()=>{ state.selected.delete(id); refreshSel(); const card=document.querySelector(`.card[data-id="${id}"]`); if(card) card.classList.remove("sel"); };
+    hand.appendChild(c); });
+  for(let i=n;i<JURY_SIZE;i++) hand.appendChild(el(`<div class="hcard empty"><b>·</b></div>`));
+  // the six slots
+  slots.innerHTML="";
+  FIELDS.forEach(f=>{
+    const by=[...state.selected].filter(id=>FIELD_MAP[f.key].includes(id)).map(id=>byId(id).name.split(" ").pop());
+    const sl=el(`<button type="button" class="slot ${cov[f.key]?"ok":"missing"}" style="--fc:${f.color}" data-k="${f.key}" title="${f.label} — ${f.note}"><b>${f.short}</b><small>${cov[f.key]?by.join(", "):"missing"}</small></button>`);
+    if(!cov[f.key]) sl.onclick=()=>showCoverers(f,sl);
+    slots.appendChild(sl);
+  });
+  // task line
+  const task=document.getElementById("task");
+  task.innerHTML = state.repairing
+    ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*WEEK_COST)}.`
+    : `<b>${OWN_SEATS} seats are yours; the Chamber filled ${CHAMBER_SHARE}. Cover all six fields. Stay within budget.</b> Every member is paid from your budget — long careers cost more.`;
+  // confirm + fees
   const c=document.getElementById("confirm");
   const ready = n===JURY_SIZE && missing.length===0;
   c.disabled=!ready;
@@ -436,6 +395,113 @@ function refreshSel(){
   c.textContent = ready ? "Confirm the board"
                 : n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more`
                 : `${missing.length} field${missing.length>1?"s":""} not covered`;
+}
+
+/* a missing slot, clicked: who in the pool could fill it (data, not advice) */
+function showCoverers(f,anchor){
+  document.querySelectorAll(".pop").forEach(p=>p.remove());
+  const who=candidateOrder().filter(id=>FIELD_MAP[f.key].includes(id)&&!state.selected.has(id));
+  const pop=el(`<div class="pop"><b>${f.label}</b><span>${f.note}</span><div class="who">${who.map(id=>{const p=byId(id);const pile=state.deck.no.includes(id)?" · in your No pile":"";return `<button class="link" data-jump="${id}">${p.name}</button><small>${p.spec}${pile}</small>`;}).join("")||"<em>Nobody left in the pool.</em>"}</div></div>`);
+  anchor.parentElement.appendChild(pop);
+  pop.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{ pop.remove(); jumpTo(b.dataset.jump); });
+  setTimeout(()=>document.addEventListener("click",function h(e){ if(!pop.contains(e.target)){ pop.remove(); document.removeEventListener("click",h); } }),0);
+}
+function jumpTo(id){
+  if(!state.deckDone && !state.repairing){                 // still in the deck: jump to that card
+    state.deck.idx=candidateOrder().indexOf(id); renderDeck(); return;
+  }
+  if(state.deck.no.includes(id) && !state.showNo){ state.showNo=true; renderTable(); }
+  const c=document.querySelector(`.card[data-id="${id}"]`); if(!c) return;
+  if(c.scrollIntoView) c.scrollIntoView({behavior:"smooth",block:"center"});
+  c.classList.remove("pulse"); void c.offsetWidth; c.classList.add("pulse");
+}
+
+/* ---- round 1: the deck ---- */
+function renderDeck(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("the candidates"));
+  stage.appendChild(selectionBar());
+  const order=candidateOrder(), i=state.deck.idx;
+  if(i>=order.length){ state.deckDone=true; renderTable(); return; }
+  const p=byId(order[i]);
+  const own=[...state.selected].filter(id=>!isChamber(id)).length;
+  const inYes=state.selected.has(p.id);
+  const shell=el(`<div class="deck">
+    <div class="deck-progress">Candidate ${i+1} of ${order.length} · <span>Yes ${state.deck.yes.length} · Maybe ${state.deck.maybe.length} · No ${state.deck.no.length}</span></div>
+    <div class="bigcard">
+      <div class="nm">${p.name}</div>
+      <div class="ti">${p.title} · ${p.edu}</div>
+      <div class="sp">${p.spec}</div>
+      <p class="bio">${p.bio}</p>
+      <div class="fields">${fieldsOf(p.id).map(k=>{const f=FIELDS.find(x=>x.key===k);return `<span class="ftag" style="--fc:${f.color}" title="${f.label}">${f.short}</span>`;}).join("")||'<span class="ftag none">none of the six fields</span>'}</div>
+      <div class="fee">${eur(expertFee(p))} fee · ${SENIORITY_LABEL[p.sig.seniority]} in practice</div>
+    </div>
+    <div class="deck-actions">
+      <button class="btn yes" id="d-yes" ${own>=OWN_SEATS&&!inYes?"disabled":""}>${inYes?"✓ On the board":"Yes"}<span class="cost">${own>=OWN_SEATS&&!inYes?"your six seats are taken — use Maybe":"onto the board"}</span></button>
+      <button class="btn ghost" id="d-maybe">Maybe<span class="cost">decide at the table</span></button>
+      <button class="btn ghost no" id="d-no">No<span class="cost">to the No pile</span></button>
+    </div>
+    <div class="deck-nav">${i>0?'<button class="link" id="d-prev">← previous</button>':''}<span></span><button class="link" id="d-table">Skip to the table →</button></div>
+  </div>`);
+  stage.appendChild(shell);
+  const put=(pile)=>{ ["yes","maybe","no"].forEach(k=>{ state.deck[k]=state.deck[k].filter(x=>x!==p.id); }); state.deck[pile].push(p.id);
+    if(pile==="yes") state.selected.add(p.id); else state.selected.delete(p.id);
+    state.deck.idx++; renderDeck(); };
+  document.getElementById("d-yes").onclick=()=>put("yes");
+  document.getElementById("d-maybe").onclick=()=>put("maybe");
+  document.getElementById("d-no").onclick=()=>put("no");
+  const prev=document.getElementById("d-prev"); if(prev) prev.onclick=()=>{ state.deck.idx--; renderDeck(); };
+  document.getElementById("d-table").onclick=()=>{ state.deckDone=true; renderTable(); };
+  refreshSel();
+}
+
+/* ---- round 2: the table ---- */
+function renderTable(){
+  stage.innerHTML="";
+  stage.appendChild(kicker(state.repairing?"reopen the search":"the table"));
+  stage.appendChild(selectionBar());
+  const order=candidateOrder();
+  const unseen=order.filter(id=>!state.deck.yes.includes(id)&&!state.deck.maybe.includes(id)&&!state.deck.no.includes(id));
+  const shown = state.repairing ? order
+              : order.filter(id=>state.showNo || !state.deck.no.includes(id));
+  const noCount=state.deck.no.length;
+  const head=el(`<div class="tablehead">
+    <span>${state.repairing ? "Everyone in the pool. Your board is marked." : `${shown.length} people on the table${unseen.length?` (${unseen.length} you skipped)`:""}. Tap a card to add or remove, tap the name for details.`}</span>
+    ${!state.repairing&&noCount ? `<button class="link" id="t-no">${state.showNo?"Hide":"Show"} the No pile (${noCount})</button>` : ""}
+  </div>`);
+  stage.appendChild(head);
+  const grid=el(`<div class="grid compact" id="grid"></div>`);
+  shown.forEach(id=>grid.appendChild(makeCard(byId(id))));
+  stage.appendChild(grid);
+  const tno=document.getElementById("t-no"); if(tno) tno.onclick=()=>{ state.showNo=!state.showNo; renderTable(); };
+  document.getElementById("confirm").onclick=onConfirmHandPick;
+  refreshSel();
+}
+
+function makeCard(p){
+  const pile=state.deck.no.includes(p.id)?"no":state.deck.maybe.includes(p.id)?"maybe":state.deck.yes.includes(p.id)?"yes":"";
+  const c=el(`
+    <div class="card${state.selected.has(p.id)?" sel":""} pile-${pile}" data-id="${p.id}">
+      <button type="button" class="nm">${p.name}</button>
+      <div class="sp">${p.spec}</div>
+      <div class="more" hidden><div class="ti">${p.title} · ${p.edu}</div><div class="bio">${p.bio}</div></div>
+      <div class="fields"></div>
+      <div class="fee">${eur(expertFee(p))} · ${SENIORITY_LABEL[p.sig.seniority]}</div>
+    </div>`);
+  const fl=c.querySelector(".fields");
+  fieldsOf(p.id).forEach(k=>{ const f=FIELDS.find(x=>x.key===k); fl.appendChild(el(`<span class="ftag" data-k="${k}" style="--fc:${f.color}" title="${f.label}">${f.short}</span>`)); });
+  c.querySelector(".nm").onclick=(e)=>{ e.stopPropagation(); const m=c.querySelector(".more"); m.hidden=!m.hidden; };
+  c.onclick=()=>toggleCard(p,c);
+  return c;
+}
+
+function toggleCard(p,c){
+  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); }
+  else{
+    if(state.selected.size>=JURY_SIZE){ flashFull(); return; }
+    state.selected.add(p.id); c.classList.add("sel");
+  }
+  refreshSel();
 }
 function flashFull(){
   const bar=document.querySelector(".selbar");
@@ -654,7 +720,7 @@ function rConfirm(){
     </div>`));
   // going back un-books the fees; they are charged again on the next confirm
   document.getElementById("back").onclick=()=>{
-    spend("experts",-state.spend.experts); state.invited=[];
+    spend("experts",-state.spend.experts); state.invited=[]; state.deckDone=true;
     state.screen="p1"; renderPhasebar(); renderHUD(); stage.scrollTop=0; renderHandPick();
   };
   document.getElementById("send").onclick=()=>go("sendletter");
@@ -986,6 +1052,7 @@ function rOutro(){
 
 function resetGame(){
   state.order=[]; state.selected=new Set(); state.invited=[];
+  state.deck={idx:0,yes:[],maybe:[],no:[]}; state.deckDone=false; state.showNo=false;
   state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.rep=100;
   state.hudSeen={time:false,rep:false,progress:false}; state.budgetOpen=false;

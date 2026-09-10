@@ -374,8 +374,11 @@ intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftr
  → map       Karte zuerst: Station 1 offen, 2–6 gesperrt. Stationsleiste 1–6 ab hier immer sichtbar
  ── Station 1 ──────────────────────────────────────────────────────────────
  → p1        Briefing-Mail (fünf Auflagen) → Kammerbrief (3 von 9 nominiert, WSA §3 Abs. 6,
-             darunter eine Frau) → Grid-Auswahl der übrigen 6 (Checkliste, Seitenleiste
-             mit Beirat/Feldern/wer-könnte, Honorar je Karte, Restbudget)
+             darunter eine Frau) → Auswahl in zwei Runden: Stapel (alle 23 einzeln, Ja /
+             Vielleicht / Nein) → Tisch (Ja+Vielleicht als kompakte Karten, Nein-Stapel
+             zuschaltbar). Sticky-Leiste mit Hand (9 Karten), sechs Feld-Slots (fehlender
+             Slot zeigt per Klick, wer ihn füllen könnte), Honorarsumme, Confirm.
+             Kriterien-Chips sind raus; auf der Karte steht Honorar + Praxisjahre.
  → confirm   Liste + Honorarsumme; „Back" bucht die Honorare wieder aus
  → sendletter  Amtsbrief (Deutsch) → Station 1 erledigt, 2 offen
  → intermezzo  Terminal-Ticker (3 Zeilen)
@@ -422,7 +425,8 @@ grün am 10.09.2026.
 
 - Deadline wandert bei Verzögerung mit → man kann sie nie reißen (unverändert)
 - Fünf der sechs Frauen haben `prestige: 3` — Geschlechter-Tell im Signal-Set.
-  Profil-Audit offen
+  Im UI seit dem Stapel-Umbau nicht mehr sichtbar (nur `seniority` wird als
+  Praxisjahre gezeigt); Profil-Audit trotzdem offen
 - Notlagen-Verhandlung (Abschnitt 5) nicht gebaut; Budget kann nicht unter 0
 - „Ruf kostet später Geld" (Abschnitt 3) ist nicht verdrahtet — Ruf wirkt nur
   als Anzeige
