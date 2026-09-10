@@ -1210,5 +1210,14 @@ stage.addEventListener("click", e => { if(e.target.closest("button")) SFX.click(
   paint();
 })();
 
+/* errors show up in the game itself, so testers can report the exact line */
+window.addEventListener("error", e => showError(e.message + (e.filename ? ` (${e.filename.split("/").pop().split("?")[0]}:${e.lineno})` : "")));
+window.addEventListener("unhandledrejection", e => showError(String(e.reason)));
+function showError(msg){
+  let bar=document.getElementById("errbar");
+  if(!bar){ bar=el(`<div id="errbar" class="errbar"><b>Something broke:</b> <span></span> <button type="button">×</button></div>`); document.body.appendChild(bar); bar.querySelector("button").onclick=()=>bar.remove(); }
+  bar.querySelector("span").textContent=msg;
+}
+
 /* boot: index.html calls start() after this file has loaded. */
 function start(){ if(!debugJump()) go("intro"); }

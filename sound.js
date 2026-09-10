@@ -307,10 +307,13 @@ const SFX = (function () {
 
   // ─── Public API ────────────────────────────────────────────────────────────
 
+  // every call is guarded: if the browser's audio stack misbehaves, the game
+  // goes on in silence rather than stopping
+  const safe = fn => (...a) => { try { return fn(...a); } catch (e) { return undefined; } };
   return {
-    pool, kitchen, plop, letter, stop,
-    click, card, yes, no, confirm, money, headline,
-    mute, setMuted,
+    pool: safe(pool), kitchen: safe(kitchen), plop: safe(plop), letter: safe(letter), stop: safe(stop),
+    click: safe(click), card: safe(card), yes: safe(yes), no: safe(no), confirm: safe(confirm), money: safe(money), headline: safe(headline),
+    mute: safe(mute), setMuted: safe(setMuted),
     get isMuted() { return _muted; }
   };
 
