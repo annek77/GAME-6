@@ -51,7 +51,7 @@ const state = {
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
   delayWeeks:0, rep:100,
-  hudSeen:{ time:false, rep:false, progress:false },   // gauges appear once their dimension matters
+  hudSeen:{ time:false, rep:false },   // gauges appear once their dimension matters
   budgetOpen:false,            // the budget gauge unfolds into the spend chart
   dossierReturn:null,          // where "Back" from the dossier leads
 };
@@ -130,11 +130,6 @@ function renderHUD(){
   document.getElementById("hud-deadline").textContent= hudDeadline();
   document.getElementById("hud-repword").textContent  = repWord();
   const f=document.getElementById("hud-repfill"); f.style.width=state.rep+"%"; f.style.background=repColor();
-  // progress: stations done, once the map exists
-  document.getElementById("g-progress").hidden = !state.hudSeen.progress;
-  const done=STATIONS.filter(st=>state.stations[st.key]==="done").length;
-  document.getElementById("hud-progress").textContent = `Station ${Math.min(done+1,STATIONS.length)} of ${STATIONS.length}`;
-  document.getElementById("hud-progfill").style.width = Math.round(done/STATIONS.length*100)+"%";
   renderBudgetPanel();
 }
 /* the unfolded budget: one stacked bar over SPEND_CATS, legend only for
@@ -933,7 +928,6 @@ function stationResult(key){
 }
 function rMap(){
   stage.innerHTML="";
-  if(!state.hudSeen.progress){ state.hudSeen.progress=true; renderHUD(); }
   const allDone = STATIONS.slice(0,2).every(st=>state.stations[st.key]==="done");
   const wrap=el(`<div class="slide wide">
     <h1>Campus Althangrund</h1>
@@ -1055,7 +1049,7 @@ function resetGame(){
   state.deck={idx:0,yes:[],maybe:[],no:[]}; state.deckDone=false; state.showNo=false;
   state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.rep=100;
-  state.hudSeen={time:false,rep:false,progress:false}; state.budgetOpen=false;
+  state.hudSeen={time:false,rep:false}; state.budgetOpen=false;
   state.reactionTier=null; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0; state.abroadAsked=false;
   state.stations=freshStations(); state.prAction=null;
