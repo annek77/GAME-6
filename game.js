@@ -21,7 +21,7 @@
    Everything from the brief to the real-world coda is station 1. */
 const STATION_OF = { p1:"board", confirm:"board", sendletter:"board", intermezzo:"board",
   reveal:"board", reaction:"board", briefreveal:"board", options:"board", abroad:"board", repaired:"board",
-  realworld:"board", dossier:"board", pr:"pr", outro:"build" };
+  realworld:"board", dossier:"board", pr:"pr", latestations:"permits", outro:"build" };
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -43,6 +43,7 @@ const state = {
   compensation:null,           // key from COMPENSATIONS
   repairing:false, repairBase:[], repairSwaps:0,
   abroadAsked:false,           // the fourth way — asked once, answered once
+  lateBilled:false, savings:0, // stations 3–6 billed once before the ending
 
   // the project map: station key → "done" | "open" | "locked"
   stations:freshStations(),
@@ -68,6 +69,11 @@ function countInvited(){
 }
 const eur = n => "€"+n.toLocaleString("en-GB");
 const isChamber = id => CHAMBER_NOMINATION.ids.includes(id);
+/* echoes of the board: active effects, current week cost, PR discount */
+const echoes  = () => activeEchoes(state.invited);
+const echo    = key => echoes().find(e=>e.key===key) || null;
+const weekCost = () => { const e=echo("costcontrol"); return e ? e.effect.weekCost : WEEK_COST; };
+const prPrice  = cost => { const e=echo("participation"); return e ? Math.round(cost*(1-e.effect.prDiscount)) : cost; };
 /* who sits on the board, split the way the real jury is split */
 function boardSplit(){
   const r={ chamber:{w:0,m:0}, own:{w:0,m:0} };
@@ -100,14 +106,14 @@ function go(screen){
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
-     abroad:rAbroad, realworld:rRealWorld, dossier:rDossier,
+     abroad:rAbroad, realworld:rRealWorld, dossier:rDossier, latestations:rLateStations,
      map:rMap, pr:rPR,
      outro:rOutro })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","outro"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","outro"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","latestations","outro"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","latestations","outro"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -152,7 +158,7 @@ function renderBudgetPanel(){
   if(spentTotal===0) legend.insertBefore(el(`<li class="none">Nothing spent yet.</li>`),legend.firstChild);
 }
 document.getElementById("g-money").onclick=()=>{ state.budgetOpen=!state.budgetOpen; renderBudgetPanel(); };
-function hudAddDelay(weeks){ state.delayWeeks+=weeks; state.hudSeen.time=true; spend("delay",weeks*WEEK_COST); hudFlash("g-time"); }
+function hudAddDelay(weeks){ state.delayWeeks+=weeks; state.hudSeen.time=true; spend("delay",weeks*weekCost()); hudFlash("g-time"); }
 function hudAddRep(delta){ state.rep=Math.max(0,Math.min(100,state.rep+delta)); state.hudSeen.rep=true; hudFlash("g-rep"); renderHUD(); }
 function hudFeed(src,text){ document.getElementById("feed").innerHTML=`<span class="src">${src}</span> — <b>${text}</b>`; }
 
@@ -369,7 +375,7 @@ function refreshSel(){
   // task line
   const task=document.getElementById("task");
   task.innerHTML = state.repairing
-    ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*WEEK_COST)}.`
+    ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*weekCost())}.`
     : `<b>${OWN_SEATS} seats are yours; the Chamber filled ${CHAMBER_SHARE}. Cover all six fields. Stay within budget.</b> Every member is paid from your budget — long careers cost more.`;
   // confirm + fees
   const c=document.getElementById("confirm");
@@ -377,8 +383,8 @@ function refreshSel(){
   c.disabled=!ready;
   if(state.repairing){
     const sw=repairSwaps(), delta=feesOf(state.selected)-feesOf(new Set(state.repairBase));
-    const cost=sw*REPAIR_WEEKS*WEEK_COST+delta, over=cost>state.budget;
-    document.getElementById("fees").innerHTML=`Delay <b>+${sw*REPAIR_WEEKS} weeks · ${eur(sw*REPAIR_WEEKS*WEEK_COST)}</b><small>fees ${delta>=0?"+":"−"}${eur(Math.abs(delta))} · budget ${eur(state.budget)}</small>`;
+    const cost=sw*REPAIR_WEEKS*weekCost()+delta, over=cost>state.budget;
+    document.getElementById("fees").innerHTML=`Delay <b>+${sw*REPAIR_WEEKS} weeks · ${eur(sw*REPAIR_WEEKS*weekCost())}</b><small>fees ${delta>=0?"+":"−"}${eur(Math.abs(delta))} · budget ${eur(state.budget)}</small>`;
     if(over) c.disabled=true;
     c.textContent = !ready ? (n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more` : `${missing.length} field${missing.length>1?"s":""} not covered`)
                   : over ? "Not enough budget left"
@@ -509,9 +515,9 @@ function onConfirmHandPick(){
   if(state.selected.size!==JURY_SIZE || missingFields(state.selected).length) return;
   if(state.repairing){
     const sw=repairSwaps();
-    if(sw*REPAIR_WEEKS*WEEK_COST+feesOf(state.selected)-feesOf(new Set(state.repairBase))>state.budget) return;
+    if(sw*REPAIR_WEEKS*weekCost()+feesOf(state.selected)-feesOf(new Set(state.repairBase))>state.budget) return;
     spend("experts",feesOf(state.selected)-feesOf(new Set(state.repairBase)));
-    if(sw>0) hudAddDelay(sw*REPAIR_WEEKS);
+    if(sw>0) hudAddDelay(sw*REPAIR_WEEKS);          // at the old board's week cost — the search happens before the newcomers start
     state.invited=[...state.selected]; state.repairSwaps=sw; state.repairing=false;
     go("repaired"); return;
   }
@@ -604,7 +610,7 @@ function rOptions(){
       </div>`}
       <div class="way">
         <h3>Reopen the search</h3>
-        <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} in delay costs, plus the difference in fees.</p>
+        <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*weekCost())} in delay costs, plus the difference in fees.</p>
         <button class="btn" id="opt-repair">Reopen the search</button>
       </div>
       <div class="way">
@@ -690,7 +696,7 @@ function rRepaired(){
   stage.appendChild(el(`<div class="slide">
     <h1>Board revised</h1>
     <p class="lede">${sw===0 ? "You kept the board as it was. Nothing changed, nothing was spent."
-      : `${sw} member${sw>1?"s":""} replaced. The new search took ${sw*REPAIR_WEEKS} weeks — ${eur(sw*REPAIR_WEEKS*WEEK_COST)} in delay costs. Fees now ${eur(state.spend.experts)}.`}</p>
+      : `${sw} member${sw>1?"s":""} replaced. The new search took ${sw*REPAIR_WEEKS} weeks. Fees now ${eur(state.spend.experts)}, delay costs ${eur(state.spend.delay)}.`}</p>
     <div class="verdict"><ul>${list}</ul></div>
     <div class="btnbar"><button class="btn" id="rp-go">Carry on</button></div>
   </div>`));
@@ -877,7 +883,7 @@ function rRealWorld(){
     <p class="lede">The competition for Campus Althangrund is real. The BIG launched it on 6 August 2025;
       the jury first met on 25–27 February 2026 and decides at the end of 2026.</p>
     <div class="juries">
-      <div class="jury"><h3>Your board</h3>${yours}</div>
+      <div class="jury"><h3>Your board</h3>${yours}${(()=>{const need=echoes().filter(e=>e.when==="absent");const have=echoes().filter(e=>e.when==="present");return `<p class="names">${have.length?`Brings: ${have.map(e=>e.label).join(", ")}.`:""} ${need.length?`Will be bought in later: ${need.map(e=>e.label.toLowerCase()).join(", ")}.`:""}</p>`;})()}</div>
       <div class="jury"><h3>Campus Althangrund, 2026</h3>${real}
         <p class="names">${REAL_JURY.women_named.join(" · ")}</p>
         <p class="src">${REAL_JURY.source}</p></div>
@@ -923,7 +929,7 @@ function rDossier(){
    ======================================================================== */
 function stationResult(key){
   if(key==="board") return `${state.invited.length} members · fees ${eur(state.spend.experts)}`;
-  if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction); return `${a.label} · ${eur(a.cost)}`; }
+  if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction); return `${a.label} · ${eur(prPrice(a.cost))}`; }
   return "";
 }
 function rMap(){
@@ -950,7 +956,7 @@ function rMap(){
     map.appendChild(card);
   });
   stage.appendChild(wrap);
-  const b=document.getElementById("map-build"); if(b) b.onclick=()=>go("outro");   // → ending (step 8)
+  const b=document.getElementById("map-build"); if(b) b.onclick=()=>go("latestations");
 }
 
 /* ---------- Station 2: Neighbours & PR — one decision ---------- */
@@ -964,12 +970,16 @@ function rPR(){
     <div class="btnbar col mt" id="pr-actions"></div>
   </div>`);
   const bar=card.querySelector("#pr-actions");
+  const disc=echo("participation");
+  if(disc) card.querySelector("p").insertAdjacentHTML("afterend",`<p class="echo-note">${disc.line}</p>`);
   PR_ACTIONS.forEach(a=>{
-    const b=el(`<button class="btn ${a.cost?"":"ghost"}" data-k="${a.key}">${a.label}<span class="cost">${a.cost?eur(a.cost):"no cost"} · ${a.desc}</span></button>`);
-    if(a.cost>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
+    const price=prPrice(a.cost);
+    const priceHtml = !a.cost ? "no cost" : disc ? `<s>${eur(a.cost)}</s> ${eur(price)}` : eur(a.cost);
+    const b=el(`<button class="btn ${a.cost?"":"ghost"}" data-k="${a.key}">${a.label}<span class="cost">${priceHtml} · ${a.desc}</span></button>`);
+    if(price>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
     b.onclick=()=>{
       state.prAction=a.key; state.stations.pr="done";
-      if(a.cost) spend("pr",a.cost);
+      if(price) spend("pr",price);
       hudAddRep(a.rep);
       hudFeed("Augasse", a.rep>0 ? `${a.label}. The neighbours take note.` : "The neighbours hear the drilling. Nothing else.");
       go("map");
@@ -977,6 +987,39 @@ function rPR(){
     bar.appendChild(b);
   });
   stage.appendChild(card);
+}
+
+/* ========================================================================
+   STATIONS 3–6 IN ONE LINE EACH — not playable in this prototype, but the
+   board still echoes there: expertise that is missing gets bought in,
+   expertise that is there saves money or keeps a feature. Billed once.
+   ======================================================================== */
+function rLateStations(){
+  stage.innerHTML="";
+  const acts=echoes().filter(e=>["permits","partners","material","build"].includes(e.station));
+  if(!state.lateBilled){
+    state.lateBilled=true;
+    acts.forEach(e=>{
+      if(e.effect.consultants) spend("consultants",e.effect.consultants);
+      if(e.effect.saving){ state.savings+=e.effect.saving; state.budget+=e.effect.saving; renderHUD(); }
+    });
+    ["permits","partners","material","build"].forEach(k=>state.stations[k]="done");
+    renderPhasebar();
+  }
+  const rows=STATIONS.slice(2).map((st,i)=>{
+    const mine=acts.filter(e=>e.station===st.key);
+    const lines=mine.length ? mine.map(e=>`<li class="${e.effect.consultants?"cost":e.effect.saving?"gain":"keep"}"><b>${e.label}</b> — ${e.line}${e.effect.consultants?` <span>${eur(e.effect.consultants)}</span>`:e.effect.saving?` <span>+${eur(e.effect.saving)}</span>`:""}</li>`).join("")
+                             : `<li class="none">Nothing here traces back to the board.</li>`;
+    return `<div class="late"><div class="st-head"><span class="st-no">${i+3}</span><span class="st-state">not playable in this prototype</span></div><h3>${st.label}</h3><ul>${lines}</ul></div>`;
+  }).join("");
+  stage.appendChild(el(`<div class="kicker"><b>Stations 3–6</b> · 2027–2032</div>`));
+  stage.appendChild(el(`<div class="slide wide">
+    <h1>Four stations, one line each</h1>
+    <p class="lede">You did not play these. Your board did — what it knew came for free, what it lacked was bought in.</p>
+    <div class="lates">${rows}</div>
+    <div class="btnbar"><button class="btn" id="ls-go">Opening day →</button></div>
+  </div>`));
+  document.getElementById("ls-go").onclick=()=>go("outro");
 }
 
 /* ========================================================================
@@ -1027,10 +1070,10 @@ function rOutro(){
   stage.appendChild(el(`<div class="kicker"><b>Opening day</b> · 2032</div>`));
   stage.appendChild(el(`<div class="slide wide">
     <h1>${t.h}</h1>
-    <div class="art">${newWuSvg(finishTier().key)}</div>
-    <p class="lede">The WU stands. ${t.t}</p>
+    <div class="art">${newWuSvg(finishTier().key,{roof:!!echo("roof"),interior:!!echo("interior")})}</div>
+    <p class="lede">The WU stands. ${t.t}${echo("roof")&&finishTier().key!=="excellent"?" The green roof was kept anyway — it had been detailed by the board from day one.":""}${echo("interior")&&finishTier().key!=="excellent"?" Floors and lighting were kept as planned; the board had drawn them as one package.":""}</p>
     <div class="bill"><div class="k">Left for fit-out and finishes</div><div class="v">${eur(Math.max(0,state.budget))}</div>
-      <ul class="legend">${spent}</ul></div>
+      <ul class="legend">${spent}${state.savings?`<li><i style="background:#fff"></i>Savings<b>+${eur(state.savings)}</b></li>`:""}</ul></div>
     <div class="facts2">
       <div class="fact2"><p>${measureSentence()}</p></div>
       <div class="fact2"><p>${decidedSentence()}</p></div>
@@ -1052,6 +1095,7 @@ function resetGame(){
   state.hudSeen={time:false,rep:false}; state.budgetOpen=false;
   state.reactionTier=null; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0; state.abroadAsked=false;
+  state.lateBilled=false; state.savings=0;
   state.stations=freshStations(); state.prAction=null;
   state.dossierReturn=null; introStep=0;
   go("intro");

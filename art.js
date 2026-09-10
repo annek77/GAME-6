@@ -326,42 +326,48 @@ const POOLHALL_SVG = `
    Gleiche Bühne wie ALTEWU_SVG (Platte, Stützen, Bahn), neues Gebäude darauf.
    Was sich zwischen den Stufen ändert, ist genau das, was das Restbudget
    bezahlt hat: Dach, Erdgeschoß, Bäume, Fassade. Kein Text im Bild.        */
-function newWuSvg(tier){
+function newWuSvg(tier, up={}){
+  // up.roof / up.interior: one tier better for that feature (board echoes)
+  const ORDER=["bare","frugal","solid","excellent"];
+  const better=t=>ORDER[Math.min(ORDER.indexOf(t)+1,ORDER.length-1)];
   const T = {
     excellent:{ facade:"#e8cfa0", roof:"green",   trees:4, ground:"cafe",    terrace:true,  people:5 },
     solid:    { facade:"#e7edf0", roof:"partial", trees:2, ground:"cafe",    terrace:false, people:3 },
     frugal:   { facade:"#d5dde2", roof:"planters",trees:1, ground:"vending", terrace:false, people:1 },
     bare:     { facade:"#c3ccd2", roof:"gravel",  trees:0, ground:"shell",   terrace:false, people:0 },
-  }[tier] || {};
+  };
+  const base=T[tier]||T.bare;
+  const roofT=T[up.roof?better(tier):tier], intT=T[up.interior?better(tier):tier];
+  const F={ ...base, roof:roofT.roof, trees:Math.max(base.trees,roofT.trees), ground:intT.ground, people:intT.people };
   const ink="#143041";
   // roof variants
   let roof="";
-  if(T.roof==="green"){
+  if(F.roof==="green"){
     roof=`<rect x="70" y="34" width="480" height="8" fill="#6fc08c"/>`+
          [90,140,190,240,290,340,390,440,490,530].map(x=>`<circle cx="${x}" cy="34" r="9" fill="#4fb286"/>`).join("");
-  } else if(T.roof==="partial"){
+  } else if(F.roof==="partial"){
     roof=`<rect x="70" y="34" width="480" height="8" fill="#cfd8dc"/><rect x="70" y="34" width="220" height="8" fill="#6fc08c"/>`+
          [90,140,190,240].map(x=>`<circle cx="${x}" cy="34" r="8" fill="#4fb286"/>`).join("");
-  } else if(T.roof==="planters"){
+  } else if(F.roof==="planters"){
     roof=`<rect x="70" y="34" width="480" height="8" fill="#cfd8dc"/>`+
          [90,300,530].map(x=>`<rect x="${x-10}" y="26" width="20" height="10" fill="#9fb6c0"/><circle cx="${x}" cy="24" r="6" fill="#4fb286"/>`).join("");
   } else {
     roof=`<rect x="70" y="34" width="480" height="8" fill="#b8c2c8"/>`+
          [100,160,220,280,340,400,460,520].map(x=>`<circle cx="${x}" cy="38" r="1.6" fill="${ink}" stroke="none"/>`).join("");
   }
-  const terrace = T.terrace ? `<rect x="400" y="20" width="120" height="14" fill="${T.facade}"/><line x1="400" y1="20" x2="520" y2="20"/><rect x="430" y="8" width="3" height="12" fill="${ink}"/><path d="M433 8 l14 4 l-14 4 z" fill="#ffcf4d"/>` : "";
+  const terrace = F.terrace ? `<rect x="400" y="20" width="120" height="14" fill="${F.facade}"/><line x1="400" y1="20" x2="520" y2="20"/><rect x="430" y="8" width="3" height="12" fill="${ink}"/><path d="M433 8 l14 4 l-14 4 z" fill="#ffcf4d"/>` : "";
   // upper floors: two volumes, window band
-  const upper=`<rect x="70" y="42" width="480" height="40" fill="${T.facade}"/>
+  const upper=`<rect x="70" y="42" width="480" height="40" fill="${F.facade}"/>
     <g fill="#a3e5f7" stroke-width="2">${[88,120,152,184,216,248,280,312,344,376,408,440,472,504].map(x=>`<rect x="${x}" y="50" width="22" height="22"/>`).join("")}</g>`;
   // ground floor variants
   let ground="";
-  if(T.ground==="cafe"){
-    ground=`<rect x="70" y="82" width="480" height="30" fill="${T.facade}"/>
+  if(F.ground==="cafe"){
+    ground=`<rect x="70" y="82" width="480" height="30" fill="${F.facade}"/>
       <g fill="#fff4d6" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/>`).join("")}</g>
       <rect x="84" y="80" width="120" height="7" fill="#e8526b"/>
       <text x="111" y="105" font-family="'VT323',monospace" font-size="14" fill="${ink}" stroke="none" text-anchor="middle">CAFÉ</text>`;
-  } else if(T.ground==="vending"){
-    ground=`<rect x="70" y="82" width="480" height="30" fill="${T.facade}"/>
+  } else if(F.ground==="vending"){
+    ground=`<rect x="70" y="82" width="480" height="30" fill="${F.facade}"/>
       <g fill="#dfe7eb" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/>`).join("")}</g>
       <rect x="90" y="90" width="12" height="18" fill="#5cb9da"/><rect x="106" y="90" width="12" height="18" fill="#e8526b"/>`;
   } else {
@@ -369,9 +375,9 @@ function newWuSvg(tier){
       <g fill="#7d919c" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/><line x1="${x}" y1="88" x2="${x+54}" y2="110"/>`).join("")}</g>`;
   }
   // people at the entrance
-  const people=[...Array(T.people||0)].map((_,i)=>{const x=250+i*22;return `<circle cx="${x}" cy="118" r="4" fill="${i%2?"#ffe1ef":"#ffd9c2"}" stroke-width="2"/><rect x="${x-3}" y="122" width="6" height="8" rx="2" fill="${i%2?"#4fb286":"#5cb9da"}" stroke-width="2"/>`;}).join("");
+  const people=[...Array(F.people||0)].map((_,i)=>{const x=250+i*22;return `<circle cx="${x}" cy="118" r="4" fill="${i%2?"#ffe1ef":"#ffd9c2"}" stroke-width="2"/><rect x="${x-3}" y="122" width="6" height="8" rx="2" fill="${i%2?"#4fb286":"#5cb9da"}" stroke-width="2"/>`;}).join("");
   // trees along the Augasse
-  const trees=[586,22,548,60].slice(0,T.trees||0).map(x=>`<line x1="${x}" y1="204" x2="${x}" y2="150"/><circle cx="${x}" cy="140" r="16" fill="#6fc08c"/>`).join("");
+  const trees=[586,22,548,60].slice(0,F.trees||0).map(x=>`<line x1="${x}" y1="204" x2="${x}" y2="150"/><circle cx="${x}" cy="140" r="16" fill="#6fc08c"/>`).join("");
   const container = tier==="bare" ? `<rect x="20" y="182" width="60" height="22" rx="2" fill="#b48ad6"/><rect x="30" y="188" width="10" height="10" fill="#fffdf6"/>` : "";
   return `<svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The new WU campus on opening day, ${tier} finish">
   <rect x="0" y="0" width="620" height="240" fill="#d6f0fb" stroke="none"/>

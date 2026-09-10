@@ -394,14 +394,25 @@ intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftr
              „Read more" → dossier (8 Notizen aus DOSSIER, alle SOURCES, Auflagen-Quellen) oder Karte
  ── Stationen 2–6 ───────────────────────────────────────────────────────────
  → map       Station 1 erledigt, 2 offen, 3–6 gesperrt
- → pr        Station 2: eine Entscheidung aus PR_ACTIONS → zurück zur Karte → „Build it"
+ → pr        Station 2: eine Entscheidung aus PR_ACTIONS (30 % billiger mit Berger im Beirat)
+             → zurück zur Karte → „Build it"
+ → latestations  Stationen 3–6 in je einer Zeile: was der Beirat dort bewirkt (ECHOES) —
+             fehlende Expertise wird als Consultants verbucht, Vorfertigung spart, Gründach/
+             Innenraum bleiben eine Stufe länger erhalten
  → outro     Eröffnungstag 2032: Gebäude-SVG nach FINISH_TIERS (4 Varianten), Bilanz,
              zwei Fakten nebeneinander, „Read the dossier" / „Play again"
 ```
 
+**Echos (`ECHOES` in `rules.js`):** Sieben Nachwirkungen des Beirats, alle an
+Fachlichkeit aus den Profil-Bios gebunden: Berger → PR −30 %; Danneberg/Winkler →
+Verzögerungswoche €40.000; Hofer fehlt → €120.000 ÖBB-Gutachten; Stadler fehlt →
+€60.000 BIM-Koordination; Brandstätter → Gründach eine Stufe tiefer; Salzmann →
+Innenraum eine Stufe tiefer; Bömmel → €100.000 zurück. Kammerleute lösen nichts aus.
+Balancing-Simulation 10.09.2026 (2.000 Beiräte je Strategie): zufällig gültig Ø 2,3
+Frauen, nach Seniorität 1,8, billigste Abdeckung 3,0 — `FIELD_MAP` daher unverändert.
+
 **Geld:** Alles läuft über `spend(cat, amount)` in die Kategorien aus `SPEND_CATS`
-(`experts`, `delay`, `pr`, `compensation`; `consultants` ist angelegt, wird noch
-nicht bespielt). Ausgleich, PR und Reparatur sind gegen Überziehung gesichert.
+(`experts`, `delay`, `pr`, `compensation`, `consultants`). Ausgleich, PR und Reparatur sind gegen Überziehung gesichert.
 
 **Cockpit:** Budget-Gauge immer ab dem Briefing, aufklappbar (gestapelter Balken,
 Legende nur für Kategorien > 0). Zeitplan erscheint mit der ersten Verzögerung,

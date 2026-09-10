@@ -204,6 +204,38 @@ const STATIONS = [
     desc:"Four years over a live railway. Everything you decided until now shows up here.", state:"locked" },
 ];
 
+/* ---------- Echos — was der Beirat später bewirkt ---------------------------
+   Fachlichkeit aus den Profil-Bios, nie Geschlecht. "present" wirkt, wenn
+   eine der Personen im Beirat sitzt; "absent" wirkt, wenn keine drin ist
+   (dann muss die Expertise eingekauft werden → Kategorie consultants).
+   Kammerleute lösen bewusst nichts aus — sie sind immer da.                */
+const ECHOES = [
+  { key:"participation", when:"present", who:["berger"], station:"pr",
+    label:"Participation know-how", effect:{ prDiscount:0.30 },
+    line:"Neighbourhood formats prepared by the board — PR measures cost 30% less." },
+  { key:"costcontrol",   when:"present", who:["danneberg","winkler"], station:"board",
+    label:"Cost control", effect:{ weekCost:40_000 },
+    line:"Claims and schedules handled in-house — a week of delay costs €40,000 instead of €50,000." },
+  { key:"rail",          when:"absent",  who:["hofer"], station:"permits",
+    label:"Rail infrastructure", effect:{ consultants:120_000 },
+    line:"ÖBB requires an external assessment of every load path over live tracks. Nobody on the board could sign it." },
+  { key:"bim",           when:"absent",  who:["stadler"], station:"build",
+    label:"BIM coordination", effect:{ consultants:60_000 },
+    line:"Interface coordination between the trades is bought in." },
+  { key:"roof",          when:"present", who:["brandstaetter"], station:"build",
+    label:"Roof greening", effect:{ finish:"roof" },
+    line:"The green roof is detailed early and survives the cuts." },
+  { key:"interior",      when:"present", who:["salzmann"], station:"build",
+    label:"Interiors & lighting", effect:{ finish:"interior" },
+    line:"Floors, light and the ground floor are planned as one — and kept." },
+  { key:"prefab",        when:"present", who:["boemmel"], station:"material",
+    label:"Prefabrication", effect:{ saving:100_000 },
+    line:"Serial elements from the factory: €100,000 back into the budget." },
+];
+function activeEchoes(ids){
+  return ECHOES.filter(e => e.when==="present" ? e.who.some(id=>ids.includes(id)) : !e.who.some(id=>ids.includes(id)));
+}
+
 /* ---------- Endqualität nach Restbudget (Punkt 8, noch nicht gebaut) ----- */
 const FINISH_TIERS = [
   { min:2_200_000, key:"excellent" },
