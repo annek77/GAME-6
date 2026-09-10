@@ -4,8 +4,8 @@
          pool reveal → the outside world reacts → the brief again, one line marked
          → three ways (repair under
          pressure / sit it out / fund something alongside) → map (station 2:
-         neighbours & PR, four stations locked) → the ending (building, the
-         real jury, three figures, sources)
+         neighbours & PR, four stations locked) → the ending (the building)
+   Station 1 closes with the real jury, three figures and an optional dossier.
    The former second round ("applications under pressure") is gone. Its
    pressure-event screens live in parked-events.js (not loaded) for a later
    disruptor step.
@@ -16,21 +16,11 @@
    The former draft-*.js monkey-patches are merged in here.
    ========================================================================== */
 
-const PHASES = [
-  ["map",    "Map"],
-  ["p1",     "1 · The board"],
-  ["reveal", "2 · The pool"],
-  ["pr",     "3 · Neighbours"],
-  ["outro",  "4 · The building"],
-];
-/* which phase a sub-screen belongs to in the phase bar, and when a phase counts as done */
-const PHASE_OF = { confirm:"p1", sendletter:"p1", intermezzo:"p1",
-  reaction:"reveal", briefreveal:"reveal", options:"reveal", repaired:"reveal" };
-const PHASE_DONE = {
-  p1:     ()=>state.invited.length>0 && !state.repairing,
-  reveal: ()=>state.response!==null,
-  pr:     ()=>state.stations.pr==="done",
-};
+/* Which station a screen belongs to — for the station strip under the cockpit.
+   Everything from the brief to the real-world coda is station 1. */
+const STATION_OF = { p1:"board", confirm:"board", sendletter:"board", intermezzo:"board",
+  reveal:"board", reaction:"board", briefreveal:"board", options:"board", abroad:"board", repaired:"board",
+  realworld:"board", dossier:"board", pr:"pr", outro:"build" };
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -46,10 +36,10 @@ const state = {
 
   // after the board is public: how the outside world reacted, what you did about it
   reactionTier:null,           // 0..3, see REACTIONS
-  chamberOk:true,              // false when no woman sits on the board (CHAMBER_RULE)
   response:null,               // "repair" | "sitout" | "compensate"
   compensation:null,           // key from COMPENSATIONS
   repairing:false, repairBase:[], repairSwaps:0,
+  abroadAsked:false,           // the fourth way — asked once, answered once
 
   // the project map: station key → "done" | "open" | "locked"
   stations:freshStations(),
@@ -60,6 +50,7 @@ const state = {
   delayWeeks:0, rep:100,
   hudSeen:{ time:false, rep:false, progress:false },   // gauges appear once their dimension matters
   budgetOpen:false,            // the budget gauge unfolds into the spend chart
+  dossierReturn:null,          // where "Back" from the dossier leads
 };
 
 const stage = document.getElementById("stage");
@@ -73,6 +64,13 @@ function countInvited(){
   let w=0,m=0; state.invited.forEach(id=>{ byId(id).gender==="woman"?w++:m++; }); return {w,m};
 }
 const eur = n => "€"+n.toLocaleString("en-GB");
+const isChamber = id => CHAMBER_NOMINATION.ids.includes(id);
+/* who sits on the board, split the way the real jury is split */
+function boardSplit(){
+  const r={ chamber:{w:0,m:0}, own:{w:0,m:0} };
+  state.invited.forEach(id=>{ const g=byId(id).gender==="woman"?"w":"m"; r[isChamber(id)?"chamber":"own"][g]++; });
+  return r;
+}
 const feesOf = idSet => [...idSet].reduce((sum,id)=>sum+expertFee(byId(id)),0);
 /* every euro leaves through here: category for the cockpit, budget for the ending */
 function spend(cat,amount){
@@ -81,12 +79,16 @@ function spend(cat,amount){
   hudFlash("g-money"); renderHUD();
 }
 
+/* the station strip: six boxes, always visible after the intro.
+   done = green, open = gold, locked = grey, current = outlined */
 function renderPhasebar(){
   phasebar.innerHTML="";
-  const cur = PHASE_OF[state.screen] || state.screen;
-  PHASES.forEach(([key,label])=>{
-    const b=document.createElement("b"); b.textContent=label;
-    if(key===cur) b.classList.add("on"); else if(PHASE_DONE[key] && PHASE_DONE[key]()) b.classList.add("done");
+  const cur = STATION_OF[state.screen] || null;
+  STATIONS.forEach((st,i)=>{
+    const b=document.createElement("b");
+    b.className = state.stations[st.key] + (st.key===cur ? " on" : "");
+    b.innerHTML = `<i>${i+1}</i>${st.short}`;
+    b.title = st.label + (state.stations[st.key]==="locked" ? " — locked" : "");
     phasebar.appendChild(b);
   });
   phasebar.style.display = state.screen==="intro" ? "none":"flex";
@@ -95,13 +97,14 @@ function go(screen){
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
+     abroad:rAbroad, realworld:rRealWorld, dossier:rDossier,
      map:rMap, pr:rPR,
      outro:rOutro })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","outro"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","outro"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -185,6 +188,13 @@ function briefMail({ctaLabel, onCta, highlight=null, intro=true}={}){
   if(ctaLabel){ const c=el(`<button class="btn">${ctaLabel}</button>`); c.onclick=onCta; bar.appendChild(c); }
   else bar.remove();
   return wrap;
+}
+
+/* small station tag on top of every screen inside a station */
+function kicker(sub){
+  const st=STATIONS.find(x=>x.key===(STATION_OF[state.screen]||"board"));
+  const i=STATIONS.indexOf(st)+1;
+  return el(`<div class="kicker"><b>Station ${i}</b> · ${st.label}${sub?` · <span>${sub}</span>`:""}</div>`);
 }
 
 /* ========================================================================
@@ -275,7 +285,32 @@ function rIntro(){
    ======================================================================== */
 function rPhase1(){
   stage.innerHTML="";
-  stage.appendChild(briefMail({ctaLabel:"Start choosing", onCta:()=>renderHandPick()}));
+  stage.appendChild(kicker("your briefing"));
+  stage.appendChild(briefMail({ctaLabel:"Next", onCta:()=>renderChamberMail()}));
+}
+
+/* The Chamber's nomination — a quarter of the seats are not yours to fill. */
+function renderChamberMail(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("nomination by the Chamber"));
+  const list=CHAMBER_NOMINATION.ids.map(id=>{const p=byId(id);return `<li><b>${p.name}</b>, ${p.title} — ${p.spec}</li>`;}).join("");
+  const wrap=el(`<div>
+    <div class="mail brief chamber">
+      <div class="from">
+        <div class="crest zt">ZT</div>
+        <div class="who">zt:Kammer Ost<small>Chamber of Architects and Chartered Engineers · Vienna, Lower Austria, Burgenland</small></div>
+      </div>
+      <div class="subject">Campus Althangrund — nomination of jurors</div>
+      <div class="body">
+        <p>${CHAMBER_NOMINATION.text}</p>
+        <ol class="nominees">${list}</ol>
+        <p>${CHAMBER_NOMINATION.close}</p>
+      </div>
+    </div>
+    <div class="btnbar"><button class="btn" id="cm-go">Start choosing</button></div>
+  </div>`);
+  stage.appendChild(wrap);
+  document.getElementById("cm-go").onclick=()=>renderHandPick();
 }
 
 /* Also the repair screen: with state.repairing the grid opens pre-filled with
@@ -286,6 +321,7 @@ function repairSwaps(){ return [...state.selected].filter(id=>!state.repairBase.
 function renderHandPick(){
   stage.innerHTML="";
   if(state.order.length===0) state.order=shuffle(PROFILES.map(p=>p.id));
+  CHAMBER_NOMINATION.ids.forEach(id=>state.selected.add(id));   // the Chamber's seats are taken
 
   const bar=el(`
     <div class="selbar">
@@ -296,7 +332,7 @@ function renderHandPick(){
     </div>`);
   bar.querySelector("#task").innerHTML = state.repairing
     ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*WEEK_COST)}.`
-    : `<b>${JURY_SIZE} seats. Cover all six fields. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more.`;
+    : `<b>${JURY_SIZE} seats, ${CHAMBER_SHARE} of them filled by the Chamber. Cover all six fields with your ${JURY_SIZE-CHAMBER_SHARE}. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more.`;
   stage.appendChild(bar);
 
   const wrap=el(`<div class="selwrap"><div class="grid" id="grid"></div><aside class="board-panel" id="panel"></aside></div>`);
@@ -316,7 +352,9 @@ function renderPanel(){
   const chosen=state.order.filter(id=>state.selected.has(id));
   const members = chosen.length
     ? chosen.map(id=>{ const p=byId(id); const tags=fieldsOf(id).map(k=>{const f=FIELDS.find(x=>x.key===k);return `<i style="background:${f.color}" title="${f.label}"></i>`;}).join("");
-        return `<li data-id="${id}" title="Remove"><span class="who">${p.name}</span><span class="tags">${tags}</span><span class="fee">${eur(expertFee(p))}</span></li>`; }).join("")
+        return isChamber(id)
+          ? `<li class="chamber" title="Nominated by the Chamber"><span class="who">${p.name}</span><span class="tags"><em>Chamber</em></span><span class="fee">${eur(expertFee(p))}</span></li>`
+          : `<li data-id="${id}" title="Remove"><span class="who">${p.name}</span><span class="tags">${tags}</span><span class="fee">${eur(expertFee(p))}</span></li>`; }).join("")
     : `<li class="none">Nobody yet. Tap a card.</li>`;
   const fields = FIELDS.map(f=>{
     if(cov[f.key]){
@@ -342,7 +380,7 @@ function renderPanel(){
 
 function makeCard(p){
   const c=el(`
-    <div class="card${state.selected.has(p.id)?" sel":""}" data-id="${p.id}">
+    <div class="card${state.selected.has(p.id)?" sel":""}${isChamber(p.id)?" chamber":""}" data-id="${p.id}">
       <div class="nm">${p.name}</div>
       <div class="ti">${p.title} · ${p.edu}</div>
       <div class="sp">${p.spec}</div>
@@ -366,6 +404,7 @@ function makeCard(p){
 }
 
 function toggleCard(p,c){
+  if(isChamber(p.id)){ c.classList.remove("nudge"); void c.offsetWidth; c.classList.add("nudge"); return; }
   if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); }
   else{
     if(state.selected.size>=JURY_SIZE){ flashFull(); return; }
@@ -427,7 +466,7 @@ function onConfirmHandPick(){
    ======================================================================== */
 const REACTIONS = [
   { min:0, rep:-30, masthead:"KRONEN ZEITUNG", mastColor:"#d81e2c", paper:"#fffdf6",
-    line:w=>[ "Alte WU: Neun Köpfe,", w===0?"keine einzige Frau":"eine einzige Frau" ],
+    line:w=>[ "Alte WU: Neun Köpfe,", "eine einzige Frau" ],
     sub:"Bezirksrat Alsergrund fordert Aufklärung vom Wettbewerbsbüro.",
     feed:["Kronen Zeitung", "Alte WU: Neun Köpfe, kaum Frauen"],
     voices:[
@@ -467,17 +506,19 @@ function rReaction(){
   const r=reactionFor(w);
   if(state.reactionTier===null){          // effects only once
     state.reactionTier=REACTIONS.indexOf(r);
-    state.chamberOk = w>0;
     hudAddRep(r.rep);
     hudFeed(r.feed[0], r.feed[1]);
   }
   const [l1,l2]=r.line(w);
   const svg=newspaper({masthead:r.masthead,mastColor:r.mastColor,paper:r.paper,line1:l1,line2:l2,sub:r.sub});
+  const sp=boardSplit();
   const voices=r.voices.map(([who,txt])=>`<div class="voice"><b>${who}</b><p>${txt}</p></div>`).join("");
-  const chamber = state.chamberOk ? "" : `<div class="voice chamber"><b>Chamber of Architects</b><p>${NON_COMPLIANCE.chamber}</p></div>`;
+  // the one line every paper adds when it applies: who put the women there
+  const chamber = (sp.own.w===0 && sp.chamber.w>0)
+    ? `<div class="voice chamber"><b>The caption</b><p>${sp.chamber.w===1?"The one woman on the board was nominated by the Chamber, not by the project.":"Every woman on the board was nominated by the Chamber, not by the project."}</p></div>` : "";
   stage.innerHTML="";
+  stage.appendChild(kicker("the week after the first session"));
   const card=el(`<div class="appcard wide">
-    <span class="badge">The week after the first session</span>
     <div class="art">${svg}</div>
     <h2>The board is public</h2>
     <div class="voices">${voices}${chamber}</div>
@@ -490,10 +531,16 @@ function rReaction(){
 /* ---------- three ways, none of them required ---------- */
 function rOptions(){
   stage.innerHTML="";
+  stage.appendChild(kicker("what now"));
   const wrap=el(`<div class="slide wide">
-    <h1>Three ways to go on</h1>
+    <h1>${state.abroadAsked?"Three ways to go on":"Four ways to go on"}</h1>
     <p class="lede">Nobody can make you do anything. Each of these is your choice, and each costs something different.</p>
     <div class="ways">
+      ${state.abroadAsked ? "" : `<div class="way">
+        <h3>Look abroad</h3>
+        <p>Ask the Competition Office whether the search can be widened to architects outside Austria. The answer takes about two weeks.</p>
+        <button class="btn ghost" id="opt-abroad">Send the enquiry</button>
+      </div>`}
       <div class="way">
         <h3>Reopen the search</h3>
         <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} in delay costs, plus the difference in fees.</p>
@@ -518,9 +565,8 @@ function rOptions(){
     b.onclick=()=>{
       state.response="compensate"; state.compensation=c.key;
       spend("compensation",c.cost); hudAddRep(c.rep);
-      if(c.key==="substitute") state.chamberOk=true;
       hudFeed("Stadt Wien", `${c.label}.`);
-      go("map");
+      go("realworld");
     };
     comp.appendChild(b);
   });
@@ -529,15 +575,55 @@ function rOptions(){
     state.response="repair"; state.repairing=true; state.repairBase=[...state.invited]; state.selected=new Set(state.invited);
     state.screen="p1"; renderPhasebar(); renderHUD(); stage.scrollTop=0; renderHandPick();
   };
+  const ab=document.getElementById("opt-abroad");
+  if(ab) ab.onclick=()=>go("abroad");
   document.getElementById("opt-sit").onclick=()=>{
     state.response="sitout"; hudAddRep(-10);
     hudFeed("Newsroom", "The story runs a second week.");
-    go("map");
+    go("realworld");
   };
+}
+
+/* The fourth way: realistic, and a dead end. Two weeks for an answer that
+   quotes the Competition Standard back at you; the morning paper notices.
+   WSA §3 Abs. 3 — at least half the jury must hold the entrants' qualification. */
+function rAbroad(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("two weeks later"));
+  if(!state.abroadAsked){
+    state.abroadAsked=true;
+    hudAddDelay(2); hudAddRep(-10);
+    hudFeed("Kronen Zeitung","Wettbewerbsbüro sucht Experten im Ausland?");
+  }
+  const half=Math.ceil(JURY_SIZE/2), free=JURY_SIZE-half;
+  const svg=newspaper({masthead:"KRONEN ZEITUNG",mastColor:"#d81e2c",paper:"#fffdf6",
+    line1:"Wettbewerbsbüro sucht",line2:"Experten im Ausland?",
+    sub:"Jury-Suche für Alte WU: Keine geeigneten Österreicher gefunden?"});
+  const wrap=el(`<div class="slide wide">
+    <div class="mail">
+      <div class="from"><div class="crest">WIEN</div><div class="who">Stadt Wien<small>Competition Office · MA 21A</small></div></div>
+      <div class="subject">Re: Widening the search</div>
+      <div class="body">
+        <p>Dear colleague,</p>
+        <p>nothing prevents you from appointing jurors from abroad. Please note, however, §3(3) of the Competition Standard:
+        where entrants must hold a particular professional qualification — here, an Austrian licence as architect or
+        chartered engineer — at least half of the jury must hold the same or an equivalent qualification.</p>
+        <p>Of your ${JURY_SIZE} seats, ${half} therefore require the Austrian licence. The Chamber’s ${CHAMBER_SHARE} nominees count towards this.
+        That leaves ${free} seats you could fill from abroad — through a new search, on the same terms as any other replacement.</p>
+        <p>Kind regards,<br>Stadt Wien, Competition Office</p>
+      </div>
+    </div>
+    <div class="art abroad-art">${svg}</div>
+    <p class="lede note">The enquiry took two weeks. The morning paper wondered aloud why the search was stalling. Nothing else changed.</p>
+    <div class="btnbar"><button class="btn" id="ab-back">Back to your options</button></div>
+  </div>`);
+  stage.appendChild(wrap);
+  document.getElementById("ab-back").onclick=()=>go("options");
 }
 
 function rRepaired(){
   stage.innerHTML="";
+  stage.appendChild(kicker("board revised"));
   const sw=state.repairSwaps;
   const list=state.invited.map(id=>{const p=byId(id);const isNew=!state.repairBase.includes(id);return `<li>${p.name} — ${p.spec}${isNew?' <small>new</small>':''}</li>`;}).join("");
   stage.appendChild(el(`<div class="slide">
@@ -547,7 +633,7 @@ function rRepaired(){
     <div class="verdict"><ul>${list}</ul></div>
     <div class="btnbar"><button class="btn" id="rp-go">Carry on</button></div>
   </div>`));
-  document.getElementById("rp-go").onclick=()=>go("map");
+  document.getElementById("rp-go").onclick=()=>go("realworld");
 }
 
 /* ========================================================================
@@ -555,7 +641,7 @@ function rRepaired(){
    ======================================================================== */
 function rConfirm(){
   stage.innerHTML="";
-  const list=state.invited.map(id=>{const p=byId(id);return `<li>${p.name} — ${p.spec} <small>${eur(expertFee(p))}</small></li>`;}).join("");
+  const list=state.invited.map(id=>{const p=byId(id);return `<li>${p.name} — ${p.spec} <small>${eur(expertFee(p))}${isChamber(id)?" · Chamber":""}</small></li>`;}).join("");
   stage.appendChild(el(`
     <div class="slide">
       <h1>Board complete</h1>
@@ -614,11 +700,9 @@ function rSendLetter(){
 /* ---------- terminal ticker before the pool (ex draft-reveal.js) ---------- */
 function rIntermezzo(){
   const lines=[
-    "Board complete.",
-    "Invitations sent.",
-    state.delayWeeks>0 ? `+${state.delayWeeks} week${state.delayWeeks!==1?"s":""} delay.` : "Project starts on schedule.",
+    "Board complete. Invitations sent.",
     "First session: the Expert Pool. Thursday, 09:00.",
-    `The organisers prepared ${JURY_SIZE} cabins, ${JURY_SIZE} name tags, ${JURY_SIZE} towels.`,
+    `${JURY_SIZE} cabins, ${JURY_SIZE} name tags, ${JURY_SIZE} towels.`,
   ];
   stage.innerHTML="";
   const term=el(`<div class="im-terminal">
@@ -657,8 +741,9 @@ function makeLane(label,count){
 function rReveal(){
   const {w,m}=countInvited();
   stage.innerHTML="";
+  stage.appendChild(kicker("first session"));
   const wrap=el(`<div class="dr-reveal">
-      <h2 class="dr-title">Welcome to the Expert Pool.</h2>
+      <h2 class="dr-title">The Expert Pool</h2>
       <div class="dr-venue-art">${POOLHALL_SVG}</div>
       <p class="dr-subtitle">Thursday, 09:00. First session. Everyone finds their changing room.</p>
       <div class="dr-pool-grid">
@@ -684,13 +769,14 @@ function rBriefReveal(){
   const {w}=countInvited();
   const need=Math.ceil(JURY_SIZE*0.25);
   stage.innerHTML="";
+  stage.appendChild(kicker("your briefing"));
   const wrap=el(`<div class="slide wide">
     <h1>That was in your briefing.</h1>
     <div class="reveal-row">
       <div class="reveal-mail"></div>
       <div class="reveal-facts">
         <div class="fact"><div class="n">${need}</div><div class="t">at least 25% of ${JURY_SIZE} jurors — term 4 of the brief</div></div>
-        <div class="fact"><div class="n">${w}</div><div class="t">${w===1?"woman":"women"} on your board</div></div>
+        <div class="fact"><div class="n">${w}</div><div class="t">${w===1?"woman":"women"} on your board${boardSplit().chamber.w?` — ${boardSplit().chamber.w} of them nominated by the Chamber`:""}</div></div>
       </div>
     </div>
     <div class="btnbar"><button class="btn" id="br-go">What now?</button></div>
@@ -698,6 +784,76 @@ function rBriefReveal(){
   wrap.querySelector(".reveal-mail").appendChild(briefMail({highlight:"balance"}));
   stage.appendChild(wrap);
   document.getElementById("br-go").onclick=()=>go("options");
+}
+
+/* ========================================================================
+   END OF STATION 1 — the real Vienna, then optional reading.
+   Two juries next to each other, three figures, no comment. "Read more"
+   opens the dossier; "Continue" goes back to the map.
+   ======================================================================== */
+function juryTable(rows){
+  return `<table><tr><th></th><th>Women</th><th>Men</th></tr>${rows.map(r=>`<tr class="${r.cls||""}"><td>${r.l}</td><td>${r.w}</td><td>${r.m}</td></tr>`).join("")}</table>`;
+}
+function rRealWorld(){
+  const {w,m}=countInvited();
+  stage.innerHTML="";
+  stage.appendChild(kicker("meanwhile, in the real Vienna"));
+  const real=juryTable([
+    ...REAL_JURY.groups.map(g=>({l:g.label,w:g.women,m:g.men})),
+    {l:"Full jurors",w:REAL_JURY.women,m:REAL_JURY.men,cls:"sum"},
+    {l:"Substitutes",w:REAL_JURY.substitutes.women,m:REAL_JURY.substitutes.men},
+  ]);
+  const sp=boardSplit();
+  const yours=juryTable([
+    {l:"Chamber-nominated jurors",w:sp.chamber.w,m:sp.chamber.m},
+    {l:"Your appointments",w:sp.own.w,m:sp.own.m},
+    {l:"Full jurors",w,m,cls:"sum"},
+    ...(state.compensation==="substitute"?[{l:"Substitutes",w:1,m:0}]:[]),
+  ]);
+  const tiles=OUTRO_FIGURES.map(f=>{ const src=SOURCES.find(x=>x.key===f.src); return `<div class="stat"><div class="n">${f.n}</div><div class="t">${f.t}</div><div class="src">${src?src.label:""}</div></div>`; }).join("");
+  const wrap=el(`<div class="slide wide">
+    <h1>The real jury</h1>
+    <p class="lede">The competition for Campus Althangrund is real. The BIG launched it on 6 August 2025;
+      the jury first met on 25–27 February 2026 and decides at the end of 2026.</p>
+    <div class="juries">
+      <div class="jury"><h3>Your board</h3>${yours}</div>
+      <div class="jury"><h3>Campus Althangrund, 2026</h3>${real}
+        <p class="names">${REAL_JURY.women_named.join(" · ")}</p>
+        <p class="src">${REAL_JURY.source}</p></div>
+    </div>
+    <div class="stat-row">${tiles}</div>
+    <div class="btnbar">
+      <button class="btn ghost" id="rw-more">Read more</button>
+      <button class="btn" id="rw-go">Continue to the map</button>
+    </div>
+  </div>`);
+  stage.appendChild(wrap);
+  document.getElementById("rw-more").onclick=()=>go("dossier");
+  document.getElementById("rw-go").onclick=()=>go("map");
+}
+
+function rDossier(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("dossier"));
+  const items=DOSSIER.map(d=>{ const src=SOURCES.find(x=>x.key===d.src); return `<section class="doss"><h3>${d.h}</h3><p>${d.t}</p>${src?`<a class="src" href="${src.url}" target="_blank" rel="noopener">${src.label}</a>`:""}</section>`; }).join("");
+  const docs=SOURCES.map(x=>`<li><a href="${x.url}" target="_blank" rel="noopener">${x.label}</a></li>`).join("");
+  const terms=BRIEF_TERMS.filter(t=>t.source).map(t=>`<li><span class="no">Term ${state.briefTerms.indexOf(t.key)+1}</span>${t.source}</li>`).join("")
+             +`<li><span class="no">Chamber</span>${CHAMBER_RULE.source}</li>`;
+  const wrap=el(`<div class="slide wide">
+    <h1>What the documents say</h1>
+    <p class="lede">Eight short notes. Everything here is documented; every rule in your briefing is translated from one of these sources.</p>
+    <div class="dossier">${items}</div>
+    <div class="srcgrid">
+      <div><h3>Documents</h3><ul class="sources">${docs}</ul></div>
+      <div><h3>The five terms</h3><ul class="sources terms-src">${terms}</ul>
+        <p class="disc">This prototype uses woman/man as simplified analytical categories to make one form of
+        selection bias visible — it does not claim gender is fundamentally binary. Student figures count
+        enrolments, not persons.</p></div>
+    </div>
+    <div class="btnbar"><button class="btn" id="ds-back">Back</button></div>
+  </div>`);
+  stage.appendChild(wrap);
+  document.getElementById("ds-back").onclick=()=>{ const back=state.dossierReturn||"realworld"; state.dossierReturn=null; go(back); };
 }
 
 /* ========================================================================
@@ -798,89 +954,34 @@ function measureSentence(){
 function decidedSentence(){
   const {w,m}=countInvited();
   const who = `${m} ${m===1?"man":"men"} and ${w} ${w===1?"woman":"women"}`;
-  const sub = state.compensation==="substitute" ? " One more woman sat on the substitutes' bench. She did not vote." : "";
-  return `The design was chosen by ${who}.${sub}`;
+  const sp=boardSplit();
+  const ch = (w>0 && sp.own.w===0) ? (w===1?" She was nominated by the Chamber.":" All of them were nominated by the Chamber.") : "";
+  const sub = state.compensation==="substitute" ? " One more woman sat on the substitutes’ bench. She did not vote." : "";
+  return `The design was chosen by ${who}.${ch}${sub}`;
 }
 
-const ENDING=[
-  { head:()=>FINISH_TEXT[finishTier().key].h, build:(box)=>{
-      const t=FINISH_TEXT[finishTier().key];
-      const spent=SPEND_CATS.filter(c=>state.spend[c.key]>0).map(c=>`<li><i style="background:${c.color}"></i>${c.label}<b>${eur(state.spend[c.key])}</b></li>`).join("");
-      box.appendChild(el(`<div class="slide wide">
-        <p class="lede">The WU stands. ${t.t}</p>
-        <div class="bill"><div class="k">Left for fit-out and finishes</div><div class="v">${eur(Math.max(0,state.budget))}</div>
-          <ul class="legend">${spent}</ul></div>
-        <div class="facts2">
-          <div class="fact2"><p>${measureSentence()}</p></div>
-          <div class="fact2"><p>${decidedSentence()}</p></div>
-        </div>
-      </div>`));
-  }},
-  { head:()=>"The real jury", build:(box)=>{
-      const {w,m}=countInvited();
-      const rows=REAL_JURY.groups.map(g=>`<tr><td>${g.label}</td><td>${g.women}</td><td>${g.men}</td></tr>`).join("");
-      box.appendChild(el(`<div class="slide wide">
-        <p class="lede">The competition for Campus Althangrund is real. It was launched by the BIG on 6 August 2025;
-        the jury first met on 25–27 February 2026 and decides at the end of 2026.</p>
-        <div class="juries">
-          <div class="jury">
-            <h3>Your board</h3>
-            <table><tr><th></th><th>Women</th><th>Men</th></tr>
-              <tr><td>Members</td><td>${w}</td><td>${m}</td></tr>
-              ${state.compensation==="substitute"?`<tr><td>Substitutes</td><td>1</td><td>0</td></tr>`:""}
-            </table>
-          </div>
-          <div class="jury">
-            <h3>The real jury</h3>
-            <table><tr><th></th><th>Women</th><th>Men</th></tr>${rows}
-              <tr class="sum"><td>Full jurors</td><td>${REAL_JURY.women}</td><td>${REAL_JURY.men}</td></tr>
-              <tr><td>Substitutes</td><td>${REAL_JURY.substitutes.women}</td><td>${REAL_JURY.substitutes.men}</td></tr>
-            </table>
-            <p class="names">${REAL_JURY.women_named.join(" · ")}</p>
-            <p class="src">Source: ${REAL_JURY.source}</p>
-          </div>
-        </div>
-      </div>`));
-  }},
-  { head:()=>"Three figures", build:(box)=>{
-      const tiles=OUTRO_FIGURES.map(f=>{ const s=SOURCES.find(x=>x.key===f.src); return `<div class="stat"><div class="n">${f.n}</div><div class="t">${f.t}</div><div class="src">${s?s.label:""}</div></div>`; }).join("");
-      box.appendChild(el(`<div class="slide wide"><div class="stat-row">${tiles}</div></div>`));
-  }},
-  { head:()=>"Sources", build:(box)=>{
-      const list=SOURCES.map(s=>`<li><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></li>`).join("");
-      const terms=BRIEF_TERMS.filter(t=>t.source).map(t=>`<li><span class="no">Term ${state.briefTerms.indexOf(t.key)+1}</span>${t.source}</li>`).join("")
-                 +`<li><span class="no">Chamber</span>${CHAMBER_RULE.source}</li>`;
-      box.appendChild(el(`<div class="slide wide">
-        <p class="lede">Every rule, figure and quotation in this game is documented. The brief's terms are translated from these documents; nothing was invented.</p>
-        <div class="srcgrid">
-          <div><h3>Documents</h3><ul class="sources">${list}</ul></div>
-          <div><h3>The five terms</h3><ul class="sources terms-src">${terms}</ul></div>
-        </div>
-        <p class="disc">This prototype uses woman/man as simplified analytical categories to make one form of
-        selection bias visible — it does not claim gender is fundamentally binary.</p>
-      </div>`));
-  }},
-];
-
-let outroIdx=0;
-function rOutro(){ outroIdx=0; drawOutro(); }
-function drawOutro(){
+function rOutro(){
+  const t=FINISH_TEXT[finishTier().key];
+  const spent=SPEND_CATS.filter(c=>state.spend[c.key]>0).map(c=>`<li><i style="background:${c.color}"></i>${c.label}<b>${eur(state.spend[c.key])}</b></li>`).join("");
   stage.innerHTML="";
-  const s=ENDING[outroIdx];
-  const wrap=el(`<div></div>`);
-  wrap.appendChild(el(`<h1>${s.head()}</h1>`));
-  s.build(wrap);
-  const nav=el(`<div class="dotnav"></div>`);
-  ENDING.forEach((_,i)=>nav.appendChild(el(`<i class="${i===outroIdx?"on":""}"></i>`)));
-  wrap.appendChild(nav);
-  const bar=el(`<div class="btnbar"></div>`);
-  if(outroIdx>0){const b=el(`<button class="btn ghost">Back</button>`);b.onclick=()=>{outroIdx--;drawOutro();};bar.appendChild(b);}
-  const last=outroIdx===ENDING.length-1;
-  const n=el(`<button class="btn" id="${last?"again":"next"}">${last?"Play again":"Next"}</button>`);
-  n.onclick=()=>{ if(last) resetGame(); else {outroIdx++;drawOutro();} };
-  bar.appendChild(n);
-  wrap.appendChild(bar);
-  stage.appendChild(wrap);
+  stage.appendChild(el(`<div class="kicker"><b>Opening day</b> · 2032</div>`));
+  stage.appendChild(el(`<div class="slide wide">
+    <h1>${t.h}</h1>
+    <div class="art">${newWuSvg(finishTier().key)}</div>
+    <p class="lede">The WU stands. ${t.t}</p>
+    <div class="bill"><div class="k">Left for fit-out and finishes</div><div class="v">${eur(Math.max(0,state.budget))}</div>
+      <ul class="legend">${spent}</ul></div>
+    <div class="facts2">
+      <div class="fact2"><p>${measureSentence()}</p></div>
+      <div class="fact2"><p>${decidedSentence()}</p></div>
+    </div>
+    <div class="btnbar">
+      <button class="btn ghost" id="end-dossier">Read the dossier</button>
+      <button class="btn" id="again">Play again</button>
+    </div>
+  </div>`));
+  document.getElementById("end-dossier").onclick=()=>{ state.dossierReturn="outro"; go("dossier"); };
+  document.getElementById("again").onclick=resetGame;
 }
 
 function resetGame(){
@@ -888,10 +989,10 @@ function resetGame(){
   state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.rep=100;
   state.hudSeen={time:false,rep:false,progress:false}; state.budgetOpen=false;
-  state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
-  state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
+  state.reactionTier=null; state.response=null; state.compensation=null;
+  state.repairing=false; state.repairBase=[]; state.repairSwaps=0; state.abroadAsked=false;
   state.stations=freshStations(); state.prAction=null;
-  outroIdx=0; introStep=0;
+  state.dossierReturn=null; introStep=0;
   go("intro");
 }
 

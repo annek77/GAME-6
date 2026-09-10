@@ -321,3 +321,74 @@ const POOLHALL_SVG = `
           <ellipse cx="380" cy="118" rx="20" ry="4" fill="#fffdf6" opacity="0.3"/>
         </svg>
 `;
+
+/* ---------- Die neue WU am Eröffnungstag — vier Ausstattungsstufen ----------
+   Gleiche Bühne wie ALTEWU_SVG (Platte, Stützen, Bahn), neues Gebäude darauf.
+   Was sich zwischen den Stufen ändert, ist genau das, was das Restbudget
+   bezahlt hat: Dach, Erdgeschoß, Bäume, Fassade. Kein Text im Bild.        */
+function newWuSvg(tier){
+  const T = {
+    excellent:{ facade:"#e8cfa0", roof:"green",   trees:4, ground:"cafe",    terrace:true,  people:5 },
+    solid:    { facade:"#e7edf0", roof:"partial", trees:2, ground:"cafe",    terrace:false, people:3 },
+    frugal:   { facade:"#d5dde2", roof:"planters",trees:1, ground:"vending", terrace:false, people:1 },
+    bare:     { facade:"#c3ccd2", roof:"gravel",  trees:0, ground:"shell",   terrace:false, people:0 },
+  }[tier] || {};
+  const ink="#143041";
+  // roof variants
+  let roof="";
+  if(T.roof==="green"){
+    roof=`<rect x="70" y="34" width="480" height="8" fill="#6fc08c"/>`+
+         [90,140,190,240,290,340,390,440,490,530].map(x=>`<circle cx="${x}" cy="34" r="9" fill="#4fb286"/>`).join("");
+  } else if(T.roof==="partial"){
+    roof=`<rect x="70" y="34" width="480" height="8" fill="#cfd8dc"/><rect x="70" y="34" width="220" height="8" fill="#6fc08c"/>`+
+         [90,140,190,240].map(x=>`<circle cx="${x}" cy="34" r="8" fill="#4fb286"/>`).join("");
+  } else if(T.roof==="planters"){
+    roof=`<rect x="70" y="34" width="480" height="8" fill="#cfd8dc"/>`+
+         [90,300,530].map(x=>`<rect x="${x-10}" y="26" width="20" height="10" fill="#9fb6c0"/><circle cx="${x}" cy="24" r="6" fill="#4fb286"/>`).join("");
+  } else {
+    roof=`<rect x="70" y="34" width="480" height="8" fill="#b8c2c8"/>`+
+         [100,160,220,280,340,400,460,520].map(x=>`<circle cx="${x}" cy="38" r="1.6" fill="${ink}" stroke="none"/>`).join("");
+  }
+  const terrace = T.terrace ? `<rect x="400" y="20" width="120" height="14" fill="${T.facade}"/><line x1="400" y1="20" x2="520" y2="20"/><rect x="430" y="8" width="3" height="12" fill="${ink}"/><path d="M433 8 l14 4 l-14 4 z" fill="#ffcf4d"/>` : "";
+  // upper floors: two volumes, window band
+  const upper=`<rect x="70" y="42" width="480" height="40" fill="${T.facade}"/>
+    <g fill="#a3e5f7" stroke-width="2">${[88,120,152,184,216,248,280,312,344,376,408,440,472,504].map(x=>`<rect x="${x}" y="50" width="22" height="22"/>`).join("")}</g>`;
+  // ground floor variants
+  let ground="";
+  if(T.ground==="cafe"){
+    ground=`<rect x="70" y="82" width="480" height="30" fill="${T.facade}"/>
+      <g fill="#fff4d6" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/>`).join("")}</g>
+      <rect x="84" y="80" width="120" height="7" fill="#e8526b"/>
+      <text x="111" y="105" font-family="'VT323',monospace" font-size="14" fill="${ink}" stroke="none" text-anchor="middle">CAFÉ</text>`;
+  } else if(T.ground==="vending"){
+    ground=`<rect x="70" y="82" width="480" height="30" fill="${T.facade}"/>
+      <g fill="#dfe7eb" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/>`).join("")}</g>
+      <rect x="90" y="90" width="12" height="18" fill="#5cb9da"/><rect x="106" y="90" width="12" height="18" fill="#e8526b"/>`;
+  } else {
+    ground=`<rect x="70" y="82" width="480" height="30" fill="#9fb6c0"/>
+      <g fill="#7d919c" stroke-width="2">${[84,150,216,282,348,414,480].map(x=>`<rect x="${x}" y="88" width="54" height="22"/><line x1="${x}" y1="88" x2="${x+54}" y2="110"/>`).join("")}</g>`;
+  }
+  // people at the entrance
+  const people=[...Array(T.people||0)].map((_,i)=>{const x=250+i*22;return `<circle cx="${x}" cy="118" r="4" fill="${i%2?"#ffe1ef":"#ffd9c2"}" stroke-width="2"/><rect x="${x-3}" y="122" width="6" height="8" rx="2" fill="${i%2?"#4fb286":"#5cb9da"}" stroke-width="2"/>`;}).join("");
+  // trees along the Augasse
+  const trees=[586,22,548,60].slice(0,T.trees||0).map(x=>`<line x1="${x}" y1="204" x2="${x}" y2="150"/><circle cx="${x}" cy="140" r="16" fill="#6fc08c"/>`).join("");
+  const container = tier==="bare" ? `<rect x="20" y="182" width="60" height="22" rx="2" fill="#b48ad6"/><rect x="30" y="188" width="10" height="10" fill="#fffdf6"/>` : "";
+  return `<svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The new WU campus on opening day, ${tier} finish">
+  <rect x="0" y="0" width="620" height="240" fill="#d6f0fb" stroke="none"/>
+  <circle cx="548" cy="30" r="18" fill="#ffcf4d" stroke="${ink}" stroke-width="3"/>
+  <g stroke="${ink}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <g fill="#cfe6ef"><rect x="20" y="78" width="34" height="34"/><path d="M20 78 l17 -14 l17 14 z"/></g>
+    ${terrace}${roof}${upper}${ground}
+    <rect x="0" y="112" width="620" height="14" fill="#9fb6c0"/>
+    <rect x="96" y="126" width="20" height="78" fill="#cdd9df"/><rect x="216" y="126" width="20" height="78" fill="#cdd9df"/>
+    <rect x="336" y="126" width="20" height="78" fill="#cdd9df"/><rect x="456" y="126" width="20" height="78" fill="#cdd9df"/>
+    ${people}
+    <rect x="0" y="204" width="620" height="36" fill="#bcdfe9"/>
+    <g stroke="#3a6378" stroke-width="2"><line x1="0" y1="214" x2="620" y2="214"/><line x1="0" y1="230" x2="620" y2="230"/></g>
+    <rect x="150" y="180" width="120" height="24" rx="4" fill="#5cb9da"/>
+    <rect x="160" y="186" width="20" height="12" rx="2" fill="#fffdf6"/><rect x="186" y="186" width="20" height="12" rx="2" fill="#fffdf6"/><rect x="212" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
+    <circle cx="172" cy="206" r="5" fill="${ink}"/><circle cx="248" cy="206" r="5" fill="${ink}"/>
+    ${container}${trees}
+  </g>
+</svg>`;
+}

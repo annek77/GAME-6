@@ -359,7 +359,7 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 | `style.css` | Gesamtes CSS. Kein CSS mehr in JS-Strings |
 | `data.js` | Die 26 Profile, Kriterien-Chips. Unverändert |
 | `rules.js` | Budget, Honorare, `BRIEF_TERMS`, Pflichtfelder (mit Kurz-Tag und Farbe), `COMPENSATIONS`, `PR_ACTIONS`, `STATIONS`, `FINISH_TIERS`, `REAL_JURY`, `OUTRO_FIGURES`, `SOURCES` |
-| `art.js` | Alle SVGs (Alte WU, Zeitungen, Teeküche, Alte Donau, Pool-Halle, Kabinen, Pappfiguren, Stempel) |
+| `art.js` | Alle SVGs (Alte WU Tag/Nacht, Karten-Miniatur, Zeitungen, Teeküche, Alte Donau, Pool-Halle, Kabinen, Pappfiguren, Stempel, neue WU in vier Stufen) |
 | `game.js` | Spiellogik und alle Screens |
 | `parked-events.js` | **Nicht geladen.** Die alten Druck-Events (Teeküche, Krone, Urlaub, Ausland-Anfrage) samt Stadt-Mails, als Referenz für den Disruptor-Block |
 | `draft-sound.js` | **Nicht geladen.** Fertiger Web-Audio-Layer ohne Dateien |
@@ -371,23 +371,29 @@ Die vier `draft-*.js`-Monkey-Patches sind aufgelöst und gelöscht. `JURY_SIZE =
 
 ```
 intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftrag (Karten-Miniatur)
- → map       Karte zuerst: Station 1 offen, 2–6 gesperrt
- → p1        Briefing-Mail mit den fünf Auflagen → Grid-Auswahl (26 Karten,
-             Pflichtfelder-Checkliste, Honorar je Karte, Restbudget)
+ → map       Karte zuerst: Station 1 offen, 2–6 gesperrt. Stationsleiste 1–6 ab hier immer sichtbar
+ ── Station 1 ──────────────────────────────────────────────────────────────
+ → p1        Briefing-Mail (fünf Auflagen) → Kammerbrief (3 von 9 nominiert, WSA §3 Abs. 6,
+             darunter eine Frau) → Grid-Auswahl der übrigen 6 (Checkliste, Seitenleiste
+             mit Beirat/Feldern/wer-könnte, Honorar je Karte, Restbudget)
  → confirm   Liste + Honorarsumme; „Back" bucht die Honorare wieder aus
- → sendletter  Amtsbrief (Deutsch)
- → intermezzo  Terminal-Ticker
+ → sendletter  Amtsbrief (Deutsch) → Station 1 erledigt, 2 offen
+ → intermezzo  Terminal-Ticker (3 Zeilen)
  → reveal    Pool-Szene: Umkleiden Frauen/Männer, nur Ist-Zahlen, keine Wertung
- → reaction  Zeitungsseite + Stimmen, 4 Stufen nach Frauenzahl (0–1 / 2 / 3 / 4+),
-             Ruf −30 / −18 / −8 / −3; bei 0 Frauen zusätzlich NON_COMPLIANCE.chamber
- → briefreveal  dieselbe Mail, Satz 4 gelb; daneben „3" und die eigene Zahl
- → options   Reparieren (Grid im Reparaturmodus, 2 Wochen = €100.000 je Wechsel,
-             Honorardifferenz) · Aussitzen (Ruf −10) · Ausgleich (COMPENSATIONS)
+ → reaction  Zeitungsseite + Stimmen, 4 Stufen nach Frauenzahl (1 / 2 / 3 / 4+),
+             Ruf −30 / −18 / −8 / −3; wenn alle Frauen von der Kammer kommen: „The caption"
+ → briefreveal  dieselbe Mail, Satz 4 gelb; daneben „3" und die eigene Zahl (+ Kammeranteil)
+ → options   Vier Wege: Ausland-Anfrage (2 Wochen, Antwort nach WSA §3 Abs. 3, Krone, einmalig)
+             · Reparieren (Grid im Reparaturmodus, 2 Wochen = €100.000 je Wechsel, Kammersitze
+             gesperrt, gegen Überziehung gesichert) · Aussitzen (Ruf −10) · Ausgleich (COMPENSATIONS)
  → repaired  (nur nach Reparatur) Liste mit Kosten
+ → realworld Stationsende: eigene Jury (Kammer / eigene / gesamt) neben REAL_JURY, OUTRO_FIGURES,
+             „Read more" → dossier (8 Notizen aus DOSSIER, alle SOURCES, Auflagen-Quellen) oder Karte
+ ── Stationen 2–6 ───────────────────────────────────────────────────────────
  → map       Station 1 erledigt, 2 offen, 3–6 gesperrt
- → pr        Station 2: eine Entscheidung aus PR_ACTIONS → zurück zur Karte
- → outro     4 Schritte: Gebäude nach FINISH_TIERS + zwei Fakten nebeneinander ·
-             eigene Jury neben REAL_JURY · OUTRO_FIGURES · Quellen · Play again
+ → pr        Station 2: eine Entscheidung aus PR_ACTIONS → zurück zur Karte → „Build it"
+ → outro     Eröffnungstag 2032: Gebäude-SVG nach FINISH_TIERS (4 Varianten), Bilanz,
+             zwei Fakten nebeneinander, „Read the dossier" / „Play again"
 ```
 
 **Geld:** Alles läuft über `spend(cat, amount)` in die Kategorien aus `SPEND_CATS`
@@ -405,7 +411,9 @@ grün am 10.09.2026.
 ### Von Claude formulierte Texte (kein Beleg, Spielfiktion — bitte gegenlesen)
 
 - Reaktion: die deutschen Schlagzeilen und die englischen „Stimmen" (Presse,
-  Bezirksrat, Pressekonferenz) in `REACTIONS`
+  Bezirksrat, Pressekonferenz) in `REACTIONS`; Kammerbrief und Ausland-Antwort
+  (Rechtsinhalt aus WSA, Formulierung von Claude)
+- Dossier: die acht Notizen in `DOSSIER` (Inhalt aus der Recherche, Formulierung von Claude)
 - Ende: die vier Ausstattungs-Absätze in `FINISH_TEXT`, die Maßnahmen-Sätze in
   `MEASURE_TEXT` (z. B. „340 Besucherinnen" aus Abschnitt 3 übernommen)
 - Options-Screen, Karte, Station 2, Briefing-Anrede

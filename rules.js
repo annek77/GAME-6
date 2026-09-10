@@ -68,6 +68,21 @@ const CHAMBER_RULE = {
   note:"Bindet nur das Kammerkontingent. Keine Sanktion. Durch eine Ersatzpreisrichterin erfüllbar.",
 };
 
+/* ---------- Das Kammerkontingent -------------------------------------------
+   WSA §3 Abs. 6: Die Kammer nominiert Fachpreisrichter:innen im Umfang von
+   mindestens einem Viertel der stimmberechtigten Mitglieder; die Auslober-
+   seite bestellt sie. Bei neun Sitzen sind das drei. Die Kammer hält dabei
+   ihre eigene Regel (CHAMBER_RULE) ein — darunter ist eine Frau. Genau so
+   war es beim echten Althangrund: beide Frauen der Fachjury kamen über die
+   Kammer. Die drei decken bewusst keines der sechs Pflichtfelder ab.        */
+const CHAMBER_SHARE = Math.ceil(JURY_SIZE / 4);   // 3
+const CHAMBER_NOMINATION = {
+  ids:["kofler","ebner","ameling"],
+  text:"Under §3(6) of the Competition Standard, the Chamber of Architects and Chartered Engineers for Vienna, Lower Austria and Burgenland nominates the following members to the specialist jury, to be appointed by the client:",
+  close:"The nominees have confirmed their availability. Their fees are borne by the project.",
+  source:"WSA 2022, Teil B §3 Abs. 6",
+};
+
 /* ---------- Was bei Nichterfüllung wirklich passiert ---------------------
    NICHTS von Rechts wegen. Keine Strafzahlung, kein Mitteleinbehalt.
    Die einzige Folge ist der Entzug der Kammer-Kooperation und die
@@ -139,7 +154,7 @@ const COMPENSATIONS = [
      Billig, schnell, rechtlich einwandfrei. Das Spiel kommentiert es nicht;
      im Abspann steht nur, wer am Ende entschieden hat. */
   { key:"substitute", label:"Appoint a woman as substitute juror",
-    desc:"Fulfils the Chamber's nomination guideline. Substitutes attend, but do not vote unless a full juror drops out.",
+    desc:"A second woman, on the substitutes’ bench. Substitutes attend, but do not vote unless a full juror drops out.",
     cost:15_000, rep:8, isLoophole:true },
   { key:"girlscafe", label:"Girls' café in the ground floor",
     desc:"A youth-centre space on the campus edge, open to the district, run for and by young women.",
@@ -175,17 +190,17 @@ const PR_ACTIONS = [
    Startzustand: die Karte erscheint vor der Auswahl, Station 1 ist offen.
    Mit dem Versand der Einladungen wird 1 erledigt und 2 geöffnet.           */
 const STATIONS = [
-  { key:"board",    label:"Expert advisory board", place:"MA 21A, Rathausstraße",
+  { key:"board", short:"Board", label:"Expert advisory board", place:"MA 21A, Rathausstraße",
     desc:"Appoint the panel that decides which design wins.", state:"open" },
-  { key:"pr",       label:"Neighbours & PR",       place:"Augasse, 9th district",
+  { key:"pr", short:"Neighbours", label:"Neighbours & PR",       place:"Augasse, 9th district",
     desc:"The people who will live next to a building site for four years.", state:"locked" },
-  { key:"permits",  label:"Building authority",    place:"MA 37, Baupolizei",
+  { key:"permits", short:"Permits", label:"Building authority",    place:"MA 37, Baupolizei",
     desc:"Permits, objections, and the rules nobody can talk their way out of.", state:"locked" },
-  { key:"partners", label:"Partners & investors",  place:"Wienerberg",
+  { key:"partners", short:"Partners", label:"Partners & investors",  place:"Wienerberg",
     desc:"Money that comes with conditions attached.", state:"locked" },
-  { key:"material", label:"Material & resources",  place:"Urban mining depot",
+  { key:"material", short:"Material", label:"Material & resources",  place:"Urban mining depot",
     desc:"40% of the old concrete goes back in. The rest has to come from somewhere.", state:"locked" },
-  { key:"build",    label:"Construction",          place:"Althangrund West",
+  { key:"build", short:"Build", label:"Construction",          place:"Althangrund West",
     desc:"Four years over a live railway. Everything you decided until now shows up here.", state:"locked" },
 ];
 
@@ -245,9 +260,51 @@ const SOURCES = [
   { key:"unidata",  label:"BMFWF/unidata, Studierende WS 2025/26, ISCED-F 0731",
     url:"https://unidata.gv.at/auswertungskatalog/studierende/studien/universitaeten",
     note:"Frauenanteil im Architekturstudium 57,6 %." },
+  { key:"unidegr",  label:"BMFWF/unidata, Studienabschlüsse 2024/25, Studienfamilie Architektur (Tab. 4.6)",
+    url:"https://unidata.gv.at/auswertungen/iatb/2025/tab4.6",
+    note:"Frauenanteil an den Abschlüssen 54,3 %." },
+  { key:"imad",     label:"IMAD Marktforschung: Tätigkeit von PreisrichterInnen bei Architekturwettbewerben in Österreich, Endbericht April 2019 (i.A. bAIK)",
+    url:"https://bund.zt.at/fileadmin/user_upload/redakteure/Fotos/Veranstaltungen/2019_Arch_Ing_PreisrichterInnen_Endbericht.pdf",
+    note:"n = 387 Preisrichter:innen. Geschlecht wird nicht erhoben." },
+  { key:"arche",    label:"ARCH-E: Architects’ Needs Report (2024), S. 52",
+    url:"https://arch-e.eu/files/Architects-Needs-Report_EN_v2.pdf",
+    note:"Erfolgsquoten gleich (18 % / 17 %), Direkteinladungen 11 % vs. 22 %. Europaweit, n = 1.267, nicht repräsentativ." },
+  { key:"wglbg",    label:"Wiener Gleichbehandlungsgesetz §9 Abs. 1",
+    url:"https://www.ris.bka.gv.at/eli/lgbl/WI/1996/18/P9/LWI40002784",
+    note:"Parität für interne Kommissionen der Gemeinde — Preisgerichte nicht erfasst." },
   { key:"jury",     label:"architekturwettbewerb.at, Preisgericht „Campus Althangrund“",
     url:"https://www.architekturwettbewerb.at/competition/campus-althangrund/12161",
     note:"14 Hauptpreisrichter:innen, davon 4 Frauen. Unter den sieben Fachpreisrichtern keine." },
+];
+
+/* ---------- Das Dossier ("Read more" am Ende von Station 1) --------------
+   Freiwillige Lektüre. Jeder Absatz hängt an einem Eintrag in SOURCES.
+   Alles aus der Recherche vom 10.09.2026, nichts darüber hinaus.           */
+const DOSSIER = [
+  { h:"There is no law.",
+    t:"The Federal Procurement Act (§165 BVergG 2018) lists what a competition’s rules must contain — procedure, prize money, deadlines, criteria — and asks two things of jurors: independence from the entrants, and that at least a third hold the entrants’ qualification. Gender does not appear.",
+    src:"bvergg" },
+  { h:"The 25% is a wish, from 2008.",
+    t:"The City of Vienna’s only figure stands in a 2008 workshop report, in the chapter on principles, with the verb “is aimed for”. The chapter that actually regulates juries does not repeat it. No deadline, no sanction, and no new edition since the 2018 procurement act.",
+    src:"wb91" },
+  { h:"The profession’s own standard says it in the preface.",
+    t:"The Competition Standard (WSA 2022) speaks of diversity and women in planning — in its foreword, preamble and Part A. §3 of Part B, the section that governs jury composition, does not. The only consequence of ignoring the standard is that the Chamber withdraws its cooperation and marks the competition as such online.",
+    src:"wsa" },
+  { h:"The one rule that says “must” can be met from the bench.",
+    t:"The Chamber for Vienna, Lower Austria and Burgenland requires at least one woman among the jurors it nominates itself — as a full juror or as a substitute. It binds only the Chamber’s own share of the jury, roughly a quarter of the seats, and carries no sanction.",
+    src:"kammer" },
+  { h:"Vienna does write parity into law — elsewhere.",
+    t:"Commissions of the City made up of its own staff are to be composed of women and men in equal numbers “where possible” (§9 Vienna Equal Treatment Act). Ethics committees and the museum board have similar clauses. Competition juries appear in none of them.",
+    src:"wglbg" },
+  { h:"The chain.",
+    t:"57.6% of architecture studies are taken by women. 54.3% of degrees go to women. 22.7% of licensed architects in Vienna, Lower Austria and Burgenland are women; among licensed engineering consultants, 6.1%. Each step is documented; the drop between the second and the third is where the profession loses most of them.",
+    src:"kammerst" },
+  { h:"Nobody has counted the juries.",
+    t:"In 2019 the Chamber surveyed 387 of its own jurors about their work. The questionnaire recorded whether they sat as expert or lay jurors, in which region and for how long. It did not record their gender. No Austrian statistic on women in competition juries exists.",
+    src:"imad" },
+  { h:"The gap is access, not judgement.",
+    t:"In a European survey of 1,267 architects, women and men who entered international competitions won first prize at the same rate — 18% and 17%. But women were invited directly to competitions half as often: 11% against 22%. The bottleneck is before the jury, not inside it.",
+    src:"arche" },
 ];
 
 /* ---------- Die drei Zahlen für den Abspann ------------------------------
