@@ -394,8 +394,12 @@ intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftr
              „Read more" → dossier (8 Notizen aus DOSSIER, alle SOURCES, Auflagen-Quellen) oder Karte
  ── Stationen 2–6 ───────────────────────────────────────────────────────────
  → map       Station 1 erledigt, 2 offen, 3–6 gesperrt
- → pr        Station 2: eine Entscheidung aus PR_ACTIONS (30 % billiger mit Berger im Beirat)
-             → zurück zur Karte → „Build it"
+ → pr        Station 2, Entscheidung 1: Information aus PR_ACTIONS (30 % billiger mit Berger)
+ → prseason  Ereignis (fest, kein Zufall; entfällt bei „Do nothing"): Sommer an der Alten Donau —
+             warten (+2 Wochen, volle Wirkung) oder jetzt (halber Ruf-Effekt)
+ → praccess  Entscheidung 2: barrierefreier Zugang zur Platte während der Bauzeit (ACCESS_ACTIONS:
+             Rampe+Lift €90.000 / Umleitung Bahnhof / erst mit dem Neubau — §115 gilt fürs
+             fertige Gebäude, nicht für die Baustelle) → Karte → „Build it"
  → latestations  Stationen 3–6 in je einer Zeile: was der Beirat dort bewirkt (ECHOES) —
              fehlende Expertise wird als Consultants verbucht, Vorfertigung spart, Gründach/
              Innenraum bleiben eine Stufe länger erhalten
@@ -434,7 +438,6 @@ grün am 10.09.2026.
 
 ### Bekannte Altlasten
 
-- Deadline wandert bei Verzögerung mit → man kann sie nie reißen (unverändert)
 - Fünf der sechs Frauen haben `prestige: 3` — Geschlechter-Tell im Signal-Set.
   Im UI seit dem Stapel-Umbau nicht mehr sichtbar (nur `seniority` wird als
   Praxisjahre gezeigt); Profil-Audit trotzdem offen

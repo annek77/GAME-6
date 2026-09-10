@@ -186,6 +186,22 @@ const PR_ACTIONS = [
     cost:0, rep:-12 },
 ];
 
+/* Station 2, zweite Entscheidung: der barrierefreie Zugang zur Platte WÄHREND
+   der Bauzeit. §115 BO für Wien gilt für das fertige Gebäude; die Baustelle
+   ist rechtlich eine Lücke — genau deshalb fragt der Bezirksrat nach.
+   Kosten laufen in `pr`, weil es um die Nachbarschaft geht.               */
+const ACCESS_ACTIONS = [
+  { key:"ramp",     label:"Temporary ramp and lift",
+    desc:"A steel ramp and a hoist at the Augasse end, maintained for four years. The route stays open for everyone.",
+    cost:90_000, rep:14 },
+  { key:"detour",   label:"Signposted detour through the station",
+    desc:"Step-free via the Franz-Josefs-Bahnhof lifts — 400 metres longer, and not yours to maintain.",
+    cost:0, rep:-6 },
+  { key:"later",    label:"Solve it with the new building",
+    desc:"The finished campus will be barrier-free under §115. Until then, the platform is a building site.",
+    cost:0, rep:-14 },
+];
+
 /* ---------- Die Stationen auf der Karte ----------------------------------
    Startzustand: die Karte erscheint vor der Auswahl, Station 1 ist offen.
    Mit dem Versand der Einladungen wird 1 erledigt und 2 geöffnet.           */

@@ -21,7 +21,7 @@
    Everything from the brief to the real-world coda is station 1. */
 const STATION_OF = { p1:"board", confirm:"board", sendletter:"board", intermezzo:"board",
   reveal:"board", reaction:"board", briefreveal:"board", options:"board", abroad:"board", repaired:"board",
-  realworld:"board", dossier:"board", pr:"pr", latestations:"permits", outro:"build" };
+  realworld:"board", dossier:"board", pr:"pr", prseason:"pr", praccess:"pr", latestations:"permits", outro:"build" };
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -48,6 +48,8 @@ const state = {
   // the project map: station key → "done" | "open" | "locked"
   stations:freshStations(),
   prAction:null,               // key from PR_ACTIONS
+  prSeason:null,               // "wait" | "autumn" — the holiday event
+  accessAction:null,           // key from ACCESS_ACTIONS
 
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
@@ -107,17 +109,20 @@ function go(screen){
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
      abroad:rAbroad, realworld:rRealWorld, dossier:rDossier, latestations:rLateStations,
+     prseason:rPRSeason, praccess:rPRAccess,
      map:rMap, pr:rPR,
      outro:rOutro })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","latestations","outro"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","latestations","outro"]);
-function hudDeadline(){
-  const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
-  return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
-}
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
+/* the deadline does not move. 1 August 2026 stays 1 August 2026; what moves
+   is how late you are. */
+const DEADLINE = new Date(2026,7,1);
+const fmtDate = (d,loc="en-GB",opt={day:"2-digit",month:"short",year:"numeric"}) => d.toLocaleDateString(loc,opt);
+function hudDeadline(){ return "deadline: "+fmtDate(DEADLINE); }
+function gameDate(){ const d=new Date(DEADLINE); d.setDate(d.getDate()+state.delayWeeks*7); return d; }
 const repWord  = ()=> state.rep>=80?"Solid":state.rep>=55?"Shaky":state.rep>=30?"Damaged":"In crisis";
 const repColor = ()=> state.rep>=80?"var(--ok)":state.rep>=55?"var(--gold)":state.rep>=30?"var(--warn)":"var(--danger)";
 function hudFlash(id){const g=document.getElementById(id);if(!g)return;g.classList.remove("gflash");void g.offsetWidth;g.classList.add("gflash");}
@@ -132,7 +137,7 @@ function renderHUD(){
   // schedule and reputation stay hidden until they first move
   document.getElementById("g-time").hidden = !state.hudSeen.time;
   document.getElementById("g-rep").hidden  = !state.hudSeen.rep;
-  document.getElementById("hud-weeks").textContent   = state.delayWeeks ? "+"+state.delayWeeks+"w late" : "on time";
+  document.getElementById("hud-weeks").textContent   = state.delayWeeks ? `${state.delayWeeks} week${state.delayWeeks>1?"s":""} late` : "on time";
   document.getElementById("hud-deadline").textContent= hudDeadline();
   document.getElementById("hud-repword").textContent  = repWord();
   const f=document.getElementById("hud-repfill"); f.style.width=state.rep+"%"; f.style.background=repColor();
@@ -730,7 +735,7 @@ function rConfirm(){
 /* ---------- the formal invitation letter (ex draft-letter.js) ---------- */
 function rSendLetter(){
   stage.innerHTML="";
-  const dateStr=new Date().toLocaleDateString("de-AT",{day:"2-digit",month:"long",year:"numeric"});
+  const dateStr=fmtDate(gameDate(),"de-AT",{day:"2-digit",month:"long",year:"numeric"});
   const wrap=el(`
     <div class="slide letter-wrap">
       <p class="letter-status">Sending the invitation letter …</p>
@@ -929,7 +934,7 @@ function rDossier(){
    ======================================================================== */
 function stationResult(key){
   if(key==="board") return `${state.invited.length} members · fees ${eur(state.spend.experts)}`;
-  if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction); return `${a.label} · ${eur(prPrice(a.cost))}`; }
+  if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction), c=ACCESS_ACTIONS.find(x=>x.key===state.accessAction); return `${a.label}${state.prSeason==="now"?" (August)":""} · ${c?c.label:""} · ${eur(prPrice(a.cost)+(c?c.cost:0))}`; }
   return "";
 }
 function rMap(){
@@ -962,8 +967,9 @@ function rMap(){
 /* ---------- Station 2: Neighbours & PR — one decision ---------- */
 function rPR(){
   stage.innerHTML="";
+  stage.appendChild(kicker("Augasse, 9th district"));
   const card=el(`<div class="appcard wide">
-    <span class="badge">Station 2 · Augasse, 9th district</span>
+    <span class="badge">Decision 1 of 2 · information</span>
     <h2>Neighbours &amp; PR</h2>
     <p>Four years of building site over a live railway, and the people next door did not choose it.
        Whatever you do here, they will hear the drilling. The question is what else they hear from you.</p>
@@ -978,10 +984,59 @@ function rPR(){
     const b=el(`<button class="btn ${a.cost?"":"ghost"}" data-k="${a.key}">${a.label}<span class="cost">${priceHtml} · ${a.desc}</span></button>`);
     if(price>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
     b.onclick=()=>{
-      state.prAction=a.key; state.stations.pr="done";
+      state.prAction=a.key;
       if(price) spend("pr",price);
-      hudAddRep(a.rep);
       hudFeed("Augasse", a.rep>0 ? `${a.label}. The neighbours take note.` : "The neighbours hear the drilling. Nothing else.");
+      if(a.key==="nothing"){ hudAddRep(a.rep); go("praccess"); }   // nothing planned, nothing delayed
+      else go("prseason");
+    };
+    bar.appendChild(b);
+  });
+  stage.appendChild(card);
+}
+
+/* ---------- Station 2, the event: whatever you planned lands in August ---------- */
+function rPRSeason(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("summer"));
+  const a=PR_ACTIONS.find(x=>x.key===state.prAction);
+  const card=el(`<div class="appcard wide">
+    <span class="badge">Meanwhile</span>
+    <div class="art">${ALTEDONAU_SVG}</div>
+    <h2>Holiday season</h2>
+    <p>Your ${a.label.toLowerCase()} is ready to go — and half of Vienna is at the Alte Donau. The district office answers in
+       September, the neighbourhood association not at all. Nothing you did. Just the calendar.</p>
+    <div class="btnbar col mt">
+      <button class="btn" id="ps-wait">Wait for September<span class="cost">+2 weeks · ${eur(2*weekCost())} · the measure lands with full effect</span></button>
+      <button class="btn ghost" id="ps-now">Go ahead now, half-empty<span class="cost">no delay · the measure reaches half the people</span></button>
+    </div>
+  </div>`);
+  stage.appendChild(card);
+  document.getElementById("ps-wait").onclick=()=>{ state.prSeason="wait"; hudAddDelay(2); hudAddRep(a.rep); hudFeed("Augasse", "September. The container opens, the street fills up."); go("praccess"); };
+  document.getElementById("ps-now").onclick=()=>{ state.prSeason="now"; hudAddRep(Math.round(a.rep/2)); hudFeed("Augasse", "August. A quiet turnout."); go("praccess"); };
+}
+
+/* ---------- Station 2, decision 2: the platform during four years of building ---------- */
+function rPRAccess(){
+  stage.innerHTML="";
+  stage.appendChild(kicker("the district council asks"));
+  const card=el(`<div class="appcard wide">
+    <span class="badge">Decision 2 of 2 · access</span>
+    <h2>Getting onto the Platte</h2>
+    <p>The platform is a public route: from the Augasse over the tracks to the station. During construction the lifts
+       and the ramp go. A councillor asks, in writing, how people with wheelchairs, prams and walking frames will get
+       across for the next four years. §115 of the Building Code covers the finished building. The building site, it does not.</p>
+    <div class="btnbar col mt" id="ac-actions"></div>
+  </div>`);
+  const bar=card.querySelector("#ac-actions");
+  ACCESS_ACTIONS.forEach(a=>{
+    const b=el(`<button class="btn ${a.cost?"":"ghost"}" data-k="${a.key}">${a.label}<span class="cost">${a.cost?eur(a.cost):"no cost"} · ${a.desc}</span></button>`);
+    if(a.cost>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
+    b.onclick=()=>{
+      state.accessAction=a.key; state.stations.pr="done";
+      if(a.cost) spend("pr",a.cost);
+      hudAddRep(a.rep);
+      hudFeed("Bezirksrat Alsergrund", a.rep>0 ? "Answered. The ramp goes up before the hoarding does." : "Answered. The question comes back in the next session.");
       go("map");
     };
     bar.appendChild(b);
@@ -1096,7 +1151,7 @@ function resetGame(){
   state.reactionTier=null; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0; state.abroadAsked=false;
   state.lateBilled=false; state.savings=0;
-  state.stations=freshStations(); state.prAction=null;
+  state.stations=freshStations(); state.prAction=null; state.prSeason=null; state.accessAction=null;
   state.dossierReturn=null; introStep=0;
   go("intro");
 }
