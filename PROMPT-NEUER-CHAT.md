@@ -12,8 +12,11 @@ ist halbfertig — deine Aufgabe ist der Umbau, nicht der Neubau.
 **Lies zuerst `GAME 6/KONZEPT-STAND.md` vollständig.** Das ist die maßgebliche
 Grundlage. Sie ersetzt `design-notizen.md` und `HANDOVER.md` überall dort, wo sie
 ihnen widerspricht — die Widersprüche sind darin ausdrücklich aufgelistet.
-Lies danach `rules.js` (Budget, Auflagen, Pflichtfelder, Maßnahmen, Stationen)
-und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
+Lies danach **`rules.js` komplett** — dort steht alles Inhaltliche: Budget und
+Honorare, die belegten Auflagen, die Pflicht-Fachgebiete, Ausgleichs- und
+PR-Maßnahmen, die Stationen, das echte Preisgericht, die Abspann-Zahlen und die
+Quellenliste. Danach verschaffe dir einen Überblick über `game.js`,
+`index.html`, `data.js`.
 
 ## Arbeitsregeln
 
@@ -142,15 +145,30 @@ die Pool-Szene und die 26 Profile in `data.js`. Daran nichts ändern.
 
 ## Die wichtigste inhaltliche Regel
 
-Das Spiel darf das Thema **vor dem Reveal nicht benennen**. Keine „Quote", keine
-„Frauen", keine „Gleichstellung", keine Geschlechterzählung in einer Anzeige.
-Die einzige Ausnahme ist der Amtsdeutsch-Nebensatz im Briefing, der bewusst
-zwischen vier langweiligen Auflagen untergeht.
+**Das Spiel spricht das Thema von sich aus nie an — bis zum Reveal.** Keine
+Geschlechterzählung in einer Anzeige, kein Hinweis der Stadt, kein Kommentar
+zur Auswahl, kein Wort wie „Quote" oder „Gleichstellung" in UI, Buttons oder
+Erzähltext.
 
-Der Konflikt im Spiel ist **buchhalterisch, nicht moralisch**: Das Gesetz
-verlangt Ausgewogenheit, die Zahlen geben sie nicht her, die Öffentlichkeit
-schaut zu. Man kann das nicht lösen, nur bezahlen — und das Geld fehlt später
-beim Bauen. Das Spiel urteilt nie über die Spielerin.
+**Die eine Ausnahme ist der vierte Auflagensatz im Briefing.** Der enthält
+tatsächlich „women" und „25%" — so steht er im Originaldokument, und deshalb
+bleibt er wörtlich stehen. Er funktioniert nicht dadurch, dass er verschleiert,
+sondern dadurch, dass er **zwischen vier gleich dröge formulierten Auflagen
+untergeht** und niemand Amtsdeutsch liest. Also: nicht entschärfen, nicht
+umschreiben, nicht hervorheben — einfach mitlaufen lassen wie die anderen vier.
+
+Der Konflikt im Spiel ist **buchhalterisch, nicht moralisch** — und er ist
+schärfer als „Gesetz gegen Wirklichkeit":
+
+- Es gibt **kein** Gesetz. Nur einen Zielwert von 2008, der „angestrebt wird",
+  und eine Kammerregel, die durch eine Ersatzpreisrichterin erfüllbar ist.
+- Die Zahlen geben Ausgewogenheit nicht her: 57,6 % der Studierenden sind
+  Frauen, 22,7 % der Architekt:innen mit Befugnis.
+- Die Öffentlichkeit schaut trotzdem zu.
+
+Niemand zwingt dich also. Du kannst den Konflikt nicht lösen, nur **freiwillig
+bezahlen** — mit Zeit oder Geld, und das Geld fehlt später beim Bauen. **Das
+Spiel urteilt nie über die Spielerin.**
 
 ## Was nicht deine Aufgabe ist
 
