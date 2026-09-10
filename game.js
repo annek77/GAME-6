@@ -210,8 +210,7 @@ const BEATS = [
     h:"A campus the city built, then outgrew",
     body:`
       <p class="lede">It went up in the mid-1970s as the railway platform was constructed,
-      and from 1982 it housed the Vienna University of Economics and Business.
-      <!-- TODO: verify / fill from briefing — architects (briefing names "Büro Kurt Hlaweniczka" but flags as unverified) --></p>
+      and from 1982 it housed the Vienna University of Economics and Business.</p>
       <p class="lede">The WU moved on to a new campus in 2013. The University of Vienna held part of it
       until 2021. Then the lecture halls fell silent. The signs came down, the corridors emptied,
       and a building made for tens of thousands of people was left waiting — half in use, half asleep.</p>`
