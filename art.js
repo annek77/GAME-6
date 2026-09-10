@@ -155,6 +155,15 @@ const KITCHEN_SVG = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/sv
   <ellipse cx="518" cy="158" rx="12" ry="10" fill="#4fb286" stroke="#143041" stroke-width="2"/>
 </svg>`;
 
+/* ---------- Amtsstempel auf dem Einladungsbrief (aus draft-letter.js) ---------- */
+const STAMP_SVG = `<svg viewBox="0 0 80 80" width="80" height="80">
+      <circle cx="40" cy="40" r="36" fill="none" stroke="#143041" stroke-width="3"/>
+      <circle cx="40" cy="40" r="30" fill="none" stroke="#143041" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="40" y="32" text-anchor="middle" font-family="VT323,monospace" font-size="14" fill="#143041">STADT</text>
+      <text x="40" y="48" text-anchor="middle" font-family="VT323,monospace" font-size="18" fill="#143041">WIEN</text>
+      <text x="40" y="60" text-anchor="middle" font-family="VT323,monospace" font-size="10" fill="#143041">WETTBEWERB</text>
+    </svg>`;
+
 /* ---------- Pappfiguren & Kabinen (aus draft-reveal.js) ---------- */
 function _paperDoll({ overflow = false, empty = false } = {}) {
   if (empty) {
@@ -228,7 +237,7 @@ function _cabinIcon(label) {
 
 /* ---------- Schwimmhalle / Expert Pool (aus draft-reveal.js) ---------- */
 const POOLHALL_SVG = `
-        <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+        <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
           <rect x="0" y="0" width="620" height="200" fill="#fffdf6"/>
           <rect x="60" y="90" width="500" height="80" fill="#a3e5f7" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
           <rect x="60" y="90" width="500" height="6" fill="#ffcf4d" stroke="none"/>

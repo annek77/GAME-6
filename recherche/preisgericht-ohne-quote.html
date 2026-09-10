@@ -1,0 +1,1409 @@
+<title>Preisgericht ohne Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#EFF2F0;
+  --surface:#FAFBFA;
+  --surface-2:#E5EAE7;
+  --ink:#171C1A;
+  --ink-2:#39423F;
+  --muted:#606B67;
+  --faint:#8B9793;
+  --line:#CFD7D3;
+  --line-soft:#DFE5E2;
+  --accent:#2C6A5D;
+  --accent-deep:#1C4A40;
+  --accent-soft:#D8E6E1;
+  --signal:#A03E27;
+  --signal-soft:#F0DDD6;
+  --shadow:0 1px 2px rgba(23,28,26,.05), 0 6px 20px -12px rgba(23,28,26,.28);
+
+  --f-head:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Spectral",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121715;
+    --surface:#1A211E;
+    --surface-2:#232C29;
+    --ink:#E7EDEA;
+    --ink-2:#C3CDC9;
+    --muted:#94A09B;
+    --faint:#6F7C77;
+    --line:#2C3733;
+    --line-soft:#232C29;
+    --accent:#6EBFAB;
+    --accent-deep:#8FD3C2;
+    --accent-soft:#1D332E;
+    --signal:#DE8065;
+    --signal-soft:#33201A;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121715;
+  --surface:#1A211E;
+  --surface-2:#232C29;
+  --ink:#E7EDEA;
+  --ink-2:#C3CDC9;
+  --muted:#94A09B;
+  --faint:#6F7C77;
+  --line:#2C3733;
+  --line-soft:#232C29;
+  --accent:#6EBFAB;
+  --accent-deep:#8FD3C2;
+  --accent-soft:#1D332E;
+  --signal:#DE8065;
+  --signal-soft:#33201A;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px -12px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:16.5px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-soft);color:var(--ink)}
+a{color:var(--accent);text-underline-offset:2px;text-decoration-thickness:.5px}
+a:hover{color:var(--accent-deep)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+/* ---------- shell ---------- */
+.shell{
+  max-width:1240px;margin:0 auto;padding:0 28px 96px;
+  display:grid;grid-template-columns:236px minmax(0,1fr);gap:56px;align-items:start;
+}
+@media (max-width:1000px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:0;padding:0 20px 72px}
+}
+
+/* ---------- masthead ---------- */
+.mast{grid-column:1/-1;padding:52px 0 30px;border-bottom:1px solid var(--line)}
+.mast .kicker{
+  font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);font-weight:500;margin:0 0 18px;
+}
+.mast h1{
+  font-family:var(--f-head);font-weight:700;letter-spacing:-.025em;
+  font-size:clamp(2.3rem,5.6vw,3.9rem);line-height:1.02;margin:0;text-wrap:balance;
+}
+.mast .sub{
+  font-size:1.12rem;color:var(--ink-2);max-width:60ch;margin:16px 0 0;font-weight:300;
+}
+.mast .meta{
+  display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:26px;
+  font-family:var(--f-mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em;
+}
+.mast .meta b{color:var(--ink-2);font-weight:500}
+
+/* ---------- nav rail ---------- */
+.rail{position:sticky;top:24px;padding-top:38px}
+@media (max-width:1000px){
+  .rail{position:static;padding:26px 0 0;border-bottom:1px solid var(--line);margin-bottom:8px}
+}
+.rail h2{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--faint);font-weight:500;margin:0 0 12px;
+}
+.rail ol{list-style:none;margin:0 0 30px;padding:0;display:flex;flex-direction:column;gap:1px}
+@media (max-width:1000px){.rail ol{flex-direction:row;flex-wrap:wrap;gap:6px}}
+.rail a{
+  display:flex;gap:10px;align-items:baseline;
+  font-family:var(--f-head);font-size:13.5px;font-weight:500;
+  color:var(--muted);text-decoration:none;padding:6px 9px;border-radius:3px;line-height:1.3;
+  border-left:2px solid transparent;
+}
+@media (max-width:1000px){.rail a{border-left:none;border-bottom:2px solid transparent;background:var(--surface)}}
+.rail a:hover{color:var(--ink);background:var(--surface)}
+.rail a.on{color:var(--accent-deep);background:var(--accent-soft);border-left-color:var(--accent)}
+@media (max-width:1000px){.rail a.on{border-bottom-color:var(--accent)}}
+.rail a .n{font-family:var(--f-mono);font-size:10.5px;color:var(--faint);flex:none}
+.rail a.on .n{color:var(--accent)}
+
+.key{border-top:1px solid var(--line-soft);padding-top:18px}
+.key dl{margin:0;display:flex;flex-direction:column;gap:9px}
+@media (max-width:1000px){.key dl{flex-direction:row;flex-wrap:wrap;gap:8px 20px}}
+.key .row{display:flex;gap:9px;align-items:flex-start}
+.key .txt{font-family:var(--f-head);font-size:11.5px;color:var(--muted);line-height:1.35;padding-top:1px}
+
+/* ---------- evidence chips ---------- */
+.ev{
+  flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:17px;height:17px;border-radius:2px;
+  font-family:var(--f-mono);font-size:10px;font-weight:600;line-height:1;
+  vertical-align:1px;
+}
+.ev--v{background:var(--accent);color:var(--paper);border:1px solid var(--accent)}
+.ev--p{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.ev--s{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.ev--g{background:var(--signal);color:var(--paper);border:1px solid var(--signal)}
+
+/* ---------- body content ---------- */
+main{padding-top:38px;min-width:0}
+section{scroll-margin-top:20px}
+section + section{margin-top:72px;padding-top:56px;border-top:1px solid var(--line)}
+
+.sec-head{display:flex;gap:16px;align-items:baseline;margin-bottom:6px}
+.sec-num{
+  font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--accent);
+  letter-spacing:.06em;flex:none;padding-top:6px;
+}
+h2.sec{
+  font-family:var(--f-head);font-weight:700;letter-spacing:-.02em;
+  font-size:clamp(1.55rem,3.2vw,2.15rem);line-height:1.1;margin:0;text-wrap:balance;
+}
+.sec-lede{color:var(--ink-2);font-size:1.05rem;max-width:62ch;margin:0 0 34px 0;font-weight:300}
+@media (min-width:640px){.sec-lede{margin-left:44px}}
+
+h3{
+  font-family:var(--f-head);font-weight:600;letter-spacing:-.012em;
+  font-size:1.16rem;line-height:1.28;margin:44px 0 12px;text-wrap:balance;
+}
+h4{
+  font-family:var(--f-head);font-weight:600;font-size:.94rem;letter-spacing:.005em;
+  margin:30px 0 8px;color:var(--ink-2);
+}
+p{margin:0 0 15px;max-width:68ch}
+ul,ol{max-width:68ch;padding-left:1.15em;margin:0 0 16px}
+li{margin-bottom:7px}
+li::marker{color:var(--faint)}
+strong{font-weight:600;color:var(--ink)}
+em{font-style:italic}
+code,.mono{font-family:var(--f-mono);font-size:.86em;letter-spacing:-.01em}
+.par{font-family:var(--f-mono);font-size:.88em;font-weight:500;white-space:nowrap}
+
+/* ---------- quote ---------- */
+.q{
+  margin:20px 0 22px;padding:0 0 0 20px;border-left:2px solid var(--accent);
+  max-width:66ch;
+}
+.q .lbl{
+  display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:8px;
+}
+.q p{font-size:1.02rem;color:var(--ink);margin:0 0 10px;font-weight:400}
+.q p:last-child{margin-bottom:0}
+.q .src{
+  display:block;font-family:var(--f-mono);font-size:11px;color:var(--faint);
+  margin-top:10px;line-height:1.5;
+}
+.q--long p{font-size:.96rem}
+
+/* ---------- callouts ---------- */
+.note,.warn,.find{
+  padding:16px 18px;border-radius:3px;margin:22px 0;max-width:68ch;
+  font-size:.95rem;
+}
+.note{background:var(--surface);border:1px solid var(--line-soft)}
+.warn{background:var(--signal-soft);border:1px solid transparent;border-left:2px solid var(--signal)}
+.find{background:var(--accent-soft);border:1px solid transparent;border-left:2px solid var(--accent)}
+.note p:last-child,.warn p:last-child,.find p:last-child{margin-bottom:0}
+.note .h,.warn .h,.find .h{
+  display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:500;margin-bottom:7px;
+}
+.warn .h{color:var(--signal)}
+.find .h{color:var(--accent-deep)}
+.note .h{color:var(--muted)}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto;margin:20px 0 24px;border:1px solid var(--line-soft);border-radius:3px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem;min-width:min(100%,520px)}
+th,td{padding:9px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line-soft)}
+thead th{
+  font-family:var(--f-head);font-size:10.5px;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);background:var(--surface-2);
+  border-bottom:1px solid var(--line);white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr.hi td{background:var(--accent-soft);font-weight:500}
+td .mini{display:block;font-size:.82em;color:var(--muted);font-family:var(--f-head);margin-top:2px;font-weight:400}
+
+/* ---------- hero data ---------- */
+.kern{
+  margin:44px 0 0;display:grid;gap:26px;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+}
+.panel{
+  background:var(--surface);border:1px solid var(--line-soft);border-radius:3px;
+  padding:22px 22px 20px;box-shadow:var(--shadow);
+}
+.panel .t{
+  font-family:var(--f-head);font-size:.98rem;font-weight:600;margin:0 0 3px;letter-spacing:-.008em;
+}
+.panel .st{
+  font-family:var(--f-mono);font-size:10.5px;color:var(--faint);letter-spacing:.04em;
+  margin:0 0 20px;text-transform:uppercase;
+}
+.panel .foot{
+  font-size:.82rem;color:var(--muted);margin:18px 0 0;line-height:1.5;max-width:none;
+  padding-top:14px;border-top:1px solid var(--line-soft);
+}
+
+/* jury seats */
+.bench{display:flex;flex-direction:column;gap:15px}
+.bench-row{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+@media (max-width:420px){.bench-row{grid-template-columns:1fr;gap:5px}}
+.bench-lab{
+  font-family:var(--f-head);font-size:11.5px;font-weight:600;color:var(--ink-2);line-height:1.25;
+}
+.bench-lab span{display:block;font-family:var(--f-mono);font-weight:400;font-size:10px;color:var(--faint)}
+.seats{display:flex;gap:5px;flex-wrap:wrap}
+.seat{width:19px;height:24px;border-radius:2px 2px 4px 4px;flex:none}
+.seat--w{background:var(--accent)}
+.seat--m{background:transparent;border:1.5px solid var(--line)}
+.bench-tot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  margin-top:4px;padding-top:14px;border-top:1px solid var(--line-soft);
+}
+.bench-tot .l{font-family:var(--f-head);font-size:12px;font-weight:600;color:var(--ink-2)}
+.bench-tot .v{
+  font-family:var(--f-mono);font-size:1.6rem;font-weight:600;color:var(--accent-deep);
+  font-variant-numeric:tabular-nums;line-height:1;
+}
+.bench-tot .v small{font-size:.6em;color:var(--muted);font-weight:400;margin-left:6px}
+.legend{display:flex;gap:16px;margin-top:14px;font-family:var(--f-mono);font-size:10.5px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:14px;border-radius:1px 1px 3px 3px;margin-right:5px;vertical-align:-2px}
+.legend i.w{background:var(--accent)}
+.legend i.m{border:1.5px solid var(--line)}
+
+/* funnel */
+.funnel{display:flex;flex-direction:column;gap:13px}
+.fn{display:grid;grid-template-columns:1fr;gap:5px}
+.fn-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.fn-lab{font-family:var(--f-head);font-size:11.5px;font-weight:600;color:var(--ink-2);line-height:1.25}
+.fn-lab span{display:block;font-family:var(--f-mono);font-weight:400;font-size:9.5px;color:var(--faint);letter-spacing:.02em}
+.fn-val{
+  font-family:var(--f-mono);font-size:.98rem;font-weight:600;color:var(--ink);
+  font-variant-numeric:tabular-nums;flex:none;
+}
+.fn-track{height:9px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.fn-bar{height:100%;background:var(--accent);border-radius:2px}
+.fn--low .fn-bar{background:var(--signal)}
+.fn--low .fn-val{color:var(--signal)}
+.fn--none .fn-lab,.fn--none .fn-val{color:var(--signal)}
+
+/* ---------- pruefstand ---------- */
+.check{
+  margin:34px 0 0;background:var(--signal-soft);border-radius:3px;padding:22px 24px;
+  border-left:2px solid var(--signal);
+}
+.check .h{
+  font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--signal);font-weight:500;margin:0 0 4px;
+}
+.check .t{font-family:var(--f-head);font-size:1.02rem;font-weight:600;margin:0 0 14px}
+.check ol{margin:0;padding-left:1.2em;max-width:70ch;font-size:.93rem}
+.check li{margin-bottom:8px}
+.check li::marker{color:var(--signal);font-family:var(--f-mono);font-size:.85em}
+
+/* ---------- gaps ---------- */
+.gapgrid{display:flex;flex-direction:column;gap:34px}
+.gapblock h4{margin-top:0}
+.gaps{list-style:none;padding:0;margin:0;max-width:74ch;display:flex;flex-direction:column;gap:0}
+.gaps li{
+  display:grid;grid-template-columns:44px 1fr;gap:14px;margin:0;
+  padding:11px 0;border-bottom:1px solid var(--line-soft);font-size:.92rem;
+}
+.gaps li:last-child{border-bottom:none}
+.gaps .id{
+  font-family:var(--f-mono);font-size:10.5px;font-weight:600;color:var(--signal);
+  letter-spacing:.04em;padding-top:3px;
+}
+.gaps .id.ok{color:var(--faint)}
+.gaps b{display:block;font-family:var(--f-head);font-weight:600;font-size:.95rem;margin-bottom:2px;color:var(--ink)}
+.gaps span.d{color:var(--muted);font-size:.89rem;line-height:1.5;display:block}
+
+/* ---------- footer ---------- */
+.foot-note{
+  grid-column:1/-1;margin-top:76px;padding-top:26px;border-top:1px solid var(--line);
+  font-family:var(--f-mono);font-size:11.5px;color:var(--faint);line-height:1.7;
+  display:flex;flex-wrap:wrap;gap:6px 40px;
+}
+
+.srcline{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);line-height:1.6;margin:0 0 16px;max-width:70ch;word-break:break-word}
+.srcline a{color:var(--muted)}
+.srcline a:hover{color:var(--accent)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell">
+
+  <header class="mast">
+    <p class="kicker">Belegdossier · Serious Game · Universitätspaper</p>
+    <h1>Preisgericht ohne Quote</h1>
+    <p class="sub">Geschlechterverteilung in Architektur-Wettbewerbsjurys in Österreich — Rechtslage, Zahlen, Barrierefreiheit und der Fall Campus Althangrund, jede Aussage mit Primärquelle.</p>
+    <div class="meta">
+      <span>Stand <b>10.09.2026</b></span>
+      <span>Abrufdatum aller Quellen <b>10.09.2026</b></span>
+      <span>Rechtsstand <b>BVergG 2018 · BO Wien idF LGBl. 25/2026 · WBTV 2023</b></span>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Inhalt">
+    <h2>Inhalt</h2>
+    <ol>
+      <li><a href="#kern" class="on"><span class="n">00</span>Kernbefund</a></li>
+      <li><a href="#recht"><span class="n">01</span>Rechtliche Auflagen</a></li>
+      <li><a href="#zahlen"><span class="n">02</span>Zahlen zur Berufsgruppe</a></li>
+      <li><a href="#barriere"><span class="n">03</span>Barrierefreiheit</a></li>
+      <li><a href="#campus"><span class="n">04</span>Campus Althangrund</a></li>
+      <li><a href="#luecken"><span class="n">05</span>Lückenliste</a></li>
+    </ol>
+    <div class="key">
+      <h2>Belegstufen</h2>
+      <dl>
+        <div class="row"><span class="ev ev--v">V</span><span class="txt">Selbst im Volltext gelesen und wörtlich gegengeprüft</span></div>
+        <div class="row"><span class="ev ev--p">P</span><span class="txt">Primärquelle — Gesetz, Kammer, Stadt Wien, Ausschreibung</span></div>
+        <div class="row"><span class="ev ev--s">S</span><span class="txt">Sekundärquelle — Presse, Blog, Projektpublikation</span></div>
+        <div class="row"><span class="ev ev--g">!</span><span class="txt">Lücke — gesucht, nicht gefunden, nicht geschätzt</span></div>
+      </dl>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============ KERNBEFUND ============ -->
+    <section id="kern">
+      <div class="sec-head">
+        <span class="sec-num">00</span>
+        <h2 class="sec">Kernbefund</h2>
+      </div>
+      <p class="sec-lede">Vier Sätze, die das Paper tragen — und die beiden Zahlenbilder, aus denen sie stammen.</p>
+
+      <ol style="max-width:70ch">
+        <li><strong>Recht.</strong> Österreich kennt keine einzige durchsetzbare Geschlechtervorgabe für Preisgerichte. Das Bundesvergabegesetz schweigt, der Wettbewerbsstandard formuliert das Ziel außerhalb der justiziablen Wettbewerbsordnung, Wien nennt 25 % als „wird angestrebt", und die einzige Muss-Bestimmung bindet nur ein Viertel der Jury und ist durch eine Ersatzpreisrichterin erfüllbar.</li>
+        <li><strong>Zahlen.</strong> Der Frauenanteil fällt entlang der Karrierekette von 57,6 % im Studium auf 4,6 % in Führungspositionen des Baugewerbes. Für Wettbewerbsjurys gibt es <em>keine</em> Zahl — sie wurde in Österreich nie systematisch erhoben.</li>
+        <li><strong>Barrierefreiheit.</strong> § 115 BO Wien und die OIB-Richtlinie 4 sind verbindlich und mit Strafen bis 50.000 € bewehrt; die ÖNORM B 1600 ist in Wien laut Baupolizei ausdrücklich <em>nicht</em> verbindlich. Das BGStG gibt Betroffenen nur Geld, keinen Beseitigungsanspruch.</li>
+        <li><strong>Fall.</strong> Das Preisgericht Campus Althangrund hat 28,6 % Frauenanteil — beide Kammernominierungen sind Frauen, unter den sieben übrigen Fachpreisrichtern ist keine einzige.</li>
+      </ol>
+
+      <div class="kern">
+
+        <div class="panel">
+          <p class="t">Preisgericht Campus Althangrund</p>
+          <p class="st">14 stimmberechtigte Hauptpreisrichter:innen · Stand 10.09.2026</p>
+          <div class="bench">
+            <div class="bench-row">
+              <div class="bench-lab">Kammer<span>2 Sitze · 2 Frauen</span></div>
+              <div class="seats" role="img" aria-label="2 von 2 Kammerpreisrichterinnen sind Frauen">
+                <div class="seat seat--w"></div><div class="seat seat--w"></div>
+              </div>
+            </div>
+            <div class="bench-row">
+              <div class="bench-lab">Fachpreis<span>7 Sitze · 0 Frauen</span></div>
+              <div class="seats" role="img" aria-label="0 von 7 Fachpreisrichtern sind Frauen">
+                <div class="seat seat--m"></div><div class="seat seat--m"></div><div class="seat seat--m"></div>
+                <div class="seat seat--m"></div><div class="seat seat--m"></div><div class="seat seat--m"></div>
+                <div class="seat seat--m"></div>
+              </div>
+            </div>
+            <div class="bench-row">
+              <div class="bench-lab">Sachpreis<span>5 Sitze · 2 Frauen</span></div>
+              <div class="seats" role="img" aria-label="2 von 5 Sachpreisrichterinnen und Sachpreisrichtern sind Frauen">
+                <div class="seat seat--w"></div><div class="seat seat--w"></div>
+                <div class="seat seat--m"></div><div class="seat seat--m"></div><div class="seat seat--m"></div>
+              </div>
+            </div>
+          </div>
+          <div class="legend"><span><i class="w"></i>Frau</span><span><i class="m"></i>Mann</span></div>
+          <div class="bench-tot">
+            <span class="l">Frauenanteil gesamt</span>
+            <span class="v">28,6 %<small>4 / 14</small></span>
+          </div>
+          <p class="foot">Eigene Auszählung der auf architekturwettbewerb.at publizierten Namensliste, selbst ausgelesen am 10.09.2026. Geschlecht ist dort kein Datenfeld; Zuordnung über Vornamen und belegte Funktionen.</p>
+        </div>
+
+        <div class="panel">
+          <p class="t">Frauenanteil entlang der Karrierekette</p>
+          <p class="st">Österreich · verschiedene Populationen und Stichjahre</p>
+          <div class="funnel">
+            <div class="fn">
+              <div class="fn-top"><span class="fn-lab">Architekturstudium<span>Belegte Studien, WS 2025/26</span></span><span class="fn-val">57,6 %</span></div>
+              <div class="fn-track"><div class="fn-bar" style="width:96%"></div></div>
+            </div>
+            <div class="fn">
+              <div class="fn-top"><span class="fn-lab">Studienabschlüsse<span>Studienjahr 2024/25</span></span><span class="fn-val">54,3 %</span></div>
+              <div class="fn-track"><div class="fn-bar" style="width:90.5%"></div></div>
+            </div>
+            <div class="fn">
+              <div class="fn-top"><span class="fn-lab">Architekt:innen m. Befugnis<span>W/NÖ/Bgld, aufrecht, 2025</span></span><span class="fn-val">22,7 %</span></div>
+              <div class="fn-track"><div class="fn-bar" style="width:37.8%"></div></div>
+            </div>
+            <div class="fn fn--low">
+              <div class="fn-top"><span class="fn-lab">Ingenieurkonsulent:innen<span>W/NÖ/Bgld, aufrecht, 2025</span></span><span class="fn-val">6,1 %</span></div>
+              <div class="fn-track"><div class="fn-bar" style="width:10.2%"></div></div>
+            </div>
+            <div class="fn fn--low">
+              <div class="fn-top"><span class="fn-lab">Führung Baugewerbe<span>CRIF, 03/2026 — nicht amtlich</span></span><span class="fn-val">4,6 %</span></div>
+              <div class="fn-track"><div class="fn-bar" style="width:7.7%"></div></div>
+            </div>
+            <div class="fn fn--none">
+              <div class="fn-top"><span class="fn-lab">Wettbewerbsjurys<span>nie systematisch erhoben</span></span><span class="fn-val">?</span></div>
+              <div class="fn-track"></div>
+            </div>
+          </div>
+          <p class="foot">Balken skaliert auf 60 % = volle Breite. <strong>Nicht als Zeitreihe lesen</strong> — es sind fünf verschiedene Grundgesamtheiten, Erhebungsmethoden und Stichjahre. Die Kammerwerte gelten nur für Wien/NÖ/Burgenland; ein aktueller bundesweiter Wert ist nicht publiziert.</p>
+        </div>
+
+      </div>
+
+      <div class="check">
+        <p class="h">Vor Drucklegung selbst prüfen</p>
+        <p class="t">Vier Belege, die ich nicht restlos schließen konnte</p>
+        <ol>
+          <li><strong>Werkstattbericht 91 (Stadt Wien, 2008)</strong> — der Zitatwortlaut „mindestens 25 % … wird angestrebt" ist über den Volltextindex bestätigt, der PDF-Server lieferte aber leere Antworten. Seitenzahlen S. 9, 15, 68 an einer manuell heruntergeladenen Kopie gegenlesen.</li>
+          <li><strong>OIB-Richtlinie 4, Ausgabe Mai 2023</strong> — das amtliche RIS-PDF (Anlage 11 WBTV 2023) ist nicht maschinenlesbar. Die Zitate stammen aus der amtssignierten Ausgabe 2019 und wurden auf Wortgleichheit geprüft. Aus dem offiziellen PDF der Ausgabe 2023 nachzitieren.</li>
+          <li><strong>Beschlussdatum der zt:Kammer-Ost-Leitlinie</strong> — steht nicht auf der Website. Ohne Datum nur als „Website-Stand 10.09.2026" zitierbar. Anfrage beim Ausschuss Wettbewerbe der Sektion Architekt:innen.</li>
+          <li><strong>Auslobung Campus Althangrund</strong> — bisher nur mittelbar über die Handreichung der Allianz Alte WU zitiert. Die ist Verfahrenspartei. Original über die BIG bzw. die Verfahrensorganisation beschaffen.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ 01 RECHT ============ -->
+    <section id="recht">
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <h2 class="sec">Rechtliche Auflagen</h2>
+      </div>
+      <p class="sec-lede">Eine dreistufige Absenkung der Verbindlichkeit — vom vollständigen Schweigen des Bundesgesetzes bis zur sanktionslosen Muss-Bestimmung einer Länderkammer.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Ebene</th><th>Regelung</th><th>Verbindlichkeit</th><th>Sanktion</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BVergG 2018</strong><span class="mini">Bundesgesetz</span></td><td>keine</td><td>—</td><td>—</td></tr>
+            <tr><td><strong>WSA</strong><span class="mini">Wettbewerbsstandard Architektur</span></td><td>programmatisches Ziel, im Grundsatzteil</td><td>Standesdokument; erst durch Vereinbarung Vertragsinhalt</td><td>Entzug der Kammer-Kooperation</td></tr>
+            <tr><td><strong>Stadt Wien</strong><span class="mini">Werkstattbericht 91, 2008</span></td><td>„mindestens 25 % … wird angestrebt"</td><td>Soll-Bestimmung im Grundsatzkapitel</td><td>keine</td></tr>
+            <tr class="hi"><td><strong>zt:Kammer Ost</strong><span class="mini">Wien / NÖ / Burgenland</span></td><td>„Mindestens eine Frau muss der Jury … angehören"</td><td>Muss-Bestimmung, nur für das Nominierungskontingent der Kammer</td><td>keine</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>1.1 Bundesvergabegesetz 2018 — keine Geschlechtervorgabe <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <p>Maßgeblich ist <span class="par">§ 165 BVergG 2018</span> „Durchführung von Wettbewerben" (BGBl. I Nr. 65/2018, in Kraft seit 21.08.2018, kein Außerkrafttretensdatum). Am 10.09.2026 im RIS-Volltext selbst gelesen.</p>
+
+      <blockquote class="q q--long">
+        <span class="lbl">§ 165 Abs. 3 — abschließende Mindestinhaltsliste</span>
+        <p>„Der Durchführung von Wettbewerben ist eine Wettbewerbsordnung zugrunde zu legen, die zumindest folgenden Inhalt aufzuweisen hat: 1. Vorgangsweise des Preisgerichtes, 2. Preisgelder und Vergütungen, 3. Verwendungs- und Verwertungsrechte, 4. Rückstellung von Unterlagen, 5. Beurteilungskriterien, 6. Angabe, ob ein oder mehrere Gewinner des Wettbewerbes ermittelt werden sollen, und im letzteren Fall Angabe der Anzahl der Gewinner, 7. Ausschlussgründe und 8. Termine."</p>
+        <span class="src">RIS, Dokumentnummer NOR40206866 · ris.bka.gv.at/Dokumente/Bundesnormen/NOR40206866/NOR40206866.html</span>
+      </blockquote>
+
+      <blockquote class="q">
+        <span class="lbl">§ 165 Abs. 4 — die einzigen Anforderungen an die Person</span>
+        <p>„Das Preisgericht darf nur aus Preisrichtern bestehen, die von den Teilnehmern des Wettbewerbes unabhängig sind. Wird von den Wettbewerbsteilnehmern eine bestimmte berufliche Qualifikation verlangt, muss mindestens ein Drittel der Preisrichter über dieselbe oder eine gleichwertige Qualifikation verfügen."</p>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Befund</span>
+        <p>Die einzigen personenbezogenen Anforderungen sind <strong>Unabhängigkeit</strong> und <strong>fachliche Qualifikation</strong>. Ein Geschlechterkriterium fehlt vollständig. Auch das durchgehende generische Maskulinum („Preisrichtern") ist zitierbar.</p>
+      </div>
+
+      <div class="warn">
+        <span class="h">Zitierfalle</span>
+        <p><span class="par">§ 20 Abs. 6 BVergG 2018</span> erlaubt, „auf die Beschäftigung von Frauen … Bedacht" zu nehmen. Das betrifft die <strong>Bieterseite</strong> — Frauen im ausführenden Unternehmen — und <strong>nicht die Besetzung des Preisgerichts</strong>. Die Norm taugt nicht als Rechtsgrundlage für Jury-Quoten.</p>
+      </div>
+
+      <p class="srcline"><span class="ev ev--s">S</span> § 326 BVergG 2018 ist die Sektoren-Parallelnorm. Die Paragraphennummer ist nur indirekt über Praxisliteratur belegt, der RIS-Volltext wurde nicht gelesen — vor Zitation nachschlagen.</p>
+
+      <h3>1.2 Wettbewerbsstandard Architektur (WSA) <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <div class="warn">
+        <span class="h">Terminologie</span>
+        <p>Die Bezeichnung „Wettbewerbsordnung Architektur (WOA)" ist überholt. Das aktuelle Dokument heißt <strong>Wettbewerbsstandard Architektur (WSA)</strong>, Fassung „WSA 2010* — Neuauflage der Bundeskammer der ZiviltechnikerInnen 2022". Es gibt keine Fassung 2024/2025/2026; die aktuelle Druckfassung ist dieselbe Auflage mit ab 01.01.2026 valorisierten Honoraren.</p>
+      </div>
+
+      <h4>Teil B § 3 „Zusammensetzung des Preisgerichts" — keine Geschlechtervorgabe</h4>
+      <p>Alle 13 Absätze gelesen. Geregelt sind ausschließlich Unabhängigkeit, Qualifikation, Anzahl, Kammernominierung, Fach-/Sachpreisgericht, Verzichtserklärung und Ausschlussgründe. Die Wörter „Geschlecht", „Frau", „Quote", „Parität" kommen in § 3 <strong>nicht</strong> vor.</p>
+
+      <blockquote class="q">
+        <span class="lbl">§ 3 Abs. 4 und Abs. 6</span>
+        <p>„Die Anzahl der Preisrichter:innen richtet sich nach Art, Umfang und konkreten Erfordernissen der Wettbewerbsaufgabe. Es soll eine ungerade Anzahl von Preisrichterinnen/Preisrichtern bestellt werden, mindestens jedoch fünf."</p>
+        <p>„Die Mitglieder des Preisgerichts werden von der/dem Auftraggeber:in bestellt. Dabei nominiert die Bundeskammer bzw. eine der Länderkammern zur Bestellung durch die/den Auftraggeber:in Vertreter:innen in das Fachpreisgericht, deren Anzahl zumindest <strong>einem Viertel</strong> aller stimmberechtigten Mitglieder des Preisgerichts entspricht."</p>
+      </blockquote>
+
+      <h4>Die drei programmatischen Gender-Stellen</h4>
+      <blockquote class="q q--long">
+        <span class="lbl">Vorwort · Daniel Fügenschuh, Vizepräsident</span>
+        <p>„Zuladungen, Zusammensetzung eines Preisgerichtes, Zusammensetzung der Planungs-, Expertise- und Vorprüfungsteams sind daher Besetzungen, die wir divers ausgestalten wollen."</p>
+      </blockquote>
+      <blockquote class="q q--long">
+        <span class="lbl">Präambel</span>
+        <p>„Um die Präsenz von Frauen in technischen Berufen zu erhöhen, sollten insbesondere Gleichbehandlung und Teilhabe von Frauen in Planungsprozessen gestärkt werden."</p>
+      </blockquote>
+      <blockquote class="q q--long">
+        <span class="lbl">Teil A, Artikel IX Abs. 6</span>
+        <p>„In diesem Sinne ist auch die Förderung von Frauen im Bereich der Architektur ein wesentliches Anliegen, das im Kontext des Architekturwettbewerbs durch die Nominierung von Fachpreisrichterinnen für Preisgerichte unterstrichen wird."</p>
+        <span class="src">bund.zt.at/fileadmin/user_upload/redakteure/Wettberwerbe/zt_Wettbewerbsstandard_Architektur_WSA_2022.pdf</span>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Argumentativ zentral</span>
+        <p>Die Gender-Aussagen stehen in <strong>Vorwort, Präambel und Teil A</strong> — also im Grundsatzteil — und <strong>gerade nicht in Teil B § 3</strong>, der eigentlichen Wettbewerbsordnung. Selbst wenn eine Ausloberin den WSA nach § 165 Abs. 3 BVergG zur Wettbewerbsordnung erklärt, sind sie damit <strong>keine justiziable Verfahrensregel</strong>. Die Platzierung im Dokument ist der Befund.</p>
+      </div>
+
+      <p>Die einzige Sanktion ist die Verweigerung der Kammer-Kooperation: Ein nicht kooperiertes Verfahren wird laut Art. X Abs. 3 vom Wettbewerbsausschuss „entsprechend kommentiert" und auf architekturwettbewerb.at als „ohne Kooperation" gekennzeichnet. Reputations-, kein Rechtsmechanismus.</p>
+
+      <h3>1.3 zt:Kammer Ost — die einzige Muss-Bestimmung Österreichs <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <p>Am 10.09.2026 im Browser aufgerufen und der Wortlaut verifiziert. Pfad: „Wettbewerbskooperation in der zt:Kammer Ost" → „Nominierung von Preisrichter:innen" → „Leitlinien für die Nominierung von Preisrichter:innen" → „Als weitere Kriterien für eine Nominierung durch die Sektion Architekt:innen gelten:".</p>
+
+      <blockquote class="q">
+        <span class="lbl">Wörtlich</span>
+        <p>„Mindestens eine Frau muss der Jury als Fachpreisrichterin (Hauptpreisrichterin oder Ersatzpreisrichterin) angehören."</p>
+        <span class="src">ost.zt.at/mitgliederservice/mitgliedschaft/wettbewerbe-und-vergabe</span>
+      </blockquote>
+
+      <div class="warn">
+        <span class="h">Vier Einschränkungen, die mitlaufen müssen</span>
+        <ol style="margin-bottom:0">
+          <li>Bindet <strong>nur die Nominierungspraxis der Kammer</strong> für ihr eigenes Kontingent — laut WSA § 3 Abs. 6 zumindest ein Viertel der stimmberechtigten Mitglieder —, nicht die Auftraggeberseite.</li>
+          <li>Erfüllbar durch eine <strong>Ersatzpreisrichterin</strong>, also ohne stimmberechtigte Frau in der tagenden Hauptjury.</li>
+          <li>Eine <strong>Mindest-Eine-Frau-Regel, keine prozentuale Quote</strong>.</li>
+          <li><strong>Keine Sanktion.</strong> Bei Nichteinhaltung entfällt allenfalls die Kooperation.</li>
+        </ol>
+      </div>
+
+      <h4>Andere Länderkammern</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kammer</th><th>Befund</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Nord</strong><span class="mini">OÖ / Salzburg</span></td><td>keine publizierten Nominierungsrichtlinien gefunden</td></tr>
+            <tr><td><strong>Süd</strong><span class="mini">Steiermark / Kärnten</span></td><td>für Preisgerichte nichts gefunden. Es existiert ein „Frauenförderpunkt" — aber auf der <strong>Teilnehmer:innenseite</strong> (Zuladungsliste): „Ziviltechnikerinnen erhalten 1 Zusatzpunkt (Frauenförderpunkt)." Strikt von Jury-Regeln trennen.</td></tr>
+            <tr><td><strong>West</strong><span class="mini">Tirol / Vorarlberg</span></td><td>keine Vorgabe; es existiert eine Expertinnenliste</td></tr>
+            <tr><td><strong>Bundeskammer</strong></td><td>keine Positionspapiere oder Richtlinien zum Thema gefunden</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>1.4 Stadt Wien — 25-%-Zielwert seit 2008 <span class="ev ev--p">P</span></h3>
+      <p>MA 18 Stadtentwicklung und Stadtplanung (Hrsg.): <em>Grundlagen für die Durchführung von Wettbewerben auf dem Gebiet der Architektur und des Städtebaus</em>, Werkstattbericht Nr. 91, Wien, Juni 2008, ISBN 978-3-902576-10-1. Inhaltliche Koordination: Magistratsdirektion – Stadtbaudirektion, MA 19, MA 21B. Am 10.09.2026 weiterhin als „Weiterführende Information" auf der Wettbewerbsseite der MA 19 verlinkt.</p>
+
+      <blockquote class="q q--long">
+        <span class="lbl">Kapitel I, S. 9, Grundsatz (4)</span>
+        <p>„Bestellung einer angemessenen Anzahl von Fach- und SachpreisrichterInnen, BeraterInnen und PrüferInnen, die aufgrund ihrer beruflichen Qualifikation die fachlichen Anforderungen in hervorragendem Maße erfüllen → Abstimmung mit der Länderkammer … → Mindestanteil von 50% FachpreisrichterInnen → <strong>Ein Frauenanteil im Preisgericht von mindestens 25% und eine Beteiligung ‚junger' PreisrichterInnen wird angestrebt</strong>"</p>
+        <span class="src">digital.wienbibliothek.at/wbrup/download/pdf/4170505</span>
+      </blockquote>
+
+      <div class="warn">
+        <span class="h">Abgrenzung</span>
+        <p>Grundsatz (9) auf derselben Seite betrifft die <strong>Teilnehmer:innenseite</strong>, nicht die Jury: „Ein Frauenanteil von mindestens 25% bei geladenen Wettbewerben wird angestrebt". Nicht verwechseln.</p>
+      </div>
+
+      <div class="find">
+        <span class="h">Strukturparallele zum WSA</span>
+        <p>Das operative Fachkapitel XII „Preisgericht, Bewertungsmethode" (S. 68) <strong>wiederholt die 25-%-Zielgröße nicht</strong> — dort stehen nur Qualifikation, Weisungsfreiheit, Objektivität, Verschwiegenheit. Die Quote steht auch hier im Grundsatz-, nicht im Verfahrensteil. Und: Der Bericht ist von Juni 2008 und referenziert durchgehend das <strong>BVergG 2006</strong>. Eine Neuauflage nach BVergG 2018 wurde nicht gefunden.</p>
+      </div>
+
+      <p class="srcline"><span class="ev ev--g">!</span> „Wiener Wettbewerbsvereinbarung" und „Wiener Wettbewerbsstandards" existieren nach dieser Recherche <strong>nicht</strong> unter diesen Bezeichnungen. Das faktische Äquivalent ist Werkstattbericht Nr. 91.</p>
+
+      <h3>1.5 Gender Mainstreaming der Stadt Wien — Expertise statt Quote <span class="ev ev--p">P</span></h3>
+      <p>MA 18 (Hrsg.): Handbuch <em>Gender Mainstreaming in der Stadtplanung und Stadtentwicklung</em>, Werkstattbericht Nr. 130, Wien 2013, ISBN 978-3-902576-67-5.</p>
+
+      <blockquote class="q">
+        <span class="lbl">Kapitel 5.2, S. 57, Merkbox</span>
+        <p>„Juryzusammensetzung: In der Jury sollten Personen mit Gender-Planungsexpertise vertreten sein."</p>
+        <p>„Vorprüfung der Wettbewerbsbeiträge: Die Beurteilungskriterien für die Vorprüfung und das Preisgericht sollen auf ihre Genderrelevanz hin überprüft und gegebenenfalls ergänzt werden."</p>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Negativbefund im Volltext</span>
+        <p>„paritätisch" / „geschlechterparitätisch": <strong>0 Treffer</strong>. „Frauenanteil": <strong>0 Treffer</strong>. Das Handbuch argumentiert durchgehend <strong>kompetenzbasiert</strong> (Gender-Planungsexpertise), nicht quotenbasiert — ein sehr gut zitierbarer Kontrast zur 25-%-Formel des Werkstattberichts 91. Verbindlichkeit: Empfehlung, keine Rechtsnorm.</p>
+      </div>
+
+      <h3>1.6 wohnfonds_wien / Bauträgerwettbewerb <span class="ev ev--p">P</span></h3>
+      <p>Das Beurteilungsgremium wird ausschließlich nach Fachbereichen und entsendenden Stellen besetzt — Architektur, Städtebau, Ökologie, Ökonomie, Bautechnik/Bauphysik, Wohnrecht, soziale Nachhaltigkeit. Kein Geschlechterbezug. Im 4-Säulen-Modell (Stand September 2025) taucht Gender nur als <strong>Projekt-Bewertungskriterium</strong> auf („Alltags- und Gendergerechtigkeit"), nicht als Gremienanforderung. In der geprüften Auslobung „20., Nordwestbahnhof – Phase A.1" (Mai 2024) ergab die Volltextsuche nach „Frauen", „Frauenanteil", „Geschlecht", „paritätisch", „Quote", „Gender" <strong>0 Treffer</strong>.</p>
+      <p class="srcline"><span class="ev ev--g">!</span> Der 25-%-Zielwert des Werkstattberichts 91 wurde nach den geprüften Dokumenten nicht auf die Bauträgerwettbewerbe übertragen. Reichweitengrenze: Das Ausschreibungsarchiv ist registrierungspflichtig; nur eine Auslobung konnte im Volltext geprüft werden.</p>
+
+      <h3>1.7 Gleichbehandlungsrecht — keine anwendbare Paritätsnorm <span class="ev ev--p">P</span></h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Norm</th><th>Befund</th></tr></thead>
+          <tbody>
+            <tr><td><span class="par">§ 9 Abs. 1 W-GBG</span><span class="mini">LGBl. 18/1996 idF 39/2025</span></td><td>„Kommissionen und andere Kollegialorgane, deren Mitglieder ausschließlich Gemeindebedienstete sind und die sich überwiegend mit personellen Belangen der Gemeindebediensteten befassen, sind nach Möglichkeit paritätisch aus Frauen und Männern zusammenzusetzen." → auf Preisgerichte <strong>nicht anwendbar</strong></td></tr>
+            <tr><td><span class="par">§ 10 B-GlBG</span><span class="mini">BGBl. 100/1993</span></td><td>strenger („mindestens ein Mitglied weiblich und ein Mitglied männlich"), gilt aber nur für Bundesorgane in Personalangelegenheiten</td></tr>
+            <tr><td><span class="par">§ 3 BO für Wien</span><span class="mini">Fachbeirat Stadtplanung</span></td><td>zwölf Fachleute nach Fachbereichen, Vorschlagsrechte diverser Institutionen — keine Geschlechtervorgabe</td></tr>
+            <tr><td><strong>RIS-Volltextsuche</strong><span class="mini">Landesrecht Wien, 10.09.2026</span></td><td>„Preisgericht", „Preisrichter", „Jury", „Architekturwettbewerb", „Bauträgerwettbewerb", „Grundstücksbeirat", „Frauenquote": jeweils <strong>0 Treffer</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="find">
+        <span class="h">„Beredtes Schweigen" — nützliches Argument</span>
+        <p>Der Wiener Gesetzgeber normiert Parität sehr wohl dort, wo er es will: § 2 Abs. 6 Wr. Landessanitätsratsgesetz, § 15b Abs. 6 Wr. KAG (Ethikkommission), § 20 Abs. 2 Wr. Museumsgesetz („möglichste Geschlechterparität"). Preisgerichte sind in <strong>keiner</strong> dieser Normen erfasst. Das qualifiziert das Fehlen als bewusste Nicht-Regelung, nicht als planwidrige Lücke.</p>
+      </div>
+
+      <h3>1.8 Verbände und Initiativen</h3>
+      <p>ÖGFA, ÖGLA, IG Architektur und ZV der Architekt:innen: jeweils <strong>keine Position</strong> zu Jury-Besetzung und Geschlecht gefunden. Das Mission Statement der IG Architektur 2021 nennt „Verbesserung der Wettbewerbs- und Vergabekultur", aber kein Mal Geschlecht, Frauen, Diversität oder Jury. Der Ausschuss Ziviltechnikerinnen der bAIK betreibt Sichtbarkeits- und Netzwerkarbeit, erhebt aber <strong>keine Forderung nach einem Jury-Frauenanteil</strong>.</p>
+
+      <h4>YesWePlan! — die einzige explizite Forderung nach Jury-Parität <span class="ev ev--p">P</span></h4>
+      <p>Erasmus+-Projekt, koordiniert von der Bundeskammer der Ziviltechniker:innen. Kapitel 2 „Professional Representation and Support", adressiert an Kammern und Berufsverbände:</p>
+      <blockquote class="q">
+        <span class="lbl">Wörtlich</span>
+        <p>„Enforce gender balanced compositions of jurys and other decision groups within the competition process"</p>
+        <p>„Create tools to statistically evaluate the participation of women and men in public procurement procedures and Architectural Design Competitions in order to fully evaluate the gender equality of participation"</p>
+        <p>„(Temporary) quota setting on all levels: within professional bodies, enterprises, juries, etc."</p>
+        <span class="src">yesweplan.eu/wp-content/uploads/2022/06/RECOMMENDATIONS_YesWePlan_singlepart.pdf</span>
+      </blockquote>
+      <p>Transnationale Empfehlung ohne Zahlenwert, ohne Frist, kein Beschluss eines österreichischen Organs. Bemerkenswert: Die zweite Forderung räumt selbst ein, dass belastbare Statistiken zur Geschlechterbeteiligung fehlen.</p>
+    </section>
+
+    <!-- ============ 02 ZAHLEN ============ -->
+    <section id="zahlen">
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <h2 class="sec">Zahlen zur Berufsgruppe</h2>
+      </div>
+      <p class="sec-lede">Studium, Befugnis, Führung — und die eine Zahl, die in Österreich nie erhoben wurde.</p>
+
+      <div class="warn">
+        <span class="h">Methodische Vorbemerkung — ins Paper übernehmen</span>
+        <p>Weder BMFWF/unidata noch Statistik Austria weisen Studienfelder personenbezogen aus. Alle Feldwerte sind <strong>belegte ordentliche Studien</strong>, nicht Köpfe.</p>
+      </div>
+
+      <h3>2.1 Architekturstudium <span class="ev ev--p">P</span></h3>
+      <h4>Studierende, ISCED-F 0731, WS 2025/26 (Stichtag 28.02.2026)</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Studienfamilie</th><th class="num">Frauen</th><th class="num">Männer</th><th class="num">Gesamt</th><th class="num">Frauenanteil</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td><strong>Architektur</strong></td><td class="num">5.518</td><td class="num">4.061</td><td class="num">9.579</td><td class="num">57,6 %</td></tr>
+            <tr><td>Landschaftsplanung/-pflege</td><td class="num">1.035</td><td class="num">570</td><td class="num">1.605</td><td class="num">64,5 %</td></tr>
+            <tr><td>Raumplanung/Raumordnung</td><td class="num">574</td><td class="num">668</td><td class="num">1.242</td><td class="num">46,2 %</td></tr>
+            <tr><td><strong>0731 gesamt</strong></td><td class="num">7.167</td><td class="num">5.335</td><td class="num">12.502</td><td class="num">57,3 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline">Vergleich WS 2024/25 Architektur: 5.263 / 4.068 / 9.331 → 56,4 %. Kontext: alle ord. Studierenden (Köpfe) WS 2025/26 = 270.587, davon 54,0 % Frauen. ISCED 073 „Architektur und Baugewerbe" inkl. Bauingenieurwesen = 17.776, davon 48,9 % Frauen. — BMFWF/unidata, Report „Ordentliche Studien auf Studium-Ebene", unidata.gv.at</p>
+
+      <h4>Studierende je Universität, WS 2025/26, Studienfamilie Architektur</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Universität</th><th class="num">Frauen</th><th class="num">Männer</th><th class="num">Gesamt</th><th class="num">Anteil</th></tr></thead>
+          <tbody>
+            <tr><td>TU Wien</td><td class="num">3.172</td><td class="num">2.287</td><td class="num">5.459</td><td class="num">58,1 %</td></tr>
+            <tr><td>TU Graz</td><td class="num">885</td><td class="num">582</td><td class="num">1.467</td><td class="num">60,3 %</td></tr>
+            <tr><td>Universität Innsbruck</td><td class="num">1.204</td><td class="num">1.007</td><td class="num">2.211</td><td class="num">54,5 %</td></tr>
+            <tr><td>Akademie der bildenden Künste Wien</td><td class="num">105</td><td class="num">79</td><td class="num">184</td><td class="num">57,1 %</td></tr>
+            <tr><td>Universität für angewandte Kunst Wien</td><td class="num">48</td><td class="num">58</td><td class="num">106</td><td class="num">45,3 %</td></tr>
+            <tr><td>Kunstuniversität Linz</td><td class="num">104</td><td class="num">48</td><td class="num">152</td><td class="num">68,4 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Studienabschlüsse, Studienjahr 2024/25 (endgültig)</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Universität</th><th class="num">Frauen</th><th class="num">Männer</th><th class="num">Gesamt</th><th class="num">Anteil</th></tr></thead>
+          <tbody>
+            <tr><td>TU Wien</td><td class="num">385</td><td class="num">309</td><td class="num">694</td><td class="num">55,5 %</td></tr>
+            <tr><td>Universität Innsbruck</td><td class="num">170</td><td class="num">161</td><td class="num">331</td><td class="num">51,4 %</td></tr>
+            <tr><td>TU Graz</td><td class="num">151</td><td class="num">122</td><td class="num">273</td><td class="num">55,3 %</td></tr>
+            <tr><td>Akademie der bildenden Künste Wien</td><td class="num">25</td><td class="num">24</td><td class="num">49</td><td class="num">51,0 %</td></tr>
+            <tr><td>Universität für angewandte Kunst Wien</td><td class="num">13</td><td class="num">9</td><td class="num">22</td><td class="num">59,1 %</td></tr>
+            <tr><td>Kunstuniversität Linz</td><td class="num">12</td><td class="num">10</td><td class="num">22</td><td class="num">54,5 %</td></tr>
+            <tr class="hi"><td><strong>Gesamt</strong></td><td class="num">756</td><td class="num">635</td><td class="num">1.391</td><td class="num">54,3 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline">unidata Tab. 4.6 · unidata.gv.at/auswertungen/iatb/2025/tab4.6 — ISCED-F 0731 insgesamt inkl. BOKU und Uni Graz: 958 / 753 / 1.711 → 56,0 %</p>
+
+      <p class="srcline"><span class="ev ev--p">P</span> <strong>Zweitbeleg Statistik Austria</strong> (ein Jahr älter, Studienrichtung statt ISCED, ohne Doktorat): belegte ord. Studien WS 2024/25, Architektur: 9.004 gesamt, 5.086 Frauen = 56,5 %. Nachrichtlich Bauingenieurwesen (BA): 3.009, davon 960 Frauen = 31,9 %. Abschlüsse 2023/24, Architektur: 1.272 gesamt, 682 Frauen = 53,6 %. — Achtung: Viele kursierende statistik.at-URLs zu diesem Thema sind 404; der Pfad enthält seit dem Relaunch <code>/hochschulen/</code>.</p>
+
+      <h3>2.2 Ziviltechniker:innen und Ingenieurkonsulent:innen <span class="ev ev--p">P</span></h3>
+      <div class="warn">
+        <span class="h">Bundesweite Kammerstatistik ohne Geschlechtsangabe</span>
+        <p>Stand 31.12.2025: 9.798 Mitglieder gesamt / 7.359 ausübend / 2.439 ruhend; Architekt:innen ausübend 4.718, Zivilingenieur:innen ausübend 2.641. <strong>Diese Tabelle enthält keine Geschlechterdimension.</strong> Eine bundesweite, aktuelle, geschlechterdifferenzierte Kammerstatistik ist öffentlich nicht publiziert.</p>
+      </div>
+
+      <h4>Beste verfügbare Primärquelle: Jahresbericht 2025 der Kammer Wien/NÖ/Burgenland</h4>
+      <p>Diese Länderkammer umfasst rund die Hälfte aller österreichischen Ziviltechniker:innen.</p>
+      <blockquote class="q q--long">
+        <span class="lbl">Jahresbericht 2025, S. 2</span>
+        <p>„Die Anzahl der weiblichen Mitglieder mit aufrechter Befugnis stieg bei den Architekten um 10 Personen auf <strong>389</strong>, der Frauenanteil damit von 22,3 % auf <strong>22,7 %</strong>. Bei den Ingenieurkonsulenten mit aufrechter Befugnis sind Anzahl und Anteil der Frauen ebenfalls leicht gestiegen (von 51 auf <strong>53</strong> Personen und von 5,8 % auf <strong>6,1 %</strong>)."</p>
+        <span class="src">ost.zt.at · Redaktionsstand Nov. 2025, Erfassungsstichtag Umlage 01.12.2025</span>
+      </blockquote>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kennzahl · Wien/NÖ/Bgld</th><th class="num">2023</th><th class="num">2024</th><th class="num">2025</th></tr></thead>
+          <tbody>
+            <tr><td>Architekt:innen, aufrechte Befugnis</td><td class="num">1.707</td><td class="num">1.702</td><td class="num">1.711</td></tr>
+            <tr><td>davon Frauen</td><td class="num">373</td><td class="num">379</td><td class="num">389</td></tr>
+            <tr class="hi"><td><strong>Frauenanteil Architekt:innen</strong></td><td class="num">21,9 %</td><td class="num">22,3 %</td><td class="num">22,7 %</td></tr>
+            <tr><td>Ing.-Konsulent:innen, aufrecht</td><td class="num">874</td><td class="num">872</td><td class="num">872</td></tr>
+            <tr><td>davon Frauen</td><td class="num">51</td><td class="num">51</td><td class="num">53</td></tr>
+            <tr class="hi"><td><strong>Frauenanteil Ing.-Konsulent:innen</strong></td><td class="num">5,8 %</td><td class="num">5,8 %</td><td class="num">6,1 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Eigene Berechnungen aus der Vollmatrix (ohne Pensionist:innen)</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Gruppe</th><th class="num">Frauen</th><th class="num">Gesamt</th><th class="num">Frauenanteil</th></tr></thead>
+          <tbody>
+            <tr><td>Architekt:innen aufrecht</td><td class="num">389</td><td class="num">1.711</td><td class="num">22,7 %</td></tr>
+            <tr><td>Architekt:innen ruhend</td><td class="num">280</td><td class="num">792</td><td class="num">35,4 %</td></tr>
+            <tr><td>Architekt:innen gesamt</td><td class="num">669</td><td class="num">2.503</td><td class="num">26,7 %</td></tr>
+            <tr><td>Ing.-Kons. aufrecht</td><td class="num">53</td><td class="num">872</td><td class="num">6,1 %</td></tr>
+            <tr><td>Ing.-Kons. ruhend</td><td class="num">37</td><td class="num">356</td><td class="num">10,4 %</td></tr>
+            <tr><td>Ing.-Kons. gesamt</td><td class="num">90</td><td class="num">1.228</td><td class="num">7,3 %</td></tr>
+            <tr class="hi"><td><strong>Alle ZT gesamt</strong></td><td class="num">759</td><td class="num">3.731</td><td class="num">20,3 %</td></tr>
+            <tr><td>Wien, Architekt:innen aufrecht</td><td class="num">314</td><td class="num">1.363</td><td class="num">23,0 %</td></tr>
+            <tr><td>NÖ, Architekt:innen aufrecht</td><td class="num">63</td><td class="num">306</td><td class="num">20,6 %</td></tr>
+            <tr><td>Bgld, Architekt:innen aufrecht</td><td class="num">12</td><td class="num">42</td><td class="num">28,6 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn">
+        <span class="h">Transparenzhinweis</span>
+        <p>Die Zeilenbeschriftungen (m/w) gingen bei der PDF-Textextraktion verloren. Die Zuordnung ist arithmetisch zwingend: 1.322 + 389 = 1.711 (der im Fließtext genannte Wert), 819 + 53 = 872. Der Jahresbericht 2024 bestätigt die Struktur exakt. Für eine Publikation dennoch die gedruckte Tabelle prüfen oder von der Kammer bestätigen lassen.</p>
+      </div>
+
+      <h4>Bundesweite Näherungswerte</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Wert</th><th>Bezug</th><th>Quelle</th></tr></thead>
+          <tbody>
+            <tr><td>Registrierte Architekt:innen AT <strong>6.226, davon 21 % Frauen</strong></td><td>2023</td><td>ARCH-E, <em>The ARCH-E Map on ADCs</em>, S. 21/28; Datenquelle laut Publikation: BKZT</td></tr>
+            <tr><td>Architekt:innen AT 5.741, davon <strong>15,20 % weiblich</strong>; Zivilingenieur:innen 1.486, davon <strong>1,20 % weiblich</strong></td><td>2019</td><td>YesWePlan!, <em>Country Situation Reports</em>, Koordination bAIK, Stand 10.03.2021 <span class="ev ev--p">P</span></td></tr>
+            <tr><td>Architektur-Studierende 57,85 % weiblich; Absolvent:innen 52,02 % weiblich</td><td>2019</td><td>ebd. <span class="ev ev--p">P</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="warn">
+        <span class="h">Nicht zitieren</span>
+        <p>In Suchmaschinen-Snippets kursiert: „Der Frauenanteil unter den Architekt:innen … liegt österreichweit bei 15 %" (ergänzend 4,5 %, „unter 3 %", „rund 17 % von ca. 4.300", „rund 20 % (2018)"). Auf den am 10.09.2026 <strong>live abgerufenen</strong> Seiten bund.zt.at, ost.zt.at, sued.zt.at und nord.zt.at steht <strong>keine dieser Zahlen mehr</strong>. Die dortigen Textbausteine sind rein qualitativ. Die Werte stammen aus nicht mehr verfügbaren Seitenversionen ohne Stichtag und ohne Quellenangabe — <strong>nicht zitierfähig</strong>.</p>
+      </div>
+
+      <h3>2.3 Führungspositionen in der Baubranche</h3>
+      <h4>AK Wien, Frauen.Management.Report 2026 <span class="ev ev--p">P</span></h4>
+      <p>Erschienen 02.03.2026, Stichtag Jänner 2026.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Vergleichsgruppe</th><th class="num">Aufsichtsrat</th><th class="num">Geschäftsführung</th></tr></thead>
+          <tbody>
+            <tr><td>Top-200-Unternehmen</td><td class="num">28,6 %</td><td class="num">14,5 %</td></tr>
+            <tr><td>Börsennotiert, quotenpflichtig</td><td class="num">35,5 %</td><td class="num">14,4 %</td></tr>
+            <tr><td>Börsennotiert, nicht quotenpflichtig</td><td class="num">23,6 %</td><td class="num">11,8 %</td></tr>
+            <tr><td>ATX-20</td><td class="num">36,2 %</td><td class="num">12,8 %</td></tr>
+            <tr><td>Staatsnahe Unternehmen</td><td class="num">45,3 %</td><td class="num">28,9 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Sektoren (Geschäftsführung, Jänner 2026): Dienstleistung 21 %, Finanz 20 %, Handel 14 %, <strong>Industrie 9 %</strong>. 130 der 200 Top-Unternehmen haben keine einzige Frau in Vorstand oder Geschäftsführung.</p>
+      <div class="warn">
+        <span class="h">Zwei Fallen</span>
+        <p><strong>„Bau" kommt im Report nicht als Kategorie vor</strong> — Bau ist unter „Industrie" subsumiert. Und: Der Report nennt für staatsnahe Unternehmen drei unterschiedliche GF-Werte (28,9 % Tabelle / 17,1 % Fließtext / 21 % Presseaussendung). Nicht vermischen.</p>
+      </div>
+
+      <h4>Statistik Austria, Mikrozensus-AKE, Jahresdurchschnitt 2025 <span class="ev ev--p">P</span></h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kennzahl</th><th>Wert</th><th>Quelle</th></tr></thead>
+          <tbody>
+            <tr><td>Führungskräfte gesamt (ISCO-08 HG 1)</td><td>246,6 Tsd., davon 91,7 Tsd. Frauen = <strong>37,2 %</strong><span class="mini">eigene Berechnung</span></td><td>Tab. E7</td></tr>
+            <tr><td>Erwerbstätige ÖNACE F „Bau"</td><td>353,2 Tsd., davon 55,9 Tsd. Frauen = <strong>15,8 %</strong></td><td>Tab. E6</td></tr>
+            <tr><td>Unselbständig Erwerbstätige ÖNACE F</td><td>309,8 Tsd., davon 52,9 Tsd. Frauen = <strong>17,1 %</strong></td><td>Tab. E6</td></tr>
+            <tr><td>Vorjahr 2024, unselbst. Bau</td><td>41,4 / 303,3 = <strong>13,7 %</strong></td><td>Tab. E6 (2024)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="warn">
+        <span class="h">Zeitreihenbruch und fehlende Kreuzung</span>
+        <p>Der Sprung 13,7 % → 17,1 % ist stichprobenbedingt (AKE = 0,6-%-Quartalsstichprobe), <strong>nicht als Trend interpretieren</strong>. Und: <strong>Führungskräfte im Bau (ISCO 1 × ÖNACE F) existiert als amtliche Zahl nicht.</strong> Die AKE-Detailtabellen kreuzen Beruf und Wirtschaftszweig nicht (alle 24 Blätter geprüft). Eurostat hat die Kreuztabelle <code>lfsa_eisn2</code>, unterdrückt für Österreich aber den Frauenwert durchgehend 2015–2025. Restwertbildung wäre unzulässig.</p>
+      </div>
+
+      <h4>WKO <span class="ev ev--p">P</span></h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kennzahl</th><th class="num">Wert</th><th>Bezug</th></tr></thead>
+          <tbody>
+            <tr><td>FV Bau (101), Frauenanteil unselbst. Beschäftigte</td><td class="num">12,3 % / 13,6 %</td><td>JD 2025</td></tr>
+            <tr><td>FV Bauindustrie (209), Frauenanteil</td><td class="num">10,5 % / 10,7 %</td><td>JD 2025</td></tr>
+            <tr><td>Weibl. Lehrlinge „Bau/Architektur/Gebäudetechnik"</td><td class="num">9,8 %</td><td>12/2025</td></tr>
+            <tr><td>Gewerberechtliche Geschäftsführerinnen</td><td class="num">16,3 %</td><td>01/2026</td></tr>
+            <tr><td>Handelsrechtliche Geschäftsführerinnen</td><td class="num">15,3 %</td><td>01/2026</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline">Der WKO-Folder „Die österreichische Bauwirtschaft – Zahlen Daten Fakten 2026" enthält <strong>keine</strong> Geschlechterstatistik.</p>
+
+      <h4>Einzige branchenscharfe Führungszahl — nicht amtlich <span class="ev ev--s">S</span></h4>
+      <p><strong>Frauenanteil in Führungspositionen im Baugewerbe: 4,6 %</strong> — Schlusslicht aller Branchen; Österreich gesamt 31,4 %; Stand 03/2026. Methodik: rund 920.000 ausgewertete Firmenbuch-Funktionen.</p>
+      <div class="warn">
+        <span class="h">Nur mit Methodikhinweis zitieren</span>
+        <p>CRIF Österreich ist ein kommerzieller Wirtschaftsauskunftsdienst, keine amtliche Statistik. Es gibt keine Studien-PDF, nur eine OTS-Aussendung vom 05.03.2026. Grundgesamtheit sind Firmenbuchfunktionen — damit weder mit ISCO-08 HG 1 noch mit dem AK-Top-200-Sample vergleichbar.</p>
+      </div>
+
+      <h3>2.4 Frauenanteil in Wettbewerbsjurys — nicht gefunden <span class="ev ev--g">!</span></h3>
+      <p>Es existiert <strong>keine publizierte österreichische Erhebung</strong>, die den Anteil weiblicher Preisrichter:innen quantifiziert. Geprüft: bAIK-Wettbewerbsseiten und WSA, IMAD-Preisrichter:innen-Studie 2019, ARCH-E Map und Needs Report, YesWePlan!, IG Architektur, ÖGFA, ZV, ÖGUT, nextroom, architekturwettbewerb.at, TU-Wien-Repositum, wien.gv.at, baukulturpolitik.at.</p>
+
+      <div class="find">
+        <span class="h">Der stärkste Einzelbeleg für die Lücke</span>
+        <p>Die einzige österreichische Primärerhebung <em>unter</em> Preisrichter:innen erhebt Geschlecht überhaupt nicht. IMAD Marktforschung, <em>Tätigkeit von PreisrichterInnen bei Architekturwettbewerben in Österreich</em>, April 2019, Auftraggeber bAIK / Bundessektion Architekt:innen, n = 387, Rücklauf ca. 27 %. Die Demographie auf S. 3 erfasst nur Sach-/Fachpreisrichter:in, Länderkammerregion und Tätigkeitsdauer. Die Begriffe „Geschlecht", „weiblich", „Frauen", „Frauenanteil" kommen im gesamten Bericht <strong>nicht ein einziges Mal</strong> vor.</p>
+        <p style="margin-top:10px">Die Kammer befragt ihre eigenen Preisrichter:innen — ohne Geschlecht zu erheben. <strong>Die Forschungslücke ist damit selbst ein zitierfähiges Ergebnis.</strong></p>
+      </div>
+
+      <p>Ergänzend: Die ARCH-E <em>Map on ADCs</em> (Länderprofil Österreich) enthält zu Jurygröße und Preisgerichtszusammensetzung <strong>keine einzige Zahl</strong>. Die einzige jurybezogene Zahl ist eine Einstellungs-, keine Bestandsgröße — ARCH-E <em>Architects' Needs Report</em>, Q 9.3 „Wichtigkeit gender-ausgewogener Jurys", n = 186: „very important" 120 (64,5 %). n = 186 ist eine gefilterte Teilstichprobe, nicht repräsentativ.</p>
+
+      <h3>2.5 Wettbewerbsteilnahme und -gewinne (europaweit) <span class="ev ev--p">P</span></h3>
+      <p>ARCH-E, <em>Architects' Needs Report</em> (Álvarez Isidro / Gómez Alfonso, UPV Valencia; Hrsg. ARCH-E / bAIK als Lead Partner, Creative Europe). Erhebung 30.09.–21.10.2024, n = 1.290 (Auswertung n = 1.267), 20+ EU-Länder. Selbsteinschätzung der Autor:innen (S. 16): nicht repräsentativ für Europa.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kennzahl, europaweit</th><th class="num">Frauen</th><th class="num">Männer</th></tr></thead>
+          <tbody>
+            <tr><td>Anteil an Befragten</td><td class="num">363 = 28 %</td><td class="num">881 = 68 %</td></tr>
+            <tr><td>Teilnahme nationale Wettbewerbe</td><td class="num">55,5 %</td><td class="num">73,9 %</td></tr>
+            <tr><td>Teilnahme internationale Wettbewerbe</td><td class="num">17,6 %</td><td class="num">26,6 %</td></tr>
+            <tr class="hi"><td><strong>1. Preis</strong>, intern. Wettbewerb, letzte 5 Jahre</td><td class="num">18 %</td><td class="num">17 %</td></tr>
+            <tr><td>„Never" gewonnen</td><td class="num">76 %</td><td class="num">62 %</td></tr>
+            <tr class="hi"><td><strong>Teilnahme per Direkteinladung</strong></td><td class="num">11 %</td><td class="num">22 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="find">
+        <span class="h">Kernbefund im Original, S. 52 — als Spielmechanik verwertbar</span>
+        <p>Die Erfolgsquoten sind zwischen Frauen und Männern <strong>vergleichbar</strong>. Der Unterschied liegt im <strong>Zugang</strong> — Teilnahmehäufigkeit und Direkteinladungen. Nicht die Bewertung ist die Engstelle, sondern wer überhaupt am Tisch sitzt. Das deckt sich strukturell mit dem Befund zum Preisgericht Althangrund: 100 % Frauen im Kammerkontingent, 0 % dort, wo frei bestellt wird.</p>
+      </div>
+
+      <p class="srcline"><span class="ev ev--g">!</span> Teilstichprobe Österreich: n = 73 (19 Frauen / 49–50 Männer). <strong>n = 19 ist zu klein für belastbare Aussagen</strong> — nur mit Absolutzahlen ausweisen, keine Prozentwerte bilden.</p>
+
+      <p class="srcline"><strong>Kontextzahlen ARCH-E, Österreich:</strong> 111 Architekturwettbewerbe pro Jahr in Kooperation mit der bAIK, davon offen 26 % / nicht offen 74 % (geladen 59 %); Ø 46 Beiträge in offenen Verfahren; 10–15 % der registrierten Büros nehmen teil; 66 % öffentliche / 34 % private Auslobende.</p>
+    </section>
+
+    <!-- ============ 03 BARRIEREFREIHEIT ============ -->
+    <section id="barriere">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <h2 class="sec">Barrierefreiheit</h2>
+      </div>
+      <p class="sec-lede">Was für öffentliche Bauten in Wien verbindlich ist — und warum Betroffene trotzdem keinen Anspruch auf Beseitigung einer Barriere haben.</p>
+
+      <div class="warn">
+        <span class="h">Zwei Korrekturen zur Ausgangsannahme</span>
+        <p><strong>§ 106 BO für Wien ist nicht „Allgemeine Anforderungen an Bauwerke"</strong> und enthält nichts zur Barrierefreiheit — er lautet „Belichtung, Beleuchtung, Belüftung und Beheizung". § 116 trägt zwar diese Überschrift, steht aber im 6. Abschnitt <em>Schallschutz</em>. Einschlägig ist <strong>§ 115</strong>.</p>
+        <p style="margin-top:10px"><strong>Die WBTV 2020 ist außer Kraft.</strong> Geltend ist die Wiener Bautechnikverordnung 2023, LGBl. Wien Nr. 14/2024, zuletzt geändert durch LGBl. Nr. 26/2026 — und damit die <strong>OIB-Richtlinie 4, Ausgabe Mai 2023</strong>, nicht 2019.</p>
+      </div>
+
+      <h3>3.1 § 115 BO für Wien „Barrierefreie Gestaltung von Bauwerken" <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <p>LGBl. Nr. 11/1930, § 115 idF LGBl. Nr. 69/2018, in Kraft seit 22.12.2018. RIS-Dokumentnummer LWI40013133. Am 10.09.2026 im Volltext gelesen und wörtlich gegengeprüft.</p>
+
+      <blockquote class="q q--long">
+        <span class="lbl">§ 115 Abs. 1 — welche Bauwerke</span>
+        <p>„Folgende Bauwerke oder Bauwerksteile müssen so barrierefrei geplant und ausgeführt sein, dass die für Besucher, Kunden und Bewohner bestimmten Teile auch für Kinder, ältere Personen und Personen mit Behinderungen gefahrlos und tunlichst ohne fremde Hilfe zugänglich sind: 1. Bauwerke mit Aufenthaltsräumen, mit Ausnahme von a) Wohngebäuden mit nur einer Wohnung, b) Wohngebäuden mit einer Gebäudehöhe von höchstens 7,50 m …, c) Reihenhäusern, d) Kleingartenhäusern und Kleingartenwohnhäusern; <strong>2. Bauwerke für öffentliche Zwecke (zB Behörden und Ämter); 3. Bauwerke für Bildungszwecke (zB Kindergärten, Schulen, Hochschulen, Volksbildungseinrichtungen);</strong> 4. Bauwerke mit Versammlungsräumen; 5. Veranstaltungs- und Sportstätten; 6. Handelsbetriebe mit Konsumgütern des täglichen Bedarfs; 7. Banken; 8. Kirchen; 9. Gesundheits- und Sozialeinrichtungen; 10. Arztpraxen und Apotheken; 11. öffentliche Toiletten; 12. sonstige Bauwerke, die allgemein zugänglich und für mindestens 50 Besucher oder Kunden ausgelegt sind."</p>
+      </blockquote>
+
+      <blockquote class="q q--long">
+        <span class="lbl">§ 115 Abs. 2, 4 und 6</span>
+        <p>„(2) Zur Erfüllung der Anforderungen gemäß Abs. 1 müssen insbesondere 1. mindestens ein Eingang, und zwar der Haupteingang oder ein Eingang in dessen unmittelbarer Nähe, stufenlos erreichbar sein, 2. in Verbindungswegen Stufen, Schwellen und ähnliche Hindernisse grundsätzlich vermieden werden; unvermeidbare Niveauunterschiede sind durch entsprechende Rampen, Personenaufzüge oder vertikale Hebeeinrichtungen zu überwinden oder auszugleichen, die ständig betriebsbereit zu halten sind, 3. notwendige Mindestbreiten für Türen und Gänge eingehalten werden, 4. eine dem Verwendungszweck entsprechende Anzahl von behindertengerechten Sanitärräumen errichtet werden."</p>
+        <p>„(4) Die Anforderungen gemäß Abs. 1 und 2 sind auch für Zu- oder Umbauten zu erfüllen. <strong>Durch sonstige Baumaßnahmen darf der Zustand des Bauwerks hinsichtlich seiner barrierefreien Gestaltung jedenfalls nicht verschlechtert werden.</strong>"</p>
+        <p>„(6) <strong>In Bauwerken gemäß Abs. 1 Z 2, 3 und 9 sind in jedem Geschoß Toiletten für behinderte Menschen anzuordnen.</strong>"</p>
+        <span class="src">RIS, ris.bka.gv.at/eli/lgbl/WI/1930/11/P115/LWI40013133</span>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Für den Campus Althangrund relevant</span>
+        <p>Ein Hochschulbau fällt unter § 115 Abs. 1 Z 3 („Bauwerke für Bildungszwecke … Hochschulen") — und damit auch unter die Toilettenpflicht in <em>jedem</em> Geschoß nach Abs. 6.</p>
+      </div>
+
+      <h4>Flankierende Bestimmungen</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Norm</th><th>Inhalt</th><th>Kern</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">§ 63 Abs. 1 lit. k</td><td>Einreichunterlagen</td><td>„eine Bestätigung des Planverfassers, dass die Grundsätze des barrierefreien Planens und Bauens eingehalten werden"</td></tr>
+            <tr><td class="mono">§ 128 Abs. 2 Z 1</td><td>Fertigstellungsanzeige</td><td>Ziviltechniker-Bestätigung „über die bewilligungsgemäße und den Bauvorschriften entsprechende Bauausführung … sowie darüber, dass … die Grundsätze des barrierefreien Planens und Bauens eingehalten werden"</td></tr>
+            <tr><td class="mono">§ 129 Abs. 2</td><td>Erhaltungspflicht</td><td>Bauwerke sind „in gutem, der Baubewilligung und den Vorschriften dieser Bauordnung entsprechendem Zustand" zu erhalten</td></tr>
+            <tr><td class="mono">§ 129 Abs. 10</td><td>Bauauftrag</td><td>„Jede Abweichung von den Bauvorschriften … ist zu beheben." Bei augenscheinlicher Gefahr für Leben oder Gesundheit <em>muss</em> die Behörde Aufträge erteilen</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline"><strong>Terminologie:</strong> Die BO für Wien kennt in § 128 die <em>Fertigstellungsanzeige</em>, nicht mehr die klassische „Benützungsbewilligung".</p>
+
+      <h3>3.2 OIB-Richtlinie 4 und die WBTV 2023 <span class="ev ev--p">P</span></h3>
+      <blockquote class="q">
+        <span class="lbl">§ 1 WBTV 2023, idF in Kraft seit 15.07.2026</span>
+        <p>„Den im 9. Teil der Bauordnung für Wien festgelegten bautechnischen Vorschriften wird entsprochen, wenn die in den Anlagen enthaltenen Richtlinien des Österreichischen Instituts für Bautechnik, soweit in ihnen bautechnische Anforderungen geregelt werden, eingehalten werden. <strong>Ausgenommen sind die Punkte 2.1.5 und 2.1.6 der Anlage 11</strong> …"</p>
+      </blockquote>
+      <blockquote class="q">
+        <span class="lbl">§ 2 WBTV 2023 — Abweichungsklausel</span>
+        <p>„Von den in den Anlagen enthaltenen Richtlinien kann abgewichen werden, wenn die Bauwerberin oder der Bauwerber nachweist, dass das gleiche Schutzniveau wie bei Anwendung der Richtlinien erreicht wird."</p>
+        <span class="src">Anlage 11 = OIB-Richtlinie 4 „Nutzungssicherheit und Barrierefreiheit", Ausgabe Mai 2023, GZ OIB-330.4-026/23 · RIS LWI40016801</span>
+      </blockquote>
+
+      <p><strong>Die Punkte 2.1.5 und 2.1.6 der OIB-RL 4 gelten in Wien nicht.</strong> Begründung der MA 37, wörtlich: „… da ansonsten ein Widerspruch zu den §§ 111 und 115 der Bauordnung für Wien entstehen würde."</p>
+
+      <h4>Kernbestimmungen der OIB-RL 4</h4>
+      <blockquote class="q q--long">
+        <span class="lbl">Punkt 0 · Vorbemerkungen</span>
+        <p>„Diese Richtlinie gilt für Gebäude. Für sonstige Bauwerke sind die Bestimmungen der Richtlinie sinngemäß anzuwenden. […] <strong>Welche Gebäude oder Gebäudeteile barrierefrei zu gestalten sind, wird in den jeweiligen landesrechtlichen Bestimmungen geregelt.</strong>"</p>
+      </blockquote>
+      <ul>
+        <li><span class="par">2.2.2</span> <strong>Rampen:</strong> Längsgefälle max. 6 %, kein Quergefälle, beidseitige Handläufe und Radabweiser, Handläufe 30 cm weiterführen, horizontale Flächen ≥ 1,20 m an Anfang und Ende, Zwischenpodeste alle ≤ 10 m, lichte Durchgangsbreite ≥ 1,20 m</li>
+        <li><span class="par">2.3.1</span> <strong>Aufzüge:</strong> Fahrkorb ≥ 1,10 × 1,40 m; selbsttätig kraftbetätigte Schiebetüren, lichte Durchgangsbreite ≥ 90 cm; Wendekreis ⌀ ≥ 1,50 m vor den Schachttüren</li>
+        <li><span class="par">2.9.1</span> <strong>Türen:</strong> nutzbare Breite der Durchgangslichte des Gehflügels ≥ 80 cm</li>
+        <li><span class="par">7.1.1</span> „Die Mindestgröße von barrierefreien Toilettenräumen beträgt 2,15 m × 1,65 m. Türen dürfen nicht nach innen öffnend ausgeführt werden und müssen im Notfall von außen entriegelbar sein."</li>
+        <li><span class="par">7.1.4</span> „In öffentlich zugänglichen Gebäuden müssen barrierefreie Toilettenräume mit einer Notrufanlage ausgestattet sein."</li>
+        <li><span class="par">7.5.5</span> <em>neu in Ausgabe 2023:</em> „Versammlungsräume sind nach Maßgabe der Größe und des Verwendungszweckes mit geeigneten Übertragungssystemen für Menschen mit Hörbehinderung (z.B. induktive Höranlagen) auszustatten."</li>
+        <li><span class="par">7.7 / 9</span> Erleichterungen im Bestand, „wenn das ursprüngliche Anforderungsniveau des rechtmäßigen Bestandes nicht verschlechtert wird"</li>
+      </ul>
+
+      <div class="warn">
+        <span class="h">Quellenlage</span>
+        <p>Der amtlich kundgemachte Volltext von Anlage 11 WBTV 2023 liegt im RIS nur als nicht maschinenlesbares PDF vor. Die obigen Zitate stammen aus der amtssignierten Kundmachung der Ausgabe 2019 (LGBl. Wien 4/2020) und wurden gegen eine Spiegelung der Ausgabe Mai 2023 auf Wortgleichheit geprüft. Vor Publikation aus dem offiziellen PDF der Ausgabe Mai 2023 nachzitieren.</p>
+      </div>
+
+      <h3>3.3 ÖNORM B 1600 — in Wien nicht verbindlich <span class="ev ev--p">P</span></h3>
+      <p>ÖNORM B 1600, Ausgabedatum 2023-05-01, „Barrierefreies Bauen – Planungsgrundlagen", 99 Seiten, Komitee 011 Hochbau Allgemeines, ICS 91.010.30. Offizielle Beschreibung von Austrian Standards: „Die Bestimmungen der vorliegenden ÖNORM sind anzuwenden, um barrierefreie Bauten und Anlagen zu errichten." Single-User-Lizenz 386,72 € exkl. USt — <strong>der Volltext lag nicht vor</strong>, zitiert wird nur die offizielle Kurzbeschreibung.</p>
+
+      <blockquote class="q">
+        <span class="lbl">MA 37 Baupolizei, Dokumentenstand Dezember 2024, S. 3</span>
+        <p>„Anmerkungen zur OIB-RL 4 – Ausgabe 2023 und ÖNORM B 1600 – 15.2.2024: Die OIB-Richtlinie 4 (Ausgabe 2023) verweist in keinem Punkt auf die ÖNORM B 1600. <strong>Die ÖNORM B 1600 ist daher nicht verbindlich einzuhalten.</strong> Sie kann aber, wie andere Regelwerke auch, im Sinne der Methodik herangezogen werden, um die bautechnischen Anforderungen der OIB-Richtlinie 4 (und der BO) zu erfüllen."</p>
+        <span class="src">wien.gv.at/pdf/ma37/barrierefreies-planen-bauen-2024.pdf</span>
+      </blockquote>
+
+      <p>Bestätigend, oesterreich.gv.at (BMASGPK, Stand 12.08.2025): „Die Bauordnungen der einzelnen Bundesländer berücksichtigen nicht mehr die ÖNORM B 1600, sondern die OIB-Richtlinie 4." <strong>Gegenprobe:</strong> Die Rubrik „Im Gesetz zitiert" der Austrian-Standards-Produktseite listet ausschließlich Rechtsvorschriften aus Tirol, Salzburg und der Steiermark — <strong>keine einzige Wiener Rechtsvorschrift</strong>. Im Volltext der OIB-RL 4 (Mai 2023) kommt „ÖNORM B 1600" nicht vor.</p>
+
+      <div class="find">
+        <span class="h">Die drei Konstellationen der MA 37</span>
+        <ol style="margin-bottom:0">
+          <li>Konkretes Mindest-/Höchstmaß in OIB-RL 4 oder BO → „Es sind nur diese Anforderungen baurechtlich verpflichtend einzuhalten. <strong>Strengere Anforderungen einer Norm sind baurechtlich nicht verbindlich zu erfüllen.</strong>"</li>
+          <li>Unbestimmte, zielorientierte Anforderung → eine Norm „kann herangezogen werden, um diese Anforderung nach dem Stand der Technik zu erfüllen" (z.B. Kontraststufe II der ÖNORM B 1600)</li>
+          <li>Keine Anforderung vorhanden → Lösung „mit Sachverstand, u.U. auch durch Anwendung einer Norm"</li>
+        </ol>
+      </div>
+
+      <p class="srcline">ÖNORM B 1601 (Gesundheitseinrichtungen, assistive Wohn- und Arbeitsstätten), B 1602 (Bildungseinrichtungen), B 1603 (Tourismus- und Freizeiteinrichtungen): Rechtsnatur identisch, in Wien ebenfalls nicht verbindlich. <span class="ev ev--g">!</span> Aktuelle Ausgabedaten nicht verifiziert. — Ebenfalls nicht verbindlich: ÖVE/ÖNORM EN 17210:2021-08-01; die MA 37 merkt an, die Norm „gibt aber ausdrücklich nicht vor, wie diese Ziele konkret zu erfüllen sind".</p>
+
+      <h3>3.4 Bundes-Behindertengleichstellungsgesetz <span class="ev ev--p">P</span></h3>
+      <p>Stammfassung BGBl. I Nr. 82/2005, RIS-Gesetzesnummer 20004228.</p>
+
+      <blockquote class="q">
+        <span class="lbl">§ 5 Abs. 2 — mittelbare Diskriminierung</span>
+        <p>„Eine mittelbare Diskriminierung liegt vor, wenn dem Anschein nach neutrale Vorschriften, Kriterien oder Verfahren sowie <strong>Merkmale gestalteter Lebensbereiche</strong> Menschen mit Behinderungen gegenüber anderen Personen in besonderer Weise benachteiligen können, es sei denn, die betreffenden Vorschriften … sind durch ein rechtmäßiges Ziel sachlich gerechtfertigt und die Mittel sind zur Erreichung dieses Zieles angemessen und erforderlich."</p>
+        <span class="src">NOR40151317 — bauliche Barrieren sind „Merkmale gestalteter Lebensbereiche"</span>
+      </blockquote>
+
+      <blockquote class="q">
+        <span class="lbl">§ 6 Abs. 4 — die Scharnierbestimmung</span>
+        <p>„Bei der Beurteilung des Vorliegens einer mittelbaren Diskriminierung durch Barrieren ist auch zu prüfen, ob einschlägige auf den gegenständlichen Fall anwendbare Rechtsvorschriften zur Barrierefreiheit vorliegen und ob und inwieweit diese eingehalten wurden."</p>
+        <span class="src">NOR40066743 · Abs. 2 listet sechs Zumutbarkeitskriterien, u.a. Aufwand, wirtschaftliche Leistungsfähigkeit, Förderungen aus öffentlichen Mitteln</span>
+      </blockquote>
+
+      <blockquote class="q">
+        <span class="lbl">§ 9 Abs. 1 und 2 — Rechtsfolgen</span>
+        <p>„(1) Bei Verletzung des Diskriminierungsverbots gemäß § 4 Abs. 1 hat die betroffene Person <strong>jedenfalls Anspruch auf Ersatz des Vermögensschadens und auf eine Entschädigung für die erlittene persönliche Beeinträchtigung.</strong>"</p>
+        <p>„(2) Bei einer Belästigung … Anspruch auf Ersatz des erlittenen Schadens und auf Unterlassung der Belästigung. Darüber hinaus … Anspruch auf angemessenen Schadenersatz, <strong>mindestens jedoch auf 1 000 Euro.</strong>"</p>
+        <span class="src">NOR40198296 idF BGBl. I Nr. 155/2017</span>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Kernfrage: Gibt es einen Beseitigungsanspruch? — Nein</span>
+        <p>Das BGStG gewährt der individuell betroffenen Person <strong>ausschließlich Geldansprüche</strong>. Einen Anspruch auf Beseitigung der Barriere sieht § 9 nicht vor. Der einzige nicht-monetäre Individualanspruch ist der Unterlassungsanspruch bei Belästigung — der betrifft Verhalten, nicht Bauliches.</p>
+      </div>
+
+      <blockquote class="q q--long">
+        <span class="lbl">§ 13 Abs. 1 — Verbandsklage</span>
+        <p>„Wird gegen die in diesem Bundesgesetz geregelten gesetzlichen Gebote oder Verbote verstoßen, und werden dadurch die allgemeinen Interessen des durch dieses Gesetz geschützten Personenkreises wesentlich und dauerhaft beeinträchtigt, können der Österreichische Behindertenrat, der Klagsverband … und der Behindertenanwalt … eine <strong>Klage auf Feststellung</strong> sowie <strong>bei großen Kapitalgesellschaften im Sinne des § 221 Abs. 3 Unternehmensgesetzbuch (UGB) auch auf Unterlassung und Beseitigung</strong> einer Diskriminierung aus dem Grund einer Behinderung einbringen."</p>
+        <span class="src">NOR40198297</span>
+      </blockquote>
+
+      <div class="warn">
+        <span class="h">Die zentrale Rechtsschutzlücke bei öffentlichen Bauten</span>
+        <p>Ein echter Beseitigungsanspruch besteht <strong>nur über die Verbandsklage und nur gegenüber großen Kapitalgesellschaften</strong>. Gegenüber Gebietskörperschaften — also genau bei öffentlichen Bauten — ist nur eine <strong>Feststellungsklage</strong> möglich. Ein guter Aufhänger für ein Serious Game: Die Spielerin gewinnt den Prozess und die Stufe bleibt.</p>
+      </div>
+
+      <p><strong>Verfahrensweg:</strong> Vor jeder Klage ist ein <strong>Schlichtungsverfahren beim Sozialministeriumservice</strong> zwingend (§ 10 Abs. 2 iVm §§ 14 ff). Klage erst zulässig, wenn binnen drei Monaten ab Einleitung keine gütliche Einigung erzielt wurde; der Klage ist eine Bestätigung des SMS anzuschließen. Verjährung: drei Jahre, bei Belästigung ein Jahr. <strong>Beweislastumkehr</strong> nach § 12 Abs. 2 — bei Barrieren besonders weitgehend: „obliegt es der beklagten Partei zu beweisen, dass es bei Abwägung aller Umstände wahrscheinlicher ist, dass die von ihr glaubhaft gemachten Tatsachen der Wahrheit entsprechen."</p>
+
+      <h3>3.5 Konsequenzen bei Nichteinhaltung <span class="ev ev--p">P</span></h3>
+      <h4>Baurechtlich — § 135 BO für Wien „Baustrafen", idF LGBl. Nr. 25/2026, in Kraft seit 15.07.2026</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Tatbestand</th><th class="num">Geldstrafe</th><th>Ersatzfreiheitsstrafe</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td><strong>Abs. 1</strong> — Auffangtatbestand: Übertretungen des Gesetzes und der darauf erlassenen Verordnungen</td><td class="num">bis 50.000 €</td><td>bis zwei Wochen</td></tr>
+            <tr><td><strong>Abs. 2</strong> — Schutzzone, Baueinstellung, Renovierungsverpflichtung</td><td class="num">bis 100.000 €</td><td>bis vier Wochen</td></tr>
+            <tr><td><strong>Abs. 3</strong> — Gefahr für Leben/Gesundheit; unbewilligter Abbruch</td><td class="num">bis 300.000 €</td><td>bis sechs Wochen; bei vorsätzlichem unbewilligtem Abbruch Mindeststrafe 30.000 €</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Ein Verstoß gegen § 115 BO bzw. gegen die über § 1 WBTV 2023 verbindliche OIB-RL 4 fällt unter den <strong>Auffangtatbestand des Abs. 1</strong> → bis 50.000 €. <strong>Ein eigener, speziell auf Barrierefreiheit bezogener Straftatbestand existiert nicht.</strong> Nach Abs. 5 und 6 kann statt des Eigentümers der Verwalter oder ein baurechtlicher Geschäftsführer belangt werden; der Bauführer haftet solidarisch.</p>
+
+      <h3>3.6 Wiener Antidiskriminierungsgesetz und Standards der Stadt Wien <span class="ev ev--p">P</span></h3>
+      <p>Wr. ADG, LGBl. Wien Nr. 35/2004, zuletzt geändert durch LGBl. Nr. 39/2025. § 4 Abs. 1: Schadenersatz „mindestens jedoch auf 1.000 Euro". § 6 (idF LGBl. 39/2025, in Kraft seit 01.09.2025): Verwaltungsübertretung, Geldstrafe bis 1.090 €. § 9: Förderungsvergabe des Landes und der Gemeinde Wien nur an Personen, die das Diskriminierungsverbot beachten.</p>
+
+      <div class="find">
+        <span class="h">Rechtsdogmatisch bemerkenswert</span>
+        <p><span class="par">§ 3a Abs. 3 Wr. ADG</span> ist eine <strong>absolute Rechtfertigung</strong>: „Eine mittelbare Diskriminierung liegt nicht vor, wenn einschlägige Rechtsvorschriften zur Barrierefreiheit gelten und diese eingehalten werden." <span class="par">§ 6 Abs. 4 BGStG</span> gestaltet die Normeinhaltung dagegen nur als <strong>Prüfkriterium</strong> aus. Wer in Wien die OIB-RL 4 einhält, ist landesrechtlich fein raus — bundesrechtlich noch nicht.</p>
+      </div>
+
+      <p>Ein „Handbuch Barrierefreies Bauen" der Stadt Wien existiert nicht. Das maßgebliche Dokument ist die Zusammenstellung der Baupolizei: <strong>MA 37, „Barrierefreies Planen und Bauen in Wien – Zusammenfassung baurechtlicher Interpretationen", Dokumentenstand Dezember 2024, 24 Seiten</strong>, gültig für Bauvorhaben nach dem 22.02.2024. Entstanden aus einem Jour Fixe der MD-Stadtbaudirektion mit ZT-Kammer, MA 25 und MA 37.</p>
+      <blockquote class="q">
+        <span class="lbl">Rechtsnatur, wörtlich</span>
+        <p>„<strong>Die Erläuterungen haben für die MitarbeiterInnen der MA 37 Weisungscharakter.</strong> Sie werden zur besseren Information aller am Baugeschehen in Wien Beteiligten auf der Homepage der MA 37 [veröffentlicht]."</p>
+        <p>„Im Ergebnis ergibt sich folgender ‚rechtlicher Stufenbau': <strong>Bei gegebenenfalls unterschiedlichen Anforderungen gelten jene der höherrangigen Rechtsmaterie!</strong>" — Reihenfolge: BO → WBTV → OIB-Richtlinie 4</p>
+      </blockquote>
+      <p>Verwaltungsinterne Weisung, keine Rechtsverordnung — faktisch aber der maßgebliche Auslegungsmaßstab der Baubehörde. Zuständige Fachstelle: MA 25 – Kompetenzstelle für Barrierefreies Planen, Bauen und Wohnen.</p>
+
+      <h3>3.7 Normenpyramide Wien</h3>
+      <div class="scroll">
+        <table>
+          <thead><tr><th class="num">Rang</th><th>Norm</th><th>Wirkung</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td><strong>BGStG</strong> (Bund)</td><td>zivilrechtliches Diskriminierungsverbot, Schadenersatz, Schlichtung</td></tr>
+            <tr><td class="num">2</td><td><strong>Wr. ADG</strong> (Land)</td><td>Diskriminierungsverbot in Landeskompetenz, Schadenersatz min. 1.000 €, Verwaltungsstrafe bis 1.090 €</td></tr>
+            <tr><td class="num">3</td><td><strong>BO für Wien § 115</strong></td><td>öffentlich-rechtliche Bauverpflichtung; definiert <em>welche</em> Bauwerke barrierefrei sein müssen</td></tr>
+            <tr><td class="num">4</td><td><strong>WBTV 2023 § 1</strong></td><td>erklärt die OIB-Richtlinien verbindlich; § 2 erlaubt gleichwertige Abweichung</td></tr>
+            <tr><td class="num">5</td><td><strong>OIB-RL 4</strong> (Mai 2023) = Anlage 11</td><td>technische Detailanforderungen, ohne Pkt. 2.1.5 und 2.1.6</td></tr>
+            <tr><td class="num">6</td><td><strong>ÖNORM B 1600 ff.</strong></td><td><strong>nicht verbindlich</strong>; Stand-der-Technik-Hilfsmittel bei unbestimmten Anforderungen</td></tr>
+            <tr><td class="num">7</td><td><strong>MA 37-Erläuterungen</strong> (Dez. 2024)</td><td>behördeninterne Weisung, faktischer Auslegungsmaßstab</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 04 CAMPUS ============ -->
+    <section id="campus">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <h2 class="sec">Campus Althangrund</h2>
+      </div>
+      <p class="sec-lede">Der Fall, an dem sich alles zeigt: ein laufendes Verfahren, ein vollständig belegtes Preisgericht, und ein Abbruchbescheid, der acht Monate vor der Auslobung ausgestellt wurde.</p>
+
+      <div class="warn">
+        <span class="h">Zwei Korrekturen zur Ausgangsannahme</span>
+        <p><strong>„STEK 68" ist keine Plandokument-Nummer, sondern eine Sitzungsnummer</strong> — die 68. Sitzung der Stadtentwicklungskommission der Stadt Wien.</p>
+        <p style="margin-top:10px"><strong>Projektträger ist die BIG, nicht 6B47.</strong> 6B47 Real Estate Investors entwickelt das räumlich benachbarte, aber rechtlich und verfahrenstechnisch getrennte „Althan Quartier" / „Althan Park" im südlichen Teil. Der Campus („Althangrund West", ehem. UZA 1) wird von der Bundesimmobiliengesellschaft m.b.H. ausgelobt. Die Hochhaus- und Fachbeirats-Befangenheitsdebatte betrifft das 6B47-Projekt.</p>
+      </div>
+
+      <h3>4.1 STEK 68 — wer, was, wann <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <p>Primärquelle: Stadt Wien, MA 21, „9., Campus Althangrund — Rahmenvorgaben für einen zukunftsfitten Bildungscampus". Kopfzeile jeder Folie: „68. STEK | 9., Campus Althangrund". Deckblatt: <strong>„68. STEK 16.04.2024 TOP 1"</strong>.</p>
+
+      <blockquote class="q">
+        <span class="lbl">Folie 18 · Beschluss</span>
+        <p>„Die vorliegenden Rahmenvorgaben sowie die dargestellten Entwicklungserfordernisse sollen als Grundlage für die weiteren Planungs- und Umsetzungsschritte sowie für die Neufestsetzung des Flächenwidmungs- und Bebauungsplanes herangezogen werden."</p>
+        <span class="src">wien.gv.at/pdf/ma21/stek-campus-althangrund.pdf</span>
+      </blockquote>
+
+      <div class="find">
+        <span class="h">Rechtsnatur — wichtig fürs Paper</span>
+        <p>Die Stadtentwicklungskommission wurde 1985 durch Gemeinderatsbeschluss eingerichtet, Vorsitz Bürgermeister; Mitglieder sind amtsführende und nicht amtsführende Stadträt:innen, Klubobleute, Ausschussvorsitzende, Bau-, Planungs- und Finanzdirektor:innen sowie die höchstrangigen Beamt:innen der Planungsdienststellen. Sie <strong>berät</strong> Stadtsenat und Gemeinderat. <strong>Ein STEK-Beschluss ist kein Rechtsakt, keine Verordnung, kein Gemeinderatsbeschluss.</strong> Die Sitzungen sind nicht öffentlich; publiziert werden nur die Präsentationen, keine Protokolle.</p>
+      </div>
+
+      <p><strong>Inhaltliche Eckpunkte, wörtlich:</strong> „Städtebauliche Akzentuierung des Ortes durch differenzierte Gebäudehöhen … (<strong>kein Hochhausstandort</strong>)" · „<strong>Keine Hochhausentwicklung (max. 35m Gebäudehöhe)</strong>" · „Erhalt der Tragstruktur zu <strong>40 %</strong> (Long-Use)" · „Vollständiger Bestandserhalt nicht zielführend". Bestandswidmung: „Bauland, Gemischtes Baugebiet, Bauklasse II bis VI 26–35 m, geschlossene Bauweise (<strong>PD 7707 aus 2007</strong>)".</p>
+
+      <h3>4.2 Sah STEK 68 einen Wettbewerb vor? — Ja <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <blockquote class="q">
+        <span class="lbl">Folie 8 · Bisheriger Planungsprozess, Spalte 2024</span>
+        <p>„• STEK-Beschluss • <strong>Städtebaulicher Wettbewerb</strong> • Start Verfahren zur Neufestsetzung des Flächenwidmungs- und Bebauungsplanes • <strong>Realisierungswettbewerbe</strong>"</p>
+      </blockquote>
+      <blockquote class="q">
+        <span class="lbl">Folie 17 · Prozessablauf, Spalte Qualitätssicherung</span>
+        <p>„Vorbereitungen Wettbewerb" → „Auslobung und Durchführung <strong>Städtebaulicher Wettbewerb</strong>" → „Auslobung und Durchführung <strong>Realisierungswettbewerbe (nach Baufeldern getrennt)</strong>"</p>
+      </blockquote>
+      <p>Kein kooperatives Verfahren — der Begriff kommt in der STEK-Präsentation nicht vor.</p>
+
+      <div class="find">
+        <span class="h">Verfahrensdesign-Bruch</span>
+        <p>Realisiert wurde stattdessen <strong>ein einziger, zweistufiger Realisierungswettbewerb</strong> (Stufe 1 Städtebau, Stufe 2 Vorentwurf 1. Bauetappe) — also die Zusammenlegung dessen, was STEK 68 als zwei separate Verfahren skizziert hatte. <strong>Wer diese Änderung wann und mit welcher Begründung entschieden hat, ist in keiner Quelle erklärt.</strong> Genau daran setzt ein Teil der Verfahrenskritik an.</p>
+      </div>
+
+      <h3>4.3 Die Ausschreibung <span class="ev ev--p">P</span></h3>
+      <p>EU-Bekanntmachung <strong>515101-2025</strong>, ABl. S 149/2025, veröffentlicht <strong>06.08.2025</strong>. Titel: „1090 Wien, UZA 1: 2-stufigen Realisierungswettbewerb ‚Campus Althangrund'". Interne Kennung 90.146/82-UBU/2025, Rechtsgrundlage RL 2014/24/EU, CPV 71240000, NUTS AT130. Änderungsbekanntmachung 589320-2025 vom 10.09.2025 (Fragefristverlängerung bis 25.09.2025).</p>
+
+      <blockquote class="q q--long">
+        <span class="lbl">Wettbewerbsziel · selbst gelesen am 10.09.2026</span>
+        <p>„Ziel des Wettbewerbs ist einerseits die Erlangung von Grundlagen für einen Flächenwidmungs- und Bebauungsplan für die Liegenschaft und andererseits von Vorentwurfskonzepten für die Projekte der 1. Bauetappe. Am Standort soll ein wegweisender urbaner Campus für 2 Bundeschulen und 2 Universitäten mit internationaler Vorbildwirkung entstehen … Damit einher geht die <strong>Beseitigung bestehender physischer Barrieren</strong>, um den derzeit isolierten Ort mit dem umliegenden Stadtgewebe umfassend zu verknüpfen."</p>
+        <span class="src">architekturwettbewerb.at/competition/campus-althangrund/12161</span>
+      </blockquote>
+      <p class="srcline"><strong>Hinweis:</strong> „physische Barrieren" meint hier städtebauliche Trennwirkung, nicht Barrierefreiheit im Sinne des BGStG. Nicht verwechseln.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Merkmal</th><th>Wert</th></tr></thead>
+          <tbody>
+            <tr><td>Verfahrensart</td><td>Offener, zweistufiger Realisierungswettbewerb im Oberschwellenbereich</td></tr>
+            <tr><td>Rechtsgrundlage</td><td>Bundesvergabegesetz BVergG 2018</td></tr>
+            <tr><td>Ausloberin</td><td>BIG – Unternehmensbereich Universitäten</td></tr>
+            <tr><td>Verfahrensorganisation</td><td>ZT DI Andrea Hinterleitner</td></tr>
+            <tr><td>Abgabetermin Stufe 1</td><td>18.12.2025</td></tr>
+            <tr><td>Preisgeldsumme</td><td class="mono">EUR 750.000,– netto</td></tr>
+            <tr><td>Entscheidungstermin</td><td>Spätherbst 2026</td></tr>
+            <tr><td>Auftragsart</td><td>Generalplanerauftrag</td></tr>
+            <tr><td>Kooperation</td><td>mit der Kammer der ZiviltechnikerInnen Wien/NÖ/Bgld</td></tr>
+            <tr><td>Jury-Entscheidung bindend</td><td>ja (laut TED)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.4 Das Preisgericht <span class="ev ev--p">P</span> <span class="ev ev--v">V</span></h3>
+      <p>Am 10.09.2026 im Browser aufgerufen und die vollständige Liste ausgelesen. Auf derselben Seite hinterlegt: „Kooperationsschreiben + Jurynominierung der Kammer W/N/B vom 10.07.2025" (PDF, 151,97 KB).</p>
+
+      <blockquote class="q">
+        <span class="lbl">Kommentar der Kammer, wörtlich</span>
+        <p>„Die Kammer der ZiviltechnikerInnen für Wien, Niederösterreich und Burgenland nominierte als PreisrichterInnen folgende Personen: Hauptpreisrichterinnen: Arch. DI <strong>Barbara Buser</strong>, o. Univ.-Prof. Arch. DI <strong>Hemma Fasch</strong>; ErsatzpreisrichterInnen: Arch. DI <strong>Evelyn Rudnicki</strong>, Arch. DI <strong>Wolfgang Feyferlik</strong>"</p>
+      </blockquote>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Rolle</th><th>Name</th><th>Funktion</th><th>Beleg</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td>Kammerpreisrichterin</td><td><strong>Barbara Buser</strong></td><td>Architektin, baubüro in situ ag (CH), Re-Use-Pionierin</td><td><span class="ev ev--s">S</span></td></tr>
+            <tr class="hi"><td>Kammerpreisrichterin</td><td><strong>Hemma Fasch</strong></td><td>o. Univ.-Prof., Wiener Architektin</td><td><span class="ev ev--p">P</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Erik Meinharter</td><td>Geschäftsleitung &amp; Gesellschafter PlanSinn, Landschaftsplaner, ZT</td><td><span class="ev ev--p">P</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Thomas Madreiter</td><td>Planungsdirektor der Stadt Wien</td><td><span class="ev ev--p">P</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Franz Kobermaier</td><td>(ehem.) Leiter der MA 19 — Aktualität nicht verifiziert</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Johannes Wiesflecker</td><td>Architekt</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Bernd Vlay</td><td>StudioVlayStreeruwitz; Mitverfasser der Machbarkeitsstudien 2021 und 2023</td><td><span class="ev ev--p">P</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Maximilian Pammer</td><td>Preisrichter u.a. BIG-Wettbewerb Biologiezentrum St. Marx</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Fachpreisrichter</td><td>Bernd Wiltschek</td><td>DI, Preisrichter bei BG/BRG Gänserndorf</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Sachpreisrichter</td><td>Peter Dietl</td><td>—</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Sachpreisrichter</td><td>Christian Schartmüller</td><td>—</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr class="hi"><td>Sachpreisrichterin</td><td><strong>Eva Kuzmich</strong></td><td>—</td><td><span class="ev ev--g">!</span></td></tr>
+            <tr><td>Sachpreisrichter</td><td>Sebastian Schütze</td><td>Rektor der Universität Wien (seit 01.10.2022)</td><td><span class="ev ev--p">P</span></td></tr>
+            <tr class="hi"><td>Sachpreisrichterin</td><td><strong>Eva Schulev-Steindl</strong></td><td>Rektorin der BOKU University</td><td><span class="ev ev--p">P</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline">Ersatzpreisrichter:innen, durch die Kammer nominiert: Evelyn Rudnicki (Ersatz für Buser), Wolfgang Feyferlik (Ersatz für Fasch).</p>
+
+      <h4>Geschlechterverteilung — die Kernzahl</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Gruppe</th><th class="num">Frauen</th><th class="num">Männer</th><th class="num">Gesamt</th><th class="num">Frauenanteil</th></tr></thead>
+          <tbody>
+            <tr class="hi"><td><strong>Hauptpreisrichter:innen (stimmberechtigt)</strong></td><td class="num">4</td><td class="num">10</td><td class="num">14</td><td class="num">28,6 %</td></tr>
+            <tr><td>davon Kammerpreisrichter:innen</td><td class="num">2</td><td class="num">0</td><td class="num">2</td><td class="num">100 %</td></tr>
+            <tr><td>davon Fachpreisrichter:innen</td><td class="num">0</td><td class="num">7</td><td class="num">7</td><td class="num">0 %</td></tr>
+            <tr><td>davon Sachpreisrichter:innen</td><td class="num">2</td><td class="num">3</td><td class="num">5</td><td class="num">40 %</td></tr>
+            <tr><td>Ersatzpreisrichter:innen</td><td class="num">1</td><td class="num">1</td><td class="num">2</td><td class="num">50 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="srcline"><strong>Methodischer Hinweis:</strong> Geschlecht ist in der Quelle kein Datenfeld. Die Zuordnung erfolgt über Vornamen und öffentlich belegte Funktionen. Die Kammer selbst bezeichnet Buser und Fasch explizit als „Hauptpreisrichterinnen"; Schulev-Steindl ist als Rektorin belegt.</p>
+
+      <div class="find">
+        <span class="h">Drei analytisch verwertbare Befunde</span>
+        <ol style="margin-bottom:0">
+          <li><strong>Der 25-%-Zielwert der Stadt Wien ist mit 28,6 % formal erfüllt</strong> — allerdings ist die Stadt Wien hier gar nicht Ausloberin (das ist die BIG, eine Bundesgesellschaft), der Zielwert also nicht adressiert. Erfüllung durch Zufall, nicht durch Norm.</li>
+          <li><strong>Die „Mindestens eine Frau"-Regel der zt:Kammer Ost ist übererfüllt</strong> — beide Kammernominierungen sind Frauen, 100 % im eigenen Kontingent.</li>
+          <li><strong>Unter den sieben nicht von der Kammer nominierten Fachpreisrichtern ist keine einzige Frau.</strong> Der Frauenanteil konzentriert sich vollständig auf Kammer- und Sachpreisgericht. Das ist der schärfste Einzelbefund — und deckt sich strukturell mit der Zugangsthese des ARCH-E Needs Report.</li>
+        </ol>
+      </div>
+
+      <div class="warn">
+        <span class="h">Befangenheit: zwei Fachpreisrichter mit Studienbeteiligung</span>
+        <p><strong>Bernd Vlay</strong> (StudioVlayStreeruwitz) ist Mitverfasser von „UZA I | Studie" (2021, überarbeitet 2023) und „UZA I | Bestandsevaluierung" (2023) — von gat.news explizit thematisiert. <strong>Erik Meinharter</strong> (PlanSinn): PlanSinn ist laut STEK-Präsentation, Folien 8 und 10, Mitverfasserin der Studie „UZA I | Studie". Damit sitzen Vertreter jener Büros im Preisgericht, deren Vorstudien die Grundannahme „Vollständiger Bestandserhalt nicht zielführend" begründet haben.</p>
+        <p style="margin-top:10px">Die <strong>PlanSinn/Meinharter-Verbindung habe ich in keiner publizierten Quelle thematisiert gefunden</strong> — sie ergibt sich aus dem Abgleich zweier Primärquellen (STEK-PDF + PlanSinn-Website) und sollte im Paper als eigene Beobachtung gekennzeichnet werden.</p>
+        <p style="margin-top:10px"><strong>Rechtsmaßstab:</strong> § 165 Abs. 4 BVergG verlangt Unabhängigkeit <em>von den Teilnehmern des Wettbewerbes</em> — nicht Unabhängigkeit von den Vorstudien. Auch hier klaffen Norm und Erwartung auseinander.</p>
+      </div>
+
+      <h3>4.5 Stand und Zeitplan <span class="ev ev--p">P</span></h3>
+      <p><strong>Es gibt kein Siegerprojekt.</strong> Stadt Wien, Seitenstand 06.07.2026: „Anfang 2026 wählte das Preisgericht die 10 besten Beiträge für die 2. Wettbewerbsstufe aus." Universität Wien, 07.08.2025: „Das Siegerprojekt wird Ende des Jahres 2026 feststehen." Die Jurysitzungen der Stufe 1 fanden laut Allianz Alte WU vom 25.–27.02.2026 statt.</p>
+
+      <p><strong>Verfahrensstand:</strong> Grundlagenerhebung abgeschlossen · Konzepterstellung abgeschlossen · <strong>Widmungsverfahren offen</strong> · <strong>Gemeinderatsbeschluss offen</strong>. Es gibt bis heute keinen neuen Flächenwidmungs- und Bebauungsplan; rechtsgültig ist weiterhin <strong>PD 7707 aus 2007</strong>.</p>
+
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Zeitpunkt</th><th>Schritt</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">bis 01/2026</td><td>Zwischennutzungen in der Alten WU; danach Auszug aller Nutzer:innen</td></tr>
+            <tr><td class="mono">2026–2027</td><td>Entsorgung Schad- und Störstoffe (Asbest), Rückbau auf Tragstruktur</td></tr>
+            <tr><td class="mono">ab 2027</td><td>vorbereitende Baumaßnahmen</td></tr>
+            <tr class="hi"><td class="mono">Spätherbst 2026</td><td>Jurysitzung Stufe 2, Siegerprojekt</td></tr>
+            <tr><td class="mono">Ende 2028</td><td>geplanter Start Rohbau; Baugenehmigung Bauetappe 1 lt. Ausschreibung Sept. 2028</td></tr>
+            <tr><td class="mono">ab 2032</td><td>Bezug — die Stadt-Wien-Seite nennt an einer Stelle „ab 2030", sonst einheitlich 2032</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Kennzahlen-Diskrepanz zwischen STEK 2024 und Ausschreibung 2025</h4>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Kennzahl</th><th>STEK 16.04.2024</th><th>BIG/Uni Wien ab 08/2025</th></tr></thead>
+          <tbody>
+            <tr><td>Studierende</td><td class="num">rd. 17.000</td><td class="num">16.000</td></tr>
+            <tr><td>Schüler:innen</td><td class="num">rd. 1.000</td><td class="num">1.750</td></tr>
+            <tr><td>Beschäftigte</td><td class="num">rd. 2.650</td><td class="num">über 3.000</td></tr>
+            <tr><td>Fläche</td><td>Projektgebiet rd. 5,8 ha</td><td>rd. 60.000 m² Grundfläche / „6 Hektar"</td></tr>
+            <tr><td>Bundesschulen</td><td>„Bundesschulstandort" (Singular)</td><td>2 (AHS + HTL)</td></tr>
+            <tr><td>Bestandserhalt</td><td>40 % Tragstruktur</td><td>mind. 40 % = 50.000 m³ Beton</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>4.6 Kontroversen</h3>
+      <h4>Allianz Alte WU — die zentrale Verfahrenskritik <span class="ev ev--p">P</span></h4>
+      <p>Netzwerk aus IG Architektur, Allianz für Substanz, Architects4Future Austria, Kollektiv Raumstation, 4lthangrund. Gegründet nach der Projektpräsentation am 18.03.2024. Kernquelle: „Handreichung zum EU-weiten, offenen, zweistufigen Realisierungswettbewerb", 11.11.2025, 34 Seiten.</p>
+      <blockquote class="q q--long">
+        <span class="lbl">Kritikpunkte, wörtlich</span>
+        <p>„Aus unserer Sicht fehlt dem von der Bundesimmobiliengesellschaft (BIG) ausgelobten Wettbewerbsverfahren eine transparente und partizipativ angelegte <strong>Phase 0</strong>, die den Bestand ernst nimmt und das Raumprogramm an den Ort rückbindet, statt ihn zu überfrachten."</p>
+        <p>„Aus Sicht der Allianz Alte WU verhindert dieses Vorgehen einen klaren Vergleich der städtebaulichen Lösungen der Architekturbüros im Rahmen einer öffentlichen Präsentation und Debatte."</p>
+        <p>„Diese Zeithorizonte lassen befürchten, dass der Bestand auf den Rohbau (2026-2027) vor Abschluss konkreter Planungen zurückgebaut wird … das Gebäude zu einer städtischen Ruine im laufenden Entscheidungsprozess werden."</p>
+      </blockquote>
+      <p>Weitere Punkte: Die 40-%-Vorgabe betreffe nur den Unterbau, der ohnehin für den Bahnbetrieb erhalten bleiben muss („40 % Erhalt = 100 % Abriss des Hochbaus"); das Raumprogramm sei zu groß (ca. 147.000 m² BGF gegenüber ca. 110.000–122.200 m² Bestand); die erschütterungsempfindlichen BOKU-Labore machten laut Beilage nur <strong>465 m²</strong> aus.</p>
+
+      <h4>Der Abbruchbescheid <span class="ev ev--s">S</span></h4>
+      <blockquote class="q q--long">
+        <span class="lbl">Simon Altorff, Moment.at, 16.03.2026</span>
+        <p>„Und doch hat die BIG bei der Stadt Wien beantragt, das gesamte Hauptgebäude abbrechen zu können. Die Stadt hat das bewilligt. Das war <strong>im Dezember 2024</strong> – der Wettbewerb wurde erst acht Monate später ausgeschrieben. Das zeigen Projektdokumente, die der Redaktion vorliegen."</p>
+        <span class="src">moment.at/story/alte-wu-abriss-bestandserhalt · Abbildungsunterschrift: „Abbruchbescheid der Baupolizei der Stadt Wien (MA 37) vom Dezember 2024"</span>
+      </blockquote>
+      <p>Die BIG erklärt im selben Artikel, der Bescheid sei „vorsorglich für das Maximum" beantragt worden. <span class="ev ev--g">!</span> Der Bescheid selbst lag nicht im Volltext vor, die Aktenzahl ist unbekannt.</p>
+
+      <div class="find">
+        <span class="h">Sequenzproblem — die schärfste offene Frage des Falls</span>
+        <p>Abbruchbescheid Dezember 2024 <strong>vor</strong> der Auslobung August 2025. Schadstoffentfrachtung und Rückbau auf Tragstruktur 2026–2027 <strong>parallel bzw. vor</strong> der Entscheidung über das Siegerprojekt (Spätherbst 2026) und lange vor der Baugenehmigung (September 2028). Ob ein bestandserhaltender Siegerentwurf zum Entscheidungszeitpunkt faktisch noch umsetzbar wäre, ist ungeklärt.</p>
+      </div>
+
+      <h4>Weitere Konfliktlinien</h4>
+      <ul>
+        <li><strong>Kosten <span class="ev ev--s">S</span></strong> — MeinBezirk.at, 21.01.2026: Die Initiative behauptet, Sanierung statt Abriss könne 700 Mio. Euro sparen. Vergleichsbeispiele: Toni-Areal Zürich (ca. 550 Mio. CHF, 108.000 m²) und „Francis" am Franz-Josefs-Bahnhof (67 % CO₂-Einsparung gegenüber Neubau).</li>
+        <li><strong>Hochhausdebatte</strong> — betrifft <em>nicht</em> den Campus. Sie gehört zum Althan Quartier (6B47): Reduktion von ursprünglich 126 m auf 58 m nach Protesten. Instruktiv ist dort aber der <strong>Befangenheitsvorwurf gegen den Fachbeirat</strong>, OTS 24.09.2018: „2/3 der Architekten im Fachbeirat nun durch Aufträge befangen" — anderes Verfahren, anderes Gremium, aber ein Präzedenzfall am selben Areal.</li>
+        <li><strong>Denkmalschutz <span class="ev ev--g">!</span></strong> — Die Alte WU wurde 1975–1982 nach Plänen von Kurt Hlaweniczka, Karl Schwanzer und Gerhard Krampf errichtet. Ein Unterschutzstellungsverfahren des Bundesdenkmalamts konnte <strong>nicht nachgewiesen werden</strong>. Die Allianz argumentiert selbst nicht über Denkmalschutz, sondern über graue Energie. Nicht gefunden ≠ existiert nicht — eine BDA-Anfrage wäre nötig.</li>
+        <li><strong>Kunst am Bau</strong> — sechs Majolika-/Fayencebilder von Maître Leherb (je 8×8 m, 506 Fliesen) im Foyer. Die BIG sucht laut Allianz einen alternativen Ausstellungsort.</li>
+        <li><strong>Zwischennutzungen</strong> — über 12 Jahre gewachsen: WEST SPACE, Akademie der bildenden Künste (Ausweichquartier), TU Wien, BOKU, Volkshochschulen, Caritas, Kulturzentrum 4lthangrund, Aufnahmezentrum für Ukraine-Geflüchtete, Artenschutzzentrum für Papageien. Alle Verträge liefen Ende Jänner 2026 aus.</li>
+      </ul>
+
+      <div class="find">
+        <span class="h">Beteiligungslücke</span>
+        <p>STEK 68 versprach „Voraussichtlich 2025: Bürger*innen-Dialog nach Vorliegen des Ergebnisses des städtebaulichen Wettbewerbs". Da Stufe 1 erst im Februar 2026 entschieden wurde und die Planungsausstellung bis September 2026 nicht stattgefunden hat, ist dieser zugesagte Dialog <strong>um mindestens ein Jahr verschoben</strong> — und findet nun erst nach Abschluss des gesamten Verfahrens statt, also ohne Einflussmöglichkeit auf die Städtebau-Entscheidung.</p>
+      </div>
+    </section>
+
+    <!-- ============ 05 LÜCKEN ============ -->
+    <section id="luecken">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <h2 class="sec">Lückenliste</h2>
+      </div>
+      <p class="sec-lede">Wo nichts Belastbares auffindbar war — gesucht, nicht gefunden, nicht geschätzt. Mehrere dieser Lücken sind selbst zitierfähige Befunde.</p>
+
+      <div class="gapgrid">
+
+        <div class="gapblock">
+          <h4>Recht</h4>
+          <ul class="gaps">
+            <li><span class="id">R1</span><div><b>§ 326 BVergG 2018</b><span class="d">Sektoren-Parallelnorm. RIS-Volltext nicht gelesen; Nummer nur indirekt über Praxisliteratur belegt. Vor Zitation nachschlagen.</span></div></li>
+            <li><span class="id">R2</span><div><b>Werkstattbericht 91, PDF-Direktabruf</b><span class="d">Fetches lieferten am 10.09.2026 leere Antworten. Zitatwortlaut über Volltextindex bestätigt; Seitenzahlen S. 9, 15, 68 an manueller Kopie gegenlesen.</span></div></li>
+            <li><span class="id">R3</span><div><b>Beschlussdatum und -organ der zt:Kammer-Ost-Leitlinie</b><span class="d">Nicht auf der Website angegeben. Anfrage beim Ausschuss Wettbewerbe der Sektion Architekt:innen empfohlen.</span></div></li>
+            <li><span class="id">R4</span><div><b>Aktualisierung von Werkstattbericht 91 nach BVergG 2018</b><span class="d">Nicht gefunden. Der Bericht kündigt Fortschreibungen in einer Onlineversion an; ob eine existiert, ist offen. MA 19 anfragen.</span></div></li>
+            <li><span class="id ok">R5</span><div><b>„Wiener Wettbewerbsvereinbarung" / „Wiener Wettbewerbsstandards"</b><span class="d">Existieren nicht unter diesen Bezeichnungen. Klarer Negativbefund.</span></div></li>
+            <li><span class="id">R6</span><div><b>Historische und laufende wohnfonds-Auslobungen</b><span class="d">Hinter Registrierungspflicht; nur eine Auslobung geprüft.</span></div></li>
+            <li><span class="id">R7</span><div><b>Geschäftsordnung des Grundstücksbeirats</b><span class="d">Nicht öffentlich auffindbar.</span></div></li>
+            <li><span class="id">R8</span><div><b>Verwaltungsinterne Erlässe der Stadt Wien</b><span class="d">Z.B. Gleichstellungsprogramm nach § 38 W-GBG. Nicht im RIS publiziert, nicht geprüft.</span></div></li>
+            <li><span class="id">R9</span><div><b>Resolution des Wiener Gemeinderats zu Wettbewerben</b><span class="d">Im Werkstattbericht 91 (S. 13) referenziert, Volltext nicht geprüft.</span></div></li>
+            <li><span class="id">R10</span><div><b>Nominierungsrichtlinien der Kammern Nord, Süd, West</b><span class="d">Nicht publiziert bzw. nicht gefunden.</span></div></li>
+          </ul>
+        </div>
+
+        <div class="gapblock">
+          <h4>Zahlen</h4>
+          <ul class="gaps">
+            <li><span class="id">Z1</span><div><b>Bundesweiter Frauenanteil ZT mit aufrechter Befugnis, aktuell</b><span class="d">Nicht gefunden. bAIK-Mitgliederstatistik ohne Geschlechterdimension; keine Länderkammer außer Ost publiziert geschlechterdifferenzierte Zahlen. Nächstbeste Werte: 21 % (2023, ARCH-E/BKZT), 22,7 % (2025, nur W/NÖ/B).</span></div></li>
+            <li><span class="id">Z2</span><div><b>Frauenanteil ZT Tirol/Vorarlberg, OÖ/Salzburg, Steiermark/Kärnten</b><span class="d">Nicht gefunden.</span></div></li>
+            <li><span class="id">Z3</span><div><b>Der kursierende Wert „15 % österreichweit"</b><span class="d">Nicht verifizierbar, nicht zitieren. Stammt aus nicht mehr verfügbaren Seitenversionen ohne Stichtag und ohne Quellenangabe.</span></div></li>
+            <li><span class="id ok">Z4</span><div><b>Frauenanteil auf Personenebene (Köpfe) im Studienfeld Architektur</b><span class="d">Existiert nicht — weder Statistik Austria noch unidata publizieren Studienfelder personenbezogen.</span></div></li>
+            <li><span class="id ok">Z5</span><div><b>Statistik-Austria-Studierendendaten WS 2025/26</b><span class="d">Noch nicht publiziert. Statistik Austria: Studierende bis 2024/25, Abschlüsse bis 2023/24; unidata ist ein Jahr weiter.</span></div></li>
+            <li><span class="id ok">Z6</span><div><b>„Bildung in Zahlen" Tabellenband 2024/25</b><span class="d">Nicht verfügbar; letzter angebotener Band ist 2021/22.</span></div></li>
+            <li><span class="id">Z7</span><div><b>Frauenanteil Führungskräfte × Bauwirtschaft, amtlich</b><span class="d">Existiert nicht. AKE kreuzt ISCO × ÖNACE nicht (24 Blätter geprüft); Eurostat unterdrückt den AT-Frauenwert 2015–2025; AK-Report kennt keine Bau-Kategorie; WKO publiziert keine Führungsquote nach Fachverband. Ersatzweise CRIF 4,6 %, nicht amtlich.</span></div></li>
+            <li><span class="id">Z8</span><div><b>Frauenanteil an Mitgliedern FV Bau bzw. FV Bauindustrie</b><span class="d">Nicht gefunden — WKO gliedert Geschlecht nur auf Kammer- und Spartenebene.</span></div></li>
+            <li><span class="id">Z9</span><div><b>Frauenanteil in Architektur-Wettbewerbsjurys Österreich, systematisch</b><span class="d">Nicht gefunden. Keine Kammerstatistik, keine Auswertung von architekturwettbewerb.at, keine Studie, keine Dissertation. Die Forschungslücke ist selbst ein zitierfähiges Ergebnis.</span></div></li>
+            <li><span class="id">Z10</span><div><b>Frauenanteil bei 1. Preisen in Österreich</b><span class="d">Nicht gefunden. Nur europaweite ARCH-E-Werte (18 % vs. 17 %) und die AT-Teilstichprobe n = 19/50 ohne Gewinnaufschlüsselung.</span></div></li>
+            <li><span class="id">Z11</span><div><b>Frauenanteil in Gestaltungsbeiräten Österreich</b><span class="d">Nicht gefunden.</span></div></li>
+          </ul>
+        </div>
+
+        <div class="gapblock">
+          <h4>Barrierefreiheit</h4>
+          <ul class="gaps">
+            <li><span class="id">B1</span><div><b>Amtlicher Volltext von Anlage 11 WBTV 2023 (OIB-RL 4, Mai 2023)</b><span class="d">RIS-PDF nicht maschinenlesbar. Zitate stammen aus der amtssignierten Ausgabe 2019, auf Wortgleichheit geprüft. Vor Publikation aus dem offiziellen PDF Mai 2023 nachzitieren.</span></div></li>
+            <li><span class="id">B2</span><div><b>ÖNORM B 1600:2023-05-01 Volltext</b><span class="d">Kostenpflichtig (386,72 € netto), lag nicht vor. Nur die offizielle Kurzbeschreibung zitiert.</span></div></li>
+            <li><span class="id">B3</span><div><b>Ausgabedaten ÖNORM B 1601, B 1602, B 1603</b><span class="d">Nicht verifiziert; nur Titel bestätigt. Für B 1602 ist eine Ausgabe 2013-10-01 belegt.</span></div></li>
+            <li><span class="id">B4</span><div><b>§ 111 BO für Wien (Aufzüge)</b><span class="d">Von MA 37 als maßgeblich genannt, nicht im Volltext gelesen.</span></div></li>
+            <li><span class="id">B5</span><div><b>§ 68 BO für Wien (Ausnahmen von den Bauvorschriften)</b><span class="d">Von MA 37 zitiert, nicht geprüft.</span></div></li>
+            <li><span class="id">B6</span><div><b>§ 119 Abs. 3 BO für Wien (anpassbarer Wohnbau)</b><span class="d">Nur über das MA-37-Referat erfasst, nicht direkt aus RIS zitiert.</span></div></li>
+            <li><span class="id">B7</span><div><b>Wr. ADG §§ 7, 8, 10 ff.</b><span class="d">Nicht vollständig gelesen. Eine Verbandsklage-Regelung nach Vorbild des § 13 BGStG wurde nicht gefunden, aber nicht abschließend geprüft.</span></div></li>
+            <li><span class="id">B8</span><div><b>Judikatur</b><span class="d">OGH zu § 9 BGStG, VwGH zu § 115 BO Wien, LVwG Wien: nicht recherchiert. Für die Frage „Beseitigungsanspruch" wäre OGH-Judikatur zu § 9 BGStG zentral.</span></div></li>
+            <li><span class="id ok">B9</span><div><b>„Handbuch Barrierefreies Bauen" der Stadt Wien</b><span class="d">Existiert nicht unter dieser Bezeichnung; das MA-37-Dokument ist das Äquivalent. Publikationen der MA 19 oder MA 34 nicht gefunden.</span></div></li>
+            <li><span class="id">B10</span><div><b>Etappenplan und Übergangsbestimmungen des BGStG für Bestandsbauten</b><span class="d">§ 8, § 19 BGStG nicht geprüft — für Bestandsbauten der öffentlichen Hand relevant.</span></div></li>
+            <li><span class="id">B11</span><div><b>Verhältnis zum European Accessibility Act / BaFG</b><span class="d">BGBl. I 76/2023, nicht recherchiert.</span></div></li>
+            <li><span class="id">B12</span><div><b>§ 118e BO für Wien</b><span class="d">In § 1 WBTV 2023 als Ausnahmegrund genannt, Inhalt nicht geprüft.</span></div></li>
+          </ul>
+        </div>
+
+        <div class="gapblock">
+          <h4>Campus Althangrund</h4>
+          <ul class="gaps">
+            <li><span class="id">A1</span><div><b>Namen der 10 für Stufe 2 ausgewählten Teams</b><span class="d">Nicht gefunden. Weder big.at, wien.gv.at, architekturwettbewerb.at (Status noch „Ausschreibung"), wettbewerbe-aktuell.de/ergebnisse noch Presse. Der derStandard-Artikel ist hinter Paywall. Empfehlung: Volltext beschaffen; parallel Anfrage an BIG bzw. ZT DI Andrea Hinterleitner.</span></div></li>
+            <li><span class="id">A2</span><div><b>Protokoll der Jurysitzung Stufe 1 (25.–27.02.2026)</b><span class="d">Nicht veröffentlicht. Bei BIG-Wettbewerben werden Juryprotokolle üblicherweise erst nach Verfahrensabschluss publiziert.</span></div></li>
+            <li><span class="id">A3</span><div><b>Funktionen von sechs Preisrichter:innen</b><span class="d">Wiesflecker, Pammer, Wiltschek, Dietl, Schartmüller, Kuzmich. Kammerportal listet nur Namen. Beste Primärquelle wäre das PDF „Kooperationsschreiben + Jurynominierung vom 10.07.2025" — konnte nicht abgerufen werden.</span></div></li>
+            <li><span class="id">A4</span><div><b>Aktualität der Funktion von Franz Kobermaier</b><span class="d">MA 19 — noch amtierend oder in Ruhestand? Nicht verifiziert.</span></div></li>
+            <li><span class="id">A5</span><div><b>Vollständiger Wortlaut der Auslobung</b><span class="d">Nur mittelbar über die Allianz-Handreichung zitiert. Für ein Paper zu dünn — die zitierende Quelle ist Verfahrenspartei. Original beschaffen.</span></div></li>
+            <li><span class="id">A6</span><div><b>Abbruchbescheid MA 37, Dezember 2024, im Volltext</b><span class="d">Nur über Moment.at mit Dokumentabbildung belegt. Aktenzahl unbekannt. Anfrage MA 37 oder Auskunftsbegehren.</span></div></li>
+            <li><span class="id">A7</span><div><b>Schadstofferkundungsbericht Mai 2025</b><span class="d">Nicht öffentlich; wurde laut Allianz den Wettbewerbsteilnehmenden nicht ausgehändigt.</span></div></li>
+            <li><span class="id">A8</span><div><b>Denkmalschutz UZA 1</b><span class="d">Kein Nachweis eines laufenden oder abgeschlossenen BDA-Unterschutzstellungsverfahrens. Direkte BDA-Anfrage nötig.</span></div></li>
+            <li><span class="id ok">A9</span><div><b>Sitzungsprotokoll der 68. STEK</b><span class="d">Existiert nicht öffentlich — die Stadt Wien veröffentlicht nur Präsentationen; STEK-Sitzungen sind nicht öffentlich.</span></div></li>
+            <li><span class="id ok">A10</span><div><b>Befassung des Wiener Fachbeirats mit dem Campus</b><span class="d">Steht noch aus, da das Widmungsverfahren offen ist.</span></div></li>
+            <li><span class="id">A11</span><div><b>Falter (16.09.2025) und derStandard</b><span class="d">Beide hinter Paywall — Inhalte nicht verifiziert.</span></div></li>
+            <li><span class="id">A12</span><div><b>gat.news</b><span class="d">Über Standard-Fetch nicht abrufbar, nur über Browser gelesen. Für die Zitation selbst nachprüfen.</span></div></li>
+            <li><span class="id">A13</span><div><b>Begründung für den Verfahrensdesign-Bruch</b><span class="d">Zwei getrennte Verfahren laut STEK → ein zweistufiges in der Umsetzung. In keiner Quelle erklärt.</span></div></li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot-note">
+    <span>Recherchestand und Abrufdatum aller Quellen: 10.09.2026</span>
+    <span>Belegdossier zum Serious-Game-Paper · Pool of Experts</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  var map = {};
+  links.forEach(function(a){
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if(el){ map[id] = a; }
+  });
+  var ids = Object.keys(map);
+  if(!ids.length || !('IntersectionObserver' in window)){ return; }
+
+  var visible = {};
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ visible[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+    var best = null, bestVal = -1;
+    ids.forEach(function(id){
+      var v = visible[id] || 0;
+      if(v > bestVal){ bestVal = v; best = id; }
+    });
+    if(best && bestVal > 0){
+      links.forEach(function(a){ a.classList.remove('on'); });
+      map[best].classList.add('on');
+    }
+  }, { threshold:[0,0.05,0.25,0.5,0.9], rootMargin:'-10% 0px -55% 0px' });
+
+  ids.forEach(function(id){ obs.observe(document.getElementById(id)); });
+})();
+</script>

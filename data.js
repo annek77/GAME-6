@@ -190,7 +190,7 @@ const PROFILES = [
 const VIENNA = {
   phase1: {
     subject:"New jury commission — the Old WU site",
-    body:"Dear partner, the City of Vienna is delighted to entrust you with the jury for our Old WU competition. Please assemble ten excellent experts. Take your time — quality first. Warm regards, Stadt Wien.",
+    body:"Dear partner, the City of Vienna is delighted to entrust you with the jury for our Old WU competition. Please assemble nine excellent experts. Take your time — quality first. Warm regards, Stadt Wien.",
   },
   applications: {
     subject:"The official call has opened",

@@ -1,45 +1,44 @@
 /* ==========================================================================
-   POOL OF EXPERTS — game.js  (v2: pressure instead of AI assistant)
-   Flow: intro → P1 hand-pick → P2 applications-under-pressure → pool reveal → outro
-   The "AI assistant" is gone. The middle is now a one-by-one application review
-   with a deadline, extension cost, and a quota warning — adapted from the older
-   prototype, dropped onto Katy's 26 architects and the pool aesthetic.
+   POOL OF EXPERTS — game.js
+   Flow: intro → brief → ONE selection (grid + field checklist) → letter → pool reveal → outro
+   The former second round ("applications under pressure") is gone; the
+   correction loop under pressure is built in step 4. The pressure-event
+   screens (kitchen, press, holiday, abroad enquiry) are kept below for that.
+   Load order (index.html): data.js → rules.js → art.js → game.js.
+     data.js  — the 26 profiles, criteria, Vienna mails
+     rules.js — money (WEEK_COST, JURY_SIZE, …), brief terms, fields, measures
+     art.js   — every SVG illustration
+   The former draft-*.js monkey-patches are merged in here.
    ========================================================================== */
 
-const WEEK_COST = 50000;
-const JURY_SIZE = 10;
 const WOMEN_TARGET = 5, MEN_TARGET = 5;   // the prepared 50:50 structure
-const FIRST_BATCH_M = 16, FIRST_BATCH_W = 4;  // ~80/20 applicant field
-const EXTEND_M = 8, EXTEND_W = 2;             // each extension adds this
-const DEADLINE_WEEKS_PER_EXT = 4;
-const WARN_AT = 6;     // deadline prompt fires after this many invites
-const QUOTA_AT = 7;    // quota warning fires after this many invites
-                       // (7, not 8: foreigners fires at QUOTA_AT+1, moremen at QUOTA_AT+2 —
-                       //  both must land BEFORE invite #10 triggers the confirm screen)
 
 const PHASES = [
   ["intro",  "Start"],
   ["p1",     "1 · You decide"],
-  ["apps",   "2 · The real call"],
-  ["reveal", "3 · The pool"],
-  ["outro",  "4 · What happened"],
+  ["reveal", "2 · The pool"],
+  ["outro",  "3 · What happened"],
 ];
 
+function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 const state = {
   screen:"intro",
-  order:[],
-  selected:new Set(),          // phase-1 hand-pick
-  weights:{ availability:0, assertiveness:0, prestige:0, seniority:0 },
-  peekedCompetence:0,
-  phase1Women:null,            // women in YOUR phase-1 jury
+  order:[],                    // shuffled profile ids for the grid
+  selected:new Set(),          // the selection in progress
+  invited:[],                  // the confirmed board (ids)
 
-  // phase-2 application review
-  candidates:[],               // ordered applicant list (80/20)
-  idx:0,                       // current applicant index
-  invited:[], reserve:[], rejected:[],
-  delayWeeks:0, extensions:0, rep:100, p1Idx:0,
-  warnShown:false, quotaShown:false, kitchenShown:false, holidayShown:false,
-  foreignersShown:false, moreMenShown:false,
+  // the brief as it was sent: term keys in the order shown. Fixed order —
+  // the fourth position is the point. The reveal re-renders exactly this.
+  briefTerms:BRIEF_TERMS.map(t=>t.key),
+
+  budget:BUDGET_START,
+  spend:freshSpend(),          // per SPEND_CATS key
+  delayWeeks:0, extensions:0, rep:100,
+  hudSeen:{ time:false, rep:false },   // gauges appear once their dimension matters
+
+  // pressure events (re-wired in step 4)
+  candidates:[],
+  kitchenShown:false, holidayShown:false, foreignersShown:false,
 };
 
 const stage = document.getElementById("stage");
@@ -49,13 +48,17 @@ const phasebar = document.getElementById("phasebar");
 function byId(id){ return PROFILES.find(p=>p.id===id); }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild;}
-function countSel(set=state.selected){
-  let w=0,m=0; set.forEach(id=>{ byId(id).gender==="woman"?w++:m++; }); return {w,m};
-}
 function countInvited(){
   let w=0,m=0; state.invited.forEach(id=>{ byId(id).gender==="woman"?w++:m++; }); return {w,m};
 }
-function totalWeight(){ return Object.values(state.weights).reduce((a,b)=>a+b,0); }
+const eur = n => "€"+n.toLocaleString("en-GB");
+const feesOf = idSet => [...idSet].reduce((sum,id)=>sum+expertFee(byId(id)),0);
+/* every euro leaves through here: category for the cockpit, budget for the ending */
+function spend(cat,amount){
+  state.spend[cat]=(state.spend[cat]||0)+amount;
+  state.budget-=amount;
+  hudFlash("g-money"); renderHUD();
+}
 
 function renderPhasebar(){
   phasebar.innerHTML="";
@@ -69,16 +72,13 @@ function renderPhasebar(){
 }
 function go(screen){
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
-  ({ intro:rIntro, p1:rPhase1, handoff:rHandoff, appsMail:rAppsMail, apps:rApps,
-     kitchen:rKitchen, kronepress:rKronepress, holiday:rHoliday,
-     foreigners:rForeigners, foreignerspress:rForeignersPress, moremen:rMoreMen, standardpress:rStandardpress,
-     extend:rExtend, quota:rQuota, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
+  ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, outro:rOutro, reflect:rReflect })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS = new Set(["appsMail","apps","extend","quota","confirm","sendletter","intermezzo","reveal","outro","reflect",
-  "kitchen","kronepress","holiday","foreigners","foreignerspress","moremen","standardpress"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","outro","reflect"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","outro","reflect"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -89,16 +89,21 @@ function hudFlash(id){const g=document.getElementById(id);if(!g)return;g.classLi
 function renderHUD(){
   const show = HUD_SCREENS.has(state.screen);
   document.getElementById("hud").style.display  = show ? "flex" : "none";
-  document.getElementById("feed").style.display = show ? "flex" : "none";
+  document.getElementById("feed").style.display = FEED_SCREENS.has(state.screen) ? "flex" : "none";
   if(!show) return;
-  document.getElementById("hud-money").textContent   = "€"+( state.delayWeeks*WEEK_COST).toLocaleString("en-GB");
+  const spent = BUDGET_START-state.budget;
+  document.getElementById("hud-money").textContent   = eur(state.budget);
+  document.getElementById("hud-spent").textContent   = spent>0 ? eur(spent)+" spent of "+eur(BUDGET_START) : "nothing spent yet";
+  // schedule and reputation stay hidden until they first move
+  document.getElementById("g-time").hidden = !state.hudSeen.time;
+  document.getElementById("g-rep").hidden  = !state.hudSeen.rep;
   document.getElementById("hud-weeks").textContent   = state.delayWeeks ? "+"+state.delayWeeks+"w late" : "on time";
   document.getElementById("hud-deadline").textContent= hudDeadline();
   document.getElementById("hud-repword").textContent  = repWord();
   const f=document.getElementById("hud-repfill"); f.style.width=state.rep+"%"; f.style.background=repColor();
 }
-function hudAddDelay(weeks){ state.delayWeeks+=weeks; hudFlash("g-money"); hudFlash("g-time"); renderHUD(); }
-function hudAddRep(delta){ state.rep=Math.max(0,Math.min(100,state.rep+delta)); hudFlash("g-rep"); renderHUD(); }
+function hudAddDelay(weeks){ state.delayWeeks+=weeks; state.hudSeen.time=true; spend("delay",weeks*WEEK_COST); hudFlash("g-time"); }
+function hudAddRep(delta){ state.rep=Math.max(0,Math.min(100,state.rep+delta)); state.hudSeen.rep=true; hudFlash("g-rep"); renderHUD(); }
 function hudFeed(src,text){ document.getElementById("feed").innerHTML=`<span class="src">${src}</span> — <b>${text}</b>`; }
 
 /* ---------- Vienna email helper ---------- */
@@ -124,69 +129,42 @@ function viennaMail(which, ctaLabel, onCta, secondary){
   return wrap;
 }
 
+/* ---------- The briefing mail — five terms, one voice, no emphasis ----------
+   Texts come verbatim from BRIEF_TERMS (rules.js); every one carries a source
+   that the paper cites, so nothing here is reworded. `highlight` (a term key)
+   is only used by the reveal, which shows the same mail again.               */
+function briefMail({ctaLabel, onCta, highlight=null, intro=true}={}){
+  const terms = state.briefTerms.map(k=>BRIEF_TERMS.find(t=>t.key===k));
+  const items = terms.map((t,i)=>`<li class="term${t.key===highlight?" hl":""}"><span class="no">${i+1}.</span><span class="tx">${t.text}</span></li>`).join("");
+  const wrap = el(`<div>
+    <div class="mail brief">
+      <div class="from">
+        <div class="crest">WIEN</div>
+        <div class="who">Stadt Wien<small>Competition Office · MA 21A</small></div>
+      </div>
+      <div class="subject">Campus Althangrund — constitution of the expert advisory board</div>
+      <div class="body">
+        ${intro?`<p>Dear colleague,</p>
+        <p>the City of Vienna entrusts you with constituting the expert advisory board for the
+        Campus Althangrund competition on the site of the former WU, Augasse, 1090 Vienna.
+        A budget of ${eur(BUDGET_START)} is available for fees and ancillary costs.</p>
+        <p>Please observe the following terms of the brief:</p>`:""}
+        <ol class="terms">${items}</ol>
+        ${intro?`<p>Kind regards,<br>Stadt Wien, Competition Office</p>`:""}
+      </div>
+    </div>
+    <div class="btnbar"></div>
+  </div>`);
+  if(ctaLabel){ const c=el(`<button class="btn">${ctaLabel}</button>`); c.onclick=onCta; wrap.querySelector(".btnbar").appendChild(c); }
+  return wrap;
+}
+
 /* ========================================================================
    INTRO — multi-beat opening scene (the Alte WU place-setter)
    Ported from wu-opening-scene.html. Plays first, before phase 1; the final
    CTA hands off into the brief via go("p1"), exactly like the old single slide.
    NO theme spoilers: no "bias", "gender", "discrimination", "quota", ratios.
    ======================================================================== */
-
-/* SVG art: the Alte WU over the railway (flat, thick-ink, limited palette) */
-const ALTEWU_SVG = `<svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The old WU campus: a long concrete building raised on a platform over the railway tracks of the Franz-Josefs-Bahnhof, Augasse, Vienna">
-  <rect x="0" y="0" width="620" height="240" fill="#d6f0fb" stroke="none"/>
-  <circle cx="548" cy="36" r="20" fill="#ffcf4d" stroke="#143041" stroke-width="3"/>
-  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <!-- distant Gründerzeit rooftops of the Augasse -->
-    <g fill="#cfe6ef">
-      <rect x="20" y="78" width="34" height="34"/>
-      <path d="M20 78 l17 -14 l17 14 z"/>
-      <rect x="60" y="84" width="30" height="28"/>
-      <path d="M60 84 l15 -12 l15 12 z"/>
-    </g>
-    <!-- the platform ("die Platte") raised over the tracks -->
-    <rect x="0" y="112" width="620" height="14" fill="#9fb6c0"/>
-    <!-- the long concrete slab building (UZA 1) -->
-    <rect x="70" y="40" width="480" height="72" fill="#e7edf0"/>
-    <!-- grid of windows -->
-    <g fill="#a3e5f7" stroke-width="2">
-      <rect x="88" y="52" width="22" height="18"/><rect x="120" y="52" width="22" height="18"/>
-      <rect x="152" y="52" width="22" height="18"/><rect x="184" y="52" width="22" height="18"/>
-      <rect x="216" y="52" width="22" height="18"/><rect x="248" y="52" width="22" height="18"/>
-      <rect x="280" y="52" width="22" height="18"/><rect x="312" y="52" width="22" height="18"/>
-      <rect x="344" y="52" width="22" height="18"/><rect x="376" y="52" width="22" height="18"/>
-      <rect x="408" y="52" width="22" height="18"/><rect x="440" y="52" width="22" height="18"/>
-      <rect x="472" y="52" width="22" height="18"/><rect x="504" y="52" width="22" height="18"/>
-      <rect x="88" y="80" width="22" height="18"/><rect x="120" y="80" width="22" height="18"/>
-      <rect x="152" y="80" width="22" height="18"/><rect x="184" y="80" width="22" height="18"/>
-      <rect x="216" y="80" width="22" height="18" fill="#fffdf6"/><rect x="248" y="80" width="22" height="18"/>
-      <rect x="280" y="80" width="22" height="18"/><rect x="312" y="80" width="22" height="18" fill="#fffdf6"/>
-      <rect x="344" y="80" width="22" height="18"/><rect x="376" y="80" width="22" height="18"/>
-      <rect x="408" y="80" width="22" height="18"/><rect x="440" y="80" width="22" height="18" fill="#fffdf6"/>
-      <rect x="472" y="80" width="22" height="18"/><rect x="504" y="80" width="22" height="18"/>
-    </g>
-    <!-- concrete support pillars carrying the slab down to track level -->
-    <rect x="96" y="126" width="20" height="78" fill="#cdd9df"/>
-    <rect x="216" y="126" width="20" height="78" fill="#cdd9df"/>
-    <rect x="336" y="126" width="20" height="78" fill="#cdd9df"/>
-    <rect x="456" y="126" width="20" height="78" fill="#cdd9df"/>
-    <!-- the active goods railway running underneath -->
-    <rect x="0" y="204" width="620" height="36" fill="#bcdfe9"/>
-    <g stroke="#3a6378" stroke-width="2">
-      <line x1="0" y1="214" x2="620" y2="214"/>
-      <line x1="0" y1="230" x2="620" y2="230"/>
-    </g>
-    <!-- a small train passing through the shadow under the platform -->
-    <rect x="150" y="180" width="120" height="24" rx="4" fill="#5cb9da"/>
-    <rect x="160" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
-    <rect x="186" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
-    <rect x="212" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
-    <circle cx="172" cy="206" r="5" fill="#143041"/>
-    <circle cx="248" cy="206" r="5" fill="#143041"/>
-    <!-- a lone tree of the Augasse, surviving at the edge -->
-    <line x1="586" y1="204" x2="586" y2="150"/>
-    <circle cx="586" cy="140" r="16" fill="#6fc08c"/>
-  </g>
-</svg>`;
 
 /* the narrative beats: building, history, the people, the neighbourhood, your part */
 const BEATS = [
@@ -287,24 +265,31 @@ function rIntro(){
 }
 
 /* ========================================================================
-   PHASE 1 — hand-pick from the full pool, criteria are peekable
+   THE SELECTION — one round, all 26 visible, six required fields to cover.
+   You don't collect "good people", you cover the brief. Each member costs a
+   fee (rules.js: expertFee, tied to seniority). Nothing else is counted here.
    ======================================================================== */
 function rPhase1(){
   stage.innerHTML="";
-  stage.appendChild(viennaMail("phase1","Start choosing",()=>renderHandPick()));
+  stage.appendChild(briefMail({ctaLabel:"Start choosing", onCta:()=>renderHandPick()}));
 }
 
 function renderHandPick(){
   stage.innerHTML="";
   if(state.order.length===0) state.order=shuffle(PROFILES.map(p=>p.id));
-  state.selected=new Set();
 
-  stage.appendChild(el(`
+  const bar=el(`
     <div class="selbar">
       <div class="counter"><span id="cnt">0</span>/${JURY_SIZE}<small>chosen</small></div>
-      <div class="hint">Tap a name to add them. Tap a criterion chip to see how a person scores.</div>
+      <div class="checklist" id="checklist"></div>
+      <div class="fees" id="fees"></div>
       <button class="btn" id="confirm" disabled>Confirm jury</button>
-    </div>`));
+    </div>`);
+  stage.appendChild(bar);
+  const list=bar.querySelector("#checklist");
+  FIELDS.forEach(f=>list.appendChild(el(`<span class="field" data-k="${f.key}" title="${f.note}"><i></i>${f.label}</span>`)));
+
+  stage.appendChild(el(`<p class="hint wide">The brief requires all six fields to be covered. Tap a card to add or remove someone.</p>`));
   const grid=el(`<div class="grid" id="grid"></div>`);
   state.order.forEach(id=>grid.appendChild(makeCard(byId(id))));
   stage.appendChild(grid);
@@ -314,37 +299,29 @@ function renderHandPick(){
 
 function makeCard(p){
   const c=el(`
-    <div class="card" data-id="${p.id}">
+    <div class="card${state.selected.has(p.id)?" sel":""}" data-id="${p.id}">
       <div class="nm">${p.name}</div>
-      <div class="ti" style="font-size:12px;color:var(--ink-soft)">${p.title} · ${p.edu}</div>
+      <div class="ti">${p.title} · ${p.edu}</div>
       <div class="sp">${p.spec}</div>
       <div class="bio">${p.bio}</div>
+      <div class="fields"></div>
       <div class="crit"></div>
+      <div class="fee">Fee ${eur(expertFee(p))}</div>
     </div>`);
+  const fl=c.querySelector(".fields");
+  fieldsOf(p.id).forEach(k=>{
+    const f=FIELDS.find(x=>x.key===k);
+    fl.appendChild(el(`<span class="ftag" data-k="${k}">${f.label}</span>`));
+  });
   const crit=c.querySelector(".crit");
   CRITERIA.forEach(cr=>{
-    const chip=el(`<span class="chip shown" data-k="${cr.key}">${cr.label} <span class="val">${"●".repeat(p.sig[cr.key])||"–"}</span></span>`);
-    crit.appendChild(chip);
+    crit.appendChild(el(`<span class="chip shown" data-k="${cr.key}">${cr.label} <span class="val">${"●".repeat(p.sig[cr.key])||"–"}</span></span>`));
   });
-  const comp=el(`<span class="chip comp shown">${COMPETENCE.label} <span class="val">${"●".repeat(p.sig.publicValue)||"–"}</span></span>`);
-  crit.appendChild(comp);
+  crit.appendChild(el(`<span class="chip comp shown">${COMPETENCE.label} <span class="val">${"●".repeat(p.sig.publicValue)||"–"}</span></span>`));
   c.onclick=()=>toggleCard(p,c);
   return c;
 }
-function peek(chip,p,cr){
-  if(!chip.classList.contains("shown")){
-    chip.classList.add("shown","peeked");
-    chip.innerHTML=`${cr.label} <span class="val">${"●".repeat(p.sig[cr.key])||"–"}</span>`;
-    state.weights[cr.key]++;
-  }
-}
-function peekComp(chip,p){
-  if(!chip.classList.contains("shown")){
-    chip.classList.add("shown");
-    chip.innerHTML=`${COMPETENCE.label} <span class="val">${"●".repeat(p.sig.publicValue)||"–"}</span>`;
-    state.peekedCompetence++;
-  }
-}
+
 function toggleCard(p,c){
   if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); }
   else{
@@ -353,12 +330,19 @@ function toggleCard(p,c){
   }
   refreshSel();
 }
+
 function refreshSel(){
   const n=state.selected.size;
   document.getElementById("cnt").textContent=n;
+  const cov=coverageOf(state.selected), missing=missingFields(state.selected);
+  document.querySelectorAll("#checklist .field").forEach(f=>f.classList.toggle("ok",!!cov[f.dataset.k]));
+  document.getElementById("fees").innerHTML=`Fees <b>${eur(feesOf(state.selected))}</b><small>budget ${eur(state.budget)}</small>`;
   const c=document.getElementById("confirm");
-  c.disabled=n!==JURY_SIZE;
-  c.textContent = n===JURY_SIZE ? "Confirm jury" : `Pick ${JURY_SIZE-n} more`;
+  const ready = n===JURY_SIZE && missing.length===0;
+  c.disabled=!ready;
+  c.textContent = ready ? "Confirm jury"
+                : n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more`
+                : `${missing.length} field${missing.length>1?"s":""} not covered`;
 }
 function flashFull(){
   const bar=document.querySelector(".selbar");
@@ -366,245 +350,19 @@ function flashFull(){
   setTimeout(()=>bar.style.borderColor="var(--ink)",1200);
 }
 
+/* Confirming is the moment the money moves: fees leave the budget, category "experts". */
 function onConfirmHandPick(){
-  state.phase1Women=countSel().w;
-  go("handoff");
-}
-
-function rHandoff(){
-  stage.innerHTML="";
-  const {w:fw}=countSel();
-  stage.appendChild(el(`
-    <div class="slide">
-      <h1>Your shortlist is set</h1>
-      <p class="lede">You picked ${fw} women and ${JURY_SIZE-fw} men — a strong, qualified panel.</p>
-      <p class="lede" style="font-size:15px">But a shortlist isn't a jury yet. The City still
-      has to run the official public call — and that's where it gets interesting.</p>
-      <div class="btnbar"><button class="btn" id="go">Open the public call →</button></div>
-    </div>`));
-  document.getElementById("go").onclick=()=>go("appsMail");
+  if(state.selected.size!==JURY_SIZE || missingFields(state.selected).length) return;
+  state.invited=[...state.selected];
+  spend("experts",feesOf(state.selected));
+  go("confirm");
 }
 
 /* ========================================================================
-   PHASE 2 — the official call: review applications one by one, under pressure
+   PRESSURE EVENTS — kept from the old second round, currently unreachable.
+   Step 4 (the correction loop) wires them back in; their go("apps") targets
+   are placeholders until then.
    ======================================================================== */
-function rAppsMail(){
-  stage.innerHTML="";
-  stage.appendChild(viennaMail("applications","Begin reviewing",()=>{ prepareCandidates(); go("apps"); }));
-}
-
-function prepareCandidates(){
-  const men   = shuffle(PROFILES.filter(p=>p.gender==="man"));
-  const women = shuffle(PROFILES.filter(p=>p.gender==="woman"));
-  const batch=[];
-  for(let i=0;i<FIRST_BATCH_M;i++) batch.push(men[i % men.length]);
-  for(let i=0;i<FIRST_BATCH_W;i++) batch.push(women[i % women.length]);
-  state.candidates=shuffle(batch);
-  state.idx=0; state.invited=[]; state.reserve=[]; state.rejected=[];
-  state.delayWeeks=0; state.extensions=0; state.warnShown=false; state.quotaShown=false;
-  state.kitchenShown=false; state.holidayShown=false;
-}
-function addCandidates(){
-  // only people who haven't applied yet — no duplicate applications
-  const seen  = new Set(state.candidates.map(p=>p.id));
-  const men   = shuffle(PROFILES.filter(p=>p.gender==="man"   && !seen.has(p.id)));
-  const women = shuffle(PROFILES.filter(p=>p.gender==="woman" && !seen.has(p.id)));
-  const extra = men.slice(0,EXTEND_M).concat(women.slice(0,EXTEND_W));
-  state.candidates=state.candidates.concat(shuffle(extra));
-}
-function remainingProfiles(){
-  const seen=new Set(state.candidates.map(p=>p.id));
-  return PROFILES.filter(p=>!seen.has(p.id)).length;
-}
-
-function afterDecision(){
-  if(state.invited.length>=JURY_SIZE){ go("confirm"); return; }
-  if(!state.kitchenShown && state.invited.length>=3){ go("kitchen"); return; }
-  if(!state.holidayShown && state.invited.length>=5){ go("holiday"); return; }
-  if(!state.warnShown && state.invited.length>=WARN_AT){ go("extend"); return; }
-  if(!state.quotaShown && state.invited.length>=QUOTA_AT){ go("quota"); return; }
-  if(!state.foreignersShown && state.invited.length>=QUOTA_AT+1){ go("foreigners"); return; }
-  if(!state.moreMenShown && state.invited.length>=QUOTA_AT+2){ go("moremen"); return; }
-  go("apps");
-}
-
-function deadlineString(){
-  const base=new Date(2026,7,1);
-  base.setDate(base.getDate()+state.delayWeeks*7);
-  return base.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
-}
-
-function rApps(){
-  stage.innerHTML="";
-  const {w,m}=countInvited();
-
-  const status=el(`
-    <div class="selbar">
-      <div class="counter"><span>${state.invited.length}</span>/${JURY_SIZE}<small>invited</small></div>
-      <div class="hint">Reserve: ${state.reserve.length} · Rejected: ${state.rejected.length}<br>
-        Current jury: ${w}♀ ${m}♂ · Deadline: ${deadlineString()}${state.delayWeeks?` (+${state.delayWeeks}w)`:""}</div>
-    </div>`);
-  stage.appendChild(status);
-
-  if(state.idx>=state.candidates.length){
-    const canExtend = remainingProfiles()>0;
-    const box=el(`<div class="slide">
-      <h2>No more applications</h2>
-      <p>The applicant pool is exhausted. You invited ${state.invited.length} of ${JURY_SIZE}.</p>
-      ${canExtend?"":"<p>Extending the call again wouldn't help — everyone who could apply already has.</p>"}
-      <div class="btnbar">
-        ${state.invited.length>0?'<button class="btn" id="finish">Send the invitations</button>':''}
-        ${canExtend?`<button class="btn ghost" id="ext">Extend the call (+${DEADLINE_WEEKS_PER_EXT}w)</button>`:''}
-      </div></div>`);
-    stage.appendChild(box);
-    const f=box.querySelector("#finish"); if(f) f.onclick=()=>go("confirm");
-    const ex=box.querySelector("#ext");
-    if(ex) ex.onclick=()=>{ addCandidates(); state.delayWeeks+=DEADLINE_WEEKS_PER_EXT; state.extensions++; go("apps"); };
-    return;
-  }
-
-  const p=state.candidates[state.idx];
-  const card=el(`
-    <div class="appcard">
-      <div class="apphead">
-        <span class="badge">${p.spec}</span>
-        <h2 style="margin:6px 0 0">${p.name}</h2>
-        <div style="font-size:13px;color:var(--ink-soft)">${p.title} · ${p.edu}</div>
-      </div>
-      <p style="margin:12px 0">${p.bio}</p>
-      <div class="appcrit"></div>
-      <div class="appactions">
-        <button class="btn" id="invite">Invite</button>
-        <button class="btn ghost" id="reserve">Reserve</button>
-        <button class="btn ghost" id="reject">Reject</button>
-      </div>
-    </div>`);
-  const cr=card.querySelector(".appcrit");
-  CRITERIA.forEach(c=>{
-    const chip=el(`<span class="chip shown" data-k="${c.key}">${c.label} <span class="val">${"●".repeat(p.sig[c.key])||"–"}</span></span>`);
-    cr.appendChild(chip);
-  });
-  const comp=el(`<span class="chip comp shown">${COMPETENCE.label} <span class="val">${"●".repeat(p.sig.publicValue)||"–"}</span></span>`);
-  cr.appendChild(comp);
-
-  // jury is capped at JURY_SIZE — via "Back to review" you could otherwise invite an 11th
-  const inviteBtn=card.querySelector("#invite");
-  if(state.invited.length>=JURY_SIZE){ inviteBtn.disabled=true; inviteBtn.title="Jury is full"; }
-  inviteBtn.onclick=()=>{ if(state.invited.length>=JURY_SIZE) return; state.invited.push(p.id); state.idx++; afterDecision(); };
-  card.querySelector("#reserve").onclick=()=>{ state.reserve.push(p.id); state.idx++; afterDecision(); };
-  card.querySelector("#reject").onclick=()=>{ state.rejected.push(p.id); state.idx++; afterDecision(); };
-  stage.appendChild(card);
-  stage.appendChild(makeStacks());
-}
-
-function makeStacks(){
-  const wrap=el(`<div class="stacks"></div>`);
-  const make=(title,list)=>{
-    const s=el(`<div class="stack"><h4>${title}</h4><ul></ul></div>`);
-    const ul=s.querySelector("ul");
-    list.forEach(id=>{ const p=byId(id); ul.appendChild(el(`<li>${p?p.name:id}</li>`)); });
-    return s;
-  };
-  wrap.appendChild(make(`Invited (${state.invited.length})`, state.invited));
-  wrap.appendChild(make(`Reserve (${state.reserve.length})`, state.reserve));
-  wrap.appendChild(make(`Rejected (${state.rejected.length})`, state.rejected));
-  return wrap;
-}
-
-/* ---------- SVG art ---------- */
-function newspaper({masthead,mastColor,paper,line1,line2,sub}){
-  return `<svg viewBox="0 0 620 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${masthead}: ${line1} ${line2}">
-    <g stroke="#143041" stroke-width="3" stroke-linejoin="round">
-      <rect x="0" y="0" width="620" height="250" fill="${paper}" stroke="none"/>
-      <rect x="0" y="0" width="620" height="48" fill="${mastColor}" stroke="none"/>
-      <text x="20" y="35" font-family="'VT323',monospace" font-size="34" fill="#fff" stroke="none" letter-spacing="1">${masthead}</text>
-      <path d="M560 14 l8 12 l10 -14 l10 14 l8 -12 v18 h-44 z" fill="#ffcf4d"/>
-      <text x="20" y="66" font-family="'Space Grotesk',sans-serif" font-size="11" fill="#3a6378" stroke="none">WIEN · FREITAG · UNABHÄNGIG · € 1,20</text>
-      <line x1="0" y1="74" x2="620" y2="74" stroke="#143041" stroke-width="2"/>
-      <text x="20" y="118" font-family="'Space Grotesk',sans-serif" font-weight="700" font-size="34" fill="#143041" stroke="none">${line1}</text>
-      <text x="20" y="156" font-family="'Space Grotesk',sans-serif" font-weight="700" font-size="34" fill="#143041" stroke="none">${line2}</text>
-      <text x="20" y="182" font-family="'Space Grotesk',sans-serif" font-size="14" fill="#3a6378" stroke="none">${sub}</text>
-      <rect x="20" y="196" width="150" height="44" rx="4" fill="#d9e7ee"/>
-      <g stroke="#c3d5dd" stroke-width="6"><line x1="190" y1="204" x2="600" y2="204"/><line x1="190" y1="218" x2="600" y2="218"/><line x1="190" y1="232" x2="520" y2="232"/></g>
-    </g></svg>`;
-}
-const KRONE_SVG = newspaper({masthead:"KRONEN ZEITUNG",mastColor:"#d81e2c",paper:"#fffdf6",
-  line1:"Freunderlwirtschaft",line2:"bei der Alten WU?",
-  sub:"Vergabe unter Verdacht – Jury soll Bekannte bevorzugt haben."});
-const ALTEDONAU_SVG = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crowds swimming and lounging at the Alte Donau on a summer day, the Donauturm in the background">
-  <rect x="0" y="0" width="620" height="200" fill="#d6f0fb"/>
-  <circle cx="548" cy="34" r="22" fill="#ffcf4d" stroke="#143041" stroke-width="3"/>
-  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <rect x="0" y="82" width="620" height="22" fill="#8bd0a0" stroke="none"/>
-    <path d="M108 96 L112 40 M112 40 L116 96" fill="none"/>
-    <ellipse cx="112" cy="44" rx="17" ry="7" fill="#d7f4ff"/>
-    <line x1="112" y1="37" x2="112" y2="28"/>
-    <line x1="206" y1="92" x2="206" y2="80"/><circle cx="206" cy="74" r="12" fill="#6fc08c"/>
-    <line x1="250" y1="92" x2="250" y2="82"/><circle cx="250" cy="78" r="10" fill="#6fc08c"/>
-    <line x1="420" y1="92" x2="420" y2="80"/><circle cx="420" cy="74" r="12" fill="#6fc08c"/>
-    <rect x="0" y="100" width="620" height="100" fill="#5cb9da" stroke="none"/>
-    <circle cx="70" cy="126" r="9" fill="#ffe1ef"/><path d="M58 132 q12 8 24 0" fill="none" stroke-width="2"/>
-    <circle cx="150" cy="138" r="9" fill="#ffd9c2"/><path d="M138 144 q12 8 24 0" fill="none" stroke-width="2"/>
-    <circle cx="225" cy="128" r="9" fill="#ffe1ef"/><path d="M213 134 q12 8 24 0" fill="none" stroke-width="2"/>
-    <circle cx="470" cy="132" r="9" fill="#ffd9c2"/><path d="M458 138 q12 8 24 0" fill="none" stroke-width="2"/>
-    <circle cx="540" cy="146" r="9" fill="#ffe1ef"/><path d="M528 152 q12 8 24 0" fill="none" stroke-width="2"/>
-    <circle cx="370" cy="150" r="9" fill="#ffd9c2"/><path d="M358 156 q12 8 24 0" fill="none" stroke-width="2"/>
-    <path d="M280 130 q40 22 70 0 z" fill="#ffc2df"/>
-    <circle cx="300" cy="120" r="8" fill="#ffe1ef"/><circle cx="330" cy="120" r="8" fill="#ffd9c2"/>
-    <g stroke="#a3e5f7" stroke-width="3" fill="none">
-      <path d="M0 112 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/>
-      <path d="M0 168 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/>
-    </g>
-    <rect x="0" y="180" width="620" height="20" fill="#ffe9b8" stroke="none"/>
-    <line x1="0" y1="180" x2="620" y2="180"/>
-    <rect x="40" y="184" width="60" height="10" rx="3" fill="#ff9bbf"/>
-    <circle cx="60" cy="180" r="7" fill="#ffe1ef"/>
-    <rect x="180" y="186" width="60" height="9" rx="3" fill="#ffcf4d"/>
-    <circle cx="200" cy="182" r="7" fill="#ffd9c2"/>
-    <rect x="470" y="185" width="60" height="9" rx="3" fill="#ff9bbf"/>
-    <circle cx="500" cy="181" r="7" fill="#ffe1ef"/>
-  </g></svg>`;
-
-const KITCHEN_SVG = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
-  <rect x="60" y="130" width="320" height="12" fill="#ffcf4d" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
-  <rect x="60" y="142" width="320" height="40" fill="#a3e5f7" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
-  <rect x="72" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <rect x="142" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <rect x="212" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <rect x="282" y="148" width="88" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <rect x="60" y="60" width="140" height="60" fill="#fffdf6" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
-  <rect x="68" y="66" width="58" height="48" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
-  <rect x="134" y="66" width="58" height="48" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
-  <rect x="220" y="88" width="40" height="42" rx="2" fill="#143041" stroke="#143041" stroke-width="3"/>
-  <rect x="226" y="94" width="28" height="16" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
-  <circle cx="240" cy="118" r="6" fill="#ffcf4d" stroke="#143041" stroke-width="2"/>
-  <path d="M236 86 Q234 80 236 74" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
-  <path d="M244 86 Q242 78 244 70" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
-  <rect x="290" y="116" width="20" height="14" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <path d="M310 120 Q316 120 316 124 Q316 128 310 128" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
-  <rect x="318" y="116" width="20" height="14" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <path d="M338 120 Q344 120 344 124 Q344 128 338 128" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="116" cy="88" r="16" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
-  <rect x="100" y="74" width="32" height="8" rx="4" fill="#143041"/>
-  <rect x="100" y="104" width="32" height="36" rx="4" fill="#4fb286" stroke="#143041" stroke-width="3"/>
-  <rect x="86" y="106" width="14" height="24" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
-  <rect x="132" y="106" width="14" height="24" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
-  <circle cx="182" cy="85" r="16" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
-  <rect x="166" y="71" width="32" height="10" rx="4" fill="#ffcf4d" stroke="#143041" stroke-width="2"/>
-  <rect x="166" y="101" width="32" height="36" rx="4" fill="#a3e5f7" stroke="#143041" stroke-width="3"/>
-  <rect x="148" y="103" width="18" height="12" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
-  <ellipse cx="148" cy="68" rx="26" ry="16" fill="#fffdf6" stroke="#143041" stroke-width="3"/>
-  <polygon points="158,78 168,84 154,84" fill="#fffdf6" stroke="#143041" stroke-width="2"/>
-  <circle cx="136" cy="68" r="3" fill="#143041"/>
-  <circle cx="148" cy="68" r="3" fill="#143041"/>
-  <circle cx="160" cy="68" r="3" fill="#143041"/>
-  <line x1="40" y1="182" x2="580" y2="182" stroke="#143041" stroke-width="3"/>
-  <rect x="440" y="50" width="100" height="120" rx="4" fill="#a3e5f7" stroke="#143041" stroke-width="3"/>
-  <line x1="490" y1="50" x2="490" y2="170" stroke="#143041" stroke-width="2"/>
-  <line x1="440" y1="110" x2="540" y2="110" stroke="#143041" stroke-width="2"/>
-  <ellipse cx="518" cy="158" rx="12" ry="10" fill="#4fb286" stroke="#143041" stroke-width="2"/>
-</svg>`;
-
 /* ---------- Teeküche ---------- */
 function rKitchen(){
   stage.innerHTML="";
@@ -613,7 +371,7 @@ function rKitchen(){
     <div class="art">${KITCHEN_SVG}</div>
     <h2>A colleague has a tip</h2>
     <p>Over coffee, a colleague leans in: "I know two brilliant people — want me to put them forward?" It would bring you two more applicants. It would also look a lot like an inside job.</p>
-    <div class="btnbar col" style="margin-top:16px">
+    <div class="btnbar col mt">
       <button class="btn" id="k-take">Take the tip<span class="cost">+2 applicants · reputation takes a hit</span></button>
       <button class="btn ghost" id="k-decline">Decline — keep it clean<span class="cost">no new applicants</span></button>
     </div>
@@ -638,7 +396,7 @@ function rKronepress(){
     <div class="art">${KRONE_SVG}</div>
     <h2>The headline is out</h2>
     <p>The cronyism story is spreading. You can bring in a crisis-PR agency to calm it down — or ride it out and risk losing people.</p>
-    <div class="btnbar col" style="margin-top:16px">
+    <div class="btnbar col mt">
       <button class="btn" id="kp-pr">Hire crisis PR<span class="cost">+2 weeks delay · reputation recovers</span></button>
       <button class="btn ghost" id="kp-ride">Ride it out<span class="cost">a qualified woman withdraws</span></button>
     </div>
@@ -666,7 +424,7 @@ function rHoliday(){
     <div class="art">${ALTEDONAU_SVG}</div>
     <h2>Holiday season</h2>
     <p>Half of Vienna is out at the Alte Donau. Replies trickle in slowly and decisions stall. Nothing you did — just the calendar.</p>
-    <div class="btnbar col" style="margin-top:16px">
+    <div class="btnbar col mt">
       <button class="btn" id="h-wait">Wait it out<span class="cost">+2 weeks delay</span></button>
     </div>
   </div>`);
@@ -679,67 +437,34 @@ function rHoliday(){
   };
 }
 
-function rExtend(){
-  stage.innerHTML="";
-  stage.appendChild(viennaMail("deadline",
-    "Extend the call (+"+DEADLINE_WEEKS_PER_EXT+"w)",
-    ()=>{ addCandidates(); state.delayWeeks+=DEADLINE_WEEKS_PER_EXT; state.extensions++; state.warnShown=true; go("apps"); },
-    { label:"Continue without extending", onClick:()=>{ state.warnShown=true; go("apps"); } }
-  ));
-  const note=el(`<p class="lede" style="font-size:14px;max-width:60ch">
-    You've invited ${state.invited.length} so far. An extension brings ${EXTEND_M+EXTEND_W} more
-    applications (${EXTEND_M} men, ${EXTEND_W} women) and delays the project by ${DEADLINE_WEEKS_PER_EXT} weeks.</p>`);
-  stage.appendChild(note);
-}
-
-function rQuota(){
-  stage.innerHTML="";
-  const {w,m}=countInvited();
-  stage.appendChild(viennaMail("quota",
-    "Continue",
-    ()=>{ state.quotaShown=true; go("apps"); },
-    { label:`Extend to wait for more (+${DEADLINE_WEEKS_PER_EXT}w)`,
-      onClick:()=>{ addCandidates(); state.delayWeeks+=DEADLINE_WEEKS_PER_EXT; state.extensions++; state.quotaShown=true; go("apps"); } }
-  ));
-  stage.appendChild(el(`<p class="lede" style="font-size:14px;max-width:60ch">
-    Right now your jury stands at <b>${w} women, ${m} men</b>. The target is 5/5 — hard to reach
-    when only about one in five applicants is a woman. That's the structure, not you.</p>`));
-}
-
 function rForeigners(){
   stage.innerHTML="";
-  stage.appendChild(viennaMail("foreigners","Send the enquiry",
-    ()=>{ state.foreignersShown=true; hudAddDelay(2);
-          hudFeed("Stadt Wien","Enquiry answered: the call is restricted to the existing pool. No.");
-          go("apps"); }
-  ));
+  stage.appendChild(viennaMail("foreigners","Understood",()=>rForeignersPress()));
 }
-
-function rMoreMen(){
-  stage.innerHTML="";
-  stage.appendChild(viennaMail("moremen","Ask to relax the target",
-    ()=>{ state.moreMenShown=true; hudAddDelay(2); hudAddRep(-20);
-          hudFeed("Der Standard","Jury-Vorsitz will Frauen-Vorgabe lockern.");
-          go("standardpress"); }
-  ));
-}
-
-function rStandardpress(){
-  const STANDARD_SVG = newspaper({masthead:"derStandard",mastColor:"#7a3b8f",paper:"#fbe9df",
-    line1:"Jury-Vorsitz will",line2:"Frauen-Vorgabe lockern",
-    sub:"Kritik an Plan, die 50/50-Zielvorgabe für die Alte WU aufzuweichen."});
+/* newspaper fallout after the abroad enquiry. Sets foreignersShown here —
+   without it afterDecision() would re-fire this screen after every decision. */
+function rForeignersPress(){
+  state.foreignersShown=true;
+  hudAddDelay(2);
+  hudAddRep(-15);
+  hudFeed("Kronen Zeitung","Jury-Suche: Woher kommen die Experten?");
+  const FOREIGNERS_SVG=newspaper({masthead:"KRONEN ZEITUNG",mastColor:"#d81e2c",paper:"#fffdf6",
+    line1:"Wettbewerbsbüro sucht",line2:"Experten im Ausland?",
+    sub:"Jury-Suche für Alte WU: Keine geeigneten Österreicher gefunden?"});
   stage.innerHTML="";
   const card=el(`<div class="appcard">
-    <span class="badge">It made the papers</span>
-    <div class="art">${STANDARD_SVG}</div>
-    <h2>The story is out there now</h2>
-    <p>Nothing to decide — it just sits on your reputation. Every direction costs something.</p>
-    <div class="btnbar col" style="margin-top:16px">
-      <button class="btn" id="sp-cont">Carry on</button>
+    <span class="badge">In the press</span>
+    <div class="art">${FOREIGNERS_SVG}</div>
+    <h2>It made the morning paper</h2>
+    <p>A report speculates about why the jury search is stalling.
+       No accusation — but the question is out there now. The enquiry
+       cost two weeks, and gained nothing.</p>
+    <div class="btnbar col mt">
+      <button class="btn" id="fp-close">Close</button>
     </div>
   </div>`);
   stage.appendChild(card);
-  document.getElementById("sp-cont").onclick=()=>go("apps");
+  document.getElementById("fp-close").onclick=()=>go("apps");
 }
 
 /* ========================================================================
@@ -747,84 +472,139 @@ function rStandardpress(){
    ======================================================================== */
 function rConfirm(){
   stage.innerHTML="";
-  const {w,m}=countInvited();
-  const list=state.invited.map(id=>{const p=byId(id);return `<li>${p.name} — ${p.spec}</li>`;}).join("");
+  const list=state.invited.map(id=>{const p=byId(id);return `<li>${p.name} — ${p.spec} <small>${eur(expertFee(p))}</small></li>`;}).join("");
   stage.appendChild(el(`
     <div class="slide">
       <h1>Jury complete</h1>
-      <p class="lede">You've invited ${state.invited.length} experts: ${w} women, ${m} men.</p>
-      <div class="verdict"><ul style="margin:0;padding-left:18px;line-height:1.6">${list}</ul></div>
+      <p class="lede">${state.invited.length} experts, all six fields covered. Fees: ${eur(state.spend.experts)}.</p>
+      <div class="verdict"><ul>${list}</ul></div>
       <div class="btnbar">
-        <button class="btn ghost" id="back">Back to review</button>
-        <button class="btn" id="send" style="font-size:28px;padding:10px 32px;background:var(--ok);color:#fff;border-color:var(--ok)">⚑ Send invitations</button>
+        <button class="btn ghost" id="back">Back to the selection</button>
+        <button class="btn send big" id="send">⚑ Send invitations</button>
       </div>
     </div>`));
-  document.getElementById("back").onclick=()=>go("apps");
+  // going back un-books the fees; they are charged again on the next confirm
+  document.getElementById("back").onclick=()=>{
+    spend("experts",-state.spend.experts); state.invited=[];
+    state.screen="p1"; renderPhasebar(); renderHUD(); stage.scrollTop=0; renderHandPick();
+  };
   document.getElementById("send").onclick=()=>go("sendletter");
 }
 
-let interStep=0;
+/* ---------- the formal invitation letter (ex draft-letter.js) ---------- */
+function rSendLetter(){
+  stage.innerHTML="";
+  const dateStr=new Date().toLocaleDateString("de-AT",{day:"2-digit",month:"long",year:"numeric"});
+  const wrap=el(`
+    <div class="slide letter-wrap">
+      <p class="letter-status">Sending the invitation letter …</p>
+      <div class="letter" id="letter">
+        <div class="head">
+          <div class="sender">
+            <div class="label">Absender</div>
+            <b>Wettbewerbsbüro Wien</b><br>Ringstraße 1, 1010 Wien
+          </div>
+          <div class="stamp">${STAMP_SVG}</div>
+        </div>
+        <div class="date">Wien, ${dateStr}</div>
+        <div class="subj">Einladung zur Jurytätigkeit — Architekturwettbewerb Alte WU, Augasse</div>
+        <p class="greet">Sehr geehrte Damen und Herren,</p>
+        <p class="para">Im Namen der Stadt Wien laden wir Sie herzlich ein, als Mitglied der Fachjury
+          für den Architekturwettbewerb auf dem Areal der Alten WU, Augasse, 1090 Wien,
+          tätig zu sein.</p>
+        <p class="para last">Die Jury umfasst neun unabhängige Expertinnen und Experten. Der erste Arbeitstag
+          ist für Donnerstag, 09:00 Uhr, im Expertinnen- und Expertenpool geplant. Wir
+          ersuchen Sie um Bestätigung Ihrer Teilnahme.</p>
+        <p class="close">Mit freundlichen Grüßen</p>
+        <p class="sign">Stadt Wien, Wettbewerbsbüro</p>
+      </div>
+      <div class="btnbar letter-actions">
+        <button class="btn ghost" id="sl-back">← Back</button>
+        <button class="btn send" id="sl-send">Send ✉</button>
+      </div>
+    </div>`);
+  stage.appendChild(wrap);
+  document.getElementById("sl-back").onclick=()=>go("confirm");
+  document.getElementById("sl-send").onclick=()=>go("intermezzo");
+}
+
+/* ---------- terminal ticker before the pool (ex draft-reveal.js) ---------- */
 function rIntermezzo(){
-  const steps=[
+  const delay=state.delayWeeks||0, ext=state.extensions||0;
+  const lines=[
     "Jury complete.",
     "Invitations sent.",
-    state.delayWeeks>0?`Project start delayed by ${state.delayWeeks} weeks (${state.extensions} extension${state.extensions===1?"":"s"}).`:"Project starts on schedule.",
+    delay>0 ? `+${delay} week${delay!==1?"s":""} delay, ${ext} extension${ext!==1?"s":""}.` : "Project starts on schedule.",
     "Next meeting: the Expert Pool. Thursday, 09:00.",
-    "The organisers prepared 10 stations, 10 name tags, 10 towels — five a side.",
+    `The organisers prepared ${JURY_SIZE} stations, ${JURY_SIZE} name tags, ${JURY_SIZE} towels.`,
   ];
   stage.innerHTML="";
-  const box=el(`<div class="slide"><h1>Getting ready</h1>
-    <div class="verdict"><p id="step" style="font-size:18px;margin:0">${steps[interStep]}</p></div>
-    <div class="btnbar"><button class="btn" id="go">${interStep<steps.length-1?"Next":"Enter the pool"}</button></div>
+  const term=el(`<div class="im-terminal">
+      <div class="im-lines" id="im-lines"></div>
+      <div class="im-cursor" id="im-cursor">█</div>
+      <div class="im-cta" id="im-cta" hidden><button class="im-btn" id="im-go">Enter the pool →</button></div>
     </div>`);
-  stage.appendChild(box);
-  document.getElementById("go").onclick=()=>{
-    if(interStep<steps.length-1){ interStep++; rIntermezzo(); }
-    else { interStep=0; go("reveal"); }
-  };
+  stage.appendChild(term);
+  document.getElementById("im-go").onclick=()=>go("reveal");
+  const container=document.getElementById("im-lines"), cursor=document.getElementById("im-cursor"), cta=document.getElementById("im-cta");
+  lines.forEach((text,i)=>{
+    const div=document.createElement("div"); div.className="im-line"; div.textContent=text; container.appendChild(div);
+    setTimeout(()=>{
+      div.classList.add("visible");
+      if(i===lines.length-1) setTimeout(()=>{ cursor.hidden=true; cta.hidden=false; },600);
+    },(i+1)*1000);
+  });
+}
+
+/* ---------- the pool reveal (ex draft-reveal.js) ---------- */
+function makeLane(label,count,target){
+  const slots=Math.max(count,target), overflow=Math.max(0,count-target), missing=Math.max(0,target-count);
+  let figures="";
+  for(let i=0;i<slots;i++){
+    const isOverflow=i>=target, isEmpty=i>=count;
+    figures+=`<div class="dr-slot" title="${isEmpty?"Empty":(isOverflow?"No cabin left":"Taken")}">
+      ${_cabinIcon(i+1)}
+      <div class="dr-doll">${_paperDoll({overflow:isOverflow&&!isEmpty,empty:isEmpty})}</div>
+    </div>`;
+  }
+  const note = overflow>0 ? `<span class="dr-overflow-note">+${overflow} without a cabin</span>`
+             : missing>0  ? `<span class="dr-missing-note">${missing} cabin${missing>1?"s":""} empty</span>`
+             :              `<span class="dr-ok-note">Perfectly filled</span>`;
+  return `<div class="dr-lane">
+    <div class="dr-lane-label">${label} ${note}</div>
+    <div class="dr-slots-row">${figures}</div>
+  </div>`;
 }
 
 function rReveal(){
-  stage.innerHTML="";
   const {w,m}=countInvited();
   const balanced = w===WOMEN_TARGET && m===MEN_TARGET;
-  const wrap=el(`<div class="poolwrap">
-    <h1>Welcome to the Expert Pool</h1>
-    <p class="lede">The organisers prepared two rows of ${WOMEN_TARGET} — they expected a balanced
-    jury. Here's how your invitations actually fill it.</p></div>`);
-  const pool=el(`<div class="pool"></div>`);
-  pool.appendChild(makeLane("women","Seats prepared for women",WOMEN_TARGET,w,"single_female.png"));
-  pool.appendChild(makeLane("men","Seats prepared for men",MEN_TARGET,m,"single_male.png"));
-  wrap.appendChild(pool);
-  wrap.appendChild(el(`<div class="tally">
-    <span>Your jury: <b>${w}</b> ♀ · <b>${m}</b> ♂</span>
-    <span class="target">Prepared: ${WOMEN_TARGET} · ${MEN_TARGET}</span>
-    ${state.delayWeeks?`<span class="target">Delay: ${state.delayWeeks}w</span>`:""}
-  </div>`));
-  wrap.appendChild(el(balanced
-    ? `<p>Balanced — and every member is qualified. Worth asking: what did it cost in time, and would most people have pushed that hard?</p>`
-    : `<p>Strong jury, but it doesn't fit the prepared structure. Some seats overflow, others sit empty. That's not a personal failure — here's what actually drove it.</p>`));
-  wrap.appendChild(el(`<div class="btnbar"><button class="btn" id="go">So… what happened?</button></div>`));
+  const diff=Math.abs(w-m);
+  stage.innerHTML="";
+  const wrap=el(`<div class="dr-reveal">
+      <h2 class="dr-title">Welcome to the Expert Pool.</h2>
+      <div class="dr-venue-art">${POOLHALL_SVG}</div>
+      <p class="dr-subtitle">${WOMEN_TARGET+MEN_TARGET} cabins — ${WOMEN_TARGET} for women, ${MEN_TARGET} for men. Every seat was prepared.</p>
+      <div class="dr-pool-grid">
+        ${makeLane("Cabins for women",w,WOMEN_TARGET)}
+        ${makeLane("Cabins for men",m,MEN_TARGET)}
+      </div>
+      <div class="dr-summary ${balanced?"dr-summary--ok":"dr-summary--off"}">
+        <span>Your jury:</span>
+        <strong>${w} ${w===1?"woman":"women"}</strong>
+        <span>&amp;</span>
+        <strong>${m} ${m===1?"man":"men"}</strong>
+        ${balanced ? `<span class="dr-balanced">— balanced ✓</span>` : `<span class="dr-imbalance">— ${diff} seat${diff!==1?"s":""} out of place</span>`}
+      </div>
+      <div class="dr-reflect">
+        <p>The pool committee had planned the infrastructure for an even split —
+          cabins, name tags, towels, everything <em>five a side</em>.
+          Whoever didn't fit stood outside. Whoever was missing left empty seats.</p>
+      </div>
+      <button class="dr-btn-primary" id="dr-go">So… what happened? →</button>
+    </div>`);
   stage.appendChild(wrap);
-  document.getElementById("go").onclick=()=>go("outro");
-}
-
-function makeLane(cls,label,slots,count,sprite){
-  const lane=el(`<div class="lane ${cls}"><div class="label">${label}<span>${count} of ${slots} seats</span></div></div>`);
-  for(let i=0;i<slots;i++){
-    const filled=i<count;
-    const st=el(`<div class="station${filled?" full":""}"></div>`);
-    if(filled) st.appendChild(el(`<img src="assets/${sprite}" alt="">`));
-    lane.appendChild(st);
-  }
-  const extra=count-slots;
-  if(extra>0){
-    for(let i=0;i<extra;i++){ const st=el(`<div class="station full over"></div>`); st.appendChild(el(`<img src="assets/${sprite}" alt="">`)); lane.appendChild(st); }
-    lane.appendChild(el(`<span class="overflow">+${extra} with no seat</span>`));
-  } else if(count<slots){
-    lane.appendChild(el(`<span class="empties">${slots-count} seats empty</span>`));
-  }
-  return lane;
+  document.getElementById("dr-go").onclick=()=>go("outro");
 }
 
 /* ========================================================================
@@ -836,15 +616,15 @@ function rOutro(){ outroIdx=0; drawOutro(); }
 function verdict(){
   const {w}=countInvited();
   if(w>=4 && w<=6) return { tag:"You built a balanced jury.",
-    text:[`Your final jury came out ${w} women, ${10-w} men — balanced, and all of them qualified. You reached the target.`,
+    text:[`Your final jury came out ${w} women, ${JURY_SIZE-w} men — balanced, and all of them qualified. You reached the target.`,
       state.extensions>0
         ? `But look what it took: ${state.extensions} extension${state.extensions===1?"":"s"} and ${state.delayWeeks} weeks of delay. In reality, most people don't have that room — and the pressure is designed to make you stop sooner.`
         : `You managed it without extending — but notice how the deadline and the thin applicant field pushed against you the whole time. Most people give in to that.`] };
   if(w<=2) return { tag:"The structure won.",
-    text:[`Your jury came out ${w} women, ${10-w} men. With only about one in five applicants a woman, "just pick the best" lands here almost on its own.`,
+    text:[`Your jury came out ${w} women, ${JURY_SIZE-w} men. With only about one in five applicants a woman, "just pick the best" lands here almost on its own.`,
       `That's the leaky pipeline made visible: the skew was in who got to apply, long before you decided anything.`] };
   return { tag:"Close, but the field tilted it.",
-    text:[`Your jury landed at ${w} women, ${10-w} men — near balance, but short. The applicant pool was ~80% men, and that pressure shows up in the result.`,
+    text:[`Your jury landed at ${w} women, ${JURY_SIZE-w} men — near balance, but short. The applicant pool was ~80% men, and that pressure shows up in the result.`,
       `Reaching 5/5 here means actively working against the structure — and the deadline is built to discourage exactly that.`] };
 }
 
@@ -926,17 +706,13 @@ function rReflect(){
 }
 
 function resetGame(){
-  state.order=[]; state.selected=new Set();
-  state.weights={availability:0,assertiveness:0,prestige:0,seniority:0};
-  state.peekedCompetence=0; state.phase1Women=null;
-  state.candidates=[]; state.idx=0; state.invited=[]; state.reserve=[]; state.rejected=[];
+  state.order=[]; state.selected=new Set(); state.invited=[];
+  state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.extensions=0; state.rep=100;
-  state.warnShown=false; state.quotaShown=false; state.kitchenShown=false; state.holidayShown=false;
-  state.foreignersShown=false; state.moreMenShown=false;
-  state.p1Idx=0; outroIdx=0; interStep=0; introStep=0;
+  state.hudSeen={time:false,rep:false};
+  state.candidates=[]; state.kitchenShown=false; state.holidayShown=false; state.foreignersShown=false;
+  outroIdx=0; introStep=0;
   go("intro");
 }
 
-/* boot — invoked from index.html AFTER all draft modules have loaded, so that
-   go()'s dispatcher (which references rSendLetter / rForeignersPress defined
-   in the draft files) has every handler defined. */
+/* boot: index.html calls go("intro") after this file has loaded. */

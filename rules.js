@@ -11,7 +11,7 @@
    deshalb steht am Ende Linoleum statt Parkett.                            */
 const BUDGET_START = 3_000_000;
 const WEEK_COST    = 50_000;      // je Woche Verzögerung
-const JURY_SIZE    = 10;
+const JURY_SIZE    = 9;           // ungerade — verlangt Auflage 2 (WSA §3 Abs. 3)
 
 /* Honorar eines Beiratsmitglieds. Bewusst an SENIORITÄT gekoppelt, nicht an
    Prestige: lange durchgehende Praxis ist teuer — und das ist genau das
