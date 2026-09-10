@@ -290,22 +290,54 @@ function renderHandPick(){
   const bar=el(`
     <div class="selbar">
       <div class="counter"><span id="cnt">0</span>/${JURY_SIZE}<small>chosen</small></div>
-      <div class="checklist" id="checklist"></div>
+      <p class="hint" id="task"></p>
       <div class="fees" id="fees"></div>
       <button class="btn" id="confirm" disabled>Confirm the board</button>
     </div>`);
+  bar.querySelector("#task").innerHTML = state.repairing
+    ? `<b>Replace whoever you want.</b> Every replacement is a new search: ${REPAIR_WEEKS} weeks, ${eur(REPAIR_WEEKS*WEEK_COST)}.`
+    : `<b>${JURY_SIZE} seats. Cover all six fields. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more.`;
   stage.appendChild(bar);
-  const list=bar.querySelector("#checklist");
-  FIELDS.forEach(f=>list.appendChild(el(`<span class="field" data-k="${f.key}" style="--fc:${f.color}" title="${f.label} — ${f.note}"><i></i>${f.short}</span>`)));
 
-  stage.appendChild(el(state.repairing
-    ? `<p class="hint wide"><b>Replace whoever you want.</b> Every replacement means a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} each. Nine seats, all six fields covered, within budget.</p>`
-    : `<p class="hint wide"><b>${JURY_SIZE} seats. Cover all six fields. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more. Tap a card to add or remove someone.</p>`));
-  const grid=el(`<div class="grid" id="grid"></div>`);
+  const wrap=el(`<div class="selwrap"><div class="grid" id="grid"></div><aside class="board-panel" id="panel"></aside></div>`);
+  const grid=wrap.querySelector("#grid");
   state.order.forEach(id=>grid.appendChild(makeCard(byId(id))));
-  stage.appendChild(grid);
+  stage.appendChild(wrap);
   document.getElementById("confirm").onclick=onConfirmHandPick;
   refreshSel();
+}
+
+/* The side panel: who is on the board, which fields are covered by whom,
+   and — for a missing field — everyone in the pool who could cover it.
+   All of it is data from the brief and the profiles; no ranking, no advice. */
+function renderPanel(){
+  const panel=document.getElementById("panel"); if(!panel) return;
+  const cov=coverageOf(state.selected);
+  const chosen=state.order.filter(id=>state.selected.has(id));
+  const members = chosen.length
+    ? chosen.map(id=>{ const p=byId(id); const tags=fieldsOf(id).map(k=>{const f=FIELDS.find(x=>x.key===k);return `<i style="background:${f.color}" title="${f.label}"></i>`;}).join("");
+        return `<li data-id="${id}" title="Remove"><span class="who">${p.name}</span><span class="tags">${tags}</span><span class="fee">${eur(expertFee(p))}</span></li>`; }).join("")
+    : `<li class="none">Nobody yet. Tap a card.</li>`;
+  const fields = FIELDS.map(f=>{
+    if(cov[f.key]){
+      const by=chosen.filter(id=>FIELD_MAP[f.key].includes(id)).map(id=>byId(id).name.split(" ").pop());
+      return `<li class="ok" style="--fc:${f.color}"><b>${f.short}</b><span>${by.join(", ")}</span></li>`;
+    }
+    const could=state.order.filter(id=>FIELD_MAP[f.key].includes(id) && !state.selected.has(id))
+      .map(id=>`<button class="link" data-jump="${id}">${byId(id).name}</button>`).join("");
+    return `<li class="missing" style="--fc:${f.color}"><b>${f.short}</b><span class="lab">missing · covered by</span><span class="could">${could}</span></li>`;
+  }).join("");
+  panel.innerHTML=`
+    <h4>Your board <small>${chosen.length}/${JURY_SIZE}</small></h4>
+    <ul class="members">${members}</ul>
+    <h4>Fields <small>${FIELDS.filter(f=>cov[f.key]).length}/${FIELDS.length}</small></h4>
+    <ul class="fieldlist">${fields}</ul>`;
+  panel.querySelectorAll(".members li[data-id]").forEach(li=>li.onclick=()=>{ const c=document.querySelector(`.card[data-id="${li.dataset.id}"]`); toggleCard(byId(li.dataset.id),c); });
+  panel.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>{
+    const c=document.querySelector(`.card[data-id="${b.dataset.jump}"]`);
+    if(c.scrollIntoView) c.scrollIntoView({behavior:"smooth",block:"center"});
+    c.classList.remove("pulse"); void c.offsetWidth; c.classList.add("pulse");
+  });
 }
 
 function makeCard(p){
@@ -345,8 +377,8 @@ function toggleCard(p,c){
 function refreshSel(){
   const n=state.selected.size;
   document.getElementById("cnt").textContent=n;
-  const cov=coverageOf(state.selected), missing=missingFields(state.selected);
-  document.querySelectorAll("#checklist .field").forEach(f=>f.classList.toggle("ok",!!cov[f.dataset.k]));
+  const missing=missingFields(state.selected);
+  renderPanel();
   const c=document.getElementById("confirm");
   const ready = n===JURY_SIZE && missing.length===0;
   c.disabled=!ready;
