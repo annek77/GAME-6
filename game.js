@@ -350,6 +350,7 @@ function selectionBar(){
   const bar=el(`
     <div class="selbar two">
       <div class="row1">
+        <div class="counter"><span id="cnt">0</span>/${JURY_SIZE}<small id="cntsub">chosen</small></div>
         <div class="hand" id="hand"></div>
         <div class="fees" id="fees"></div>
         <button class="btn" id="confirm" disabled>Confirm the board</button>
@@ -366,6 +367,8 @@ function refreshSel(){
   const hand=document.getElementById("hand"), slots=document.getElementById("slots");
   if(!hand) return;
   const n=state.selected.size, missing=missingFields(state.selected), cov=coverageOf(state.selected);
+  document.getElementById("cnt").textContent=n;
+  document.getElementById("cntsub").textContent = n>=JURY_SIZE ? "full" : `${JURY_SIZE-n} seat${JURY_SIZE-n>1?"s":""} left`;
   // the hand: chosen people as small cards, chamber first
   const ids=[...CHAMBER_NOMINATION.ids, ...state.order.filter(id=>state.selected.has(id)&&!isChamber(id))];
   hand.innerHTML="";

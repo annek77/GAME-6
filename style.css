@@ -104,8 +104,8 @@ p{line-height:1.55;max-width:64ch}
   border-radius:10px; padding:10px 16px; display:flex; align-items:center; gap:16px;
   flex-wrap:wrap; margin-bottom:16px; box-shadow:5px 5px 0 rgba(20,48,65,.15);
 }
-.counter{font-family:'VT323',monospace;font-size:30px;line-height:1}
-.counter small{font-size:15px;display:block;color:var(--ink-soft)}
+.counter{font-family:'VT323',monospace;font-size:30px;line-height:1;flex:0 0 auto;min-width:64px}
+.counter small{font-size:13px;display:block;color:var(--ink-soft);white-space:nowrap}
 .timer{font-family:'VT323',monospace;font-size:26px;padding:2px 12px;border:3px solid var(--ink);border-radius:8px;background:#fff}
 .timer.low{background:#ffd9df;color:var(--danger);border-color:var(--danger)}
 .hint{font-size:13px;color:var(--ink-soft);max-width:42ch;line-height:1.45}
@@ -191,6 +191,7 @@ p{line-height:1.55;max-width:64ch}
 
 /* ---- HUD ---- */
 .hud{display:flex;gap:8px;padding:6px 18px;background:var(--ui-head);border-bottom:5px solid var(--ink);flex-wrap:wrap}
+.gauge[hidden]{display:none}
 .gauge{flex:0 1 auto;min-width:0;background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:3px 10px;box-shadow:3px 3px 0 rgba(20,48,65,.14);display:flex;align-items:baseline;gap:8px}
 .gauge .k{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px}
 .gauge .v{font-family:'VT323',monospace;font-size:22px;line-height:1.05}
