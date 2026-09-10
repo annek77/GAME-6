@@ -86,19 +86,20 @@ const NON_COMPLIANCE = {
    Aus dem STEK 68 abgeleitet. Sie geben der Auswahl ihren fachlichen Sinn:
    man wählt nicht "gute Leute", man deckt Anforderungen ab. Drei der sechs
    Felder sind im Bewerberfeld ausschließlich männlich besetzt — nicht als
-   Trick, sondern weil die Datenlage in diesen Sparten so aussieht.         */
+   Trick, sondern weil die Datenlage in diesen Sparten so aussieht.
+   `short` und `color` sind reine Anzeige (Tags auf den Karten, Checkliste). */
 const FIELDS = [
-  { key:"struct",  label:"Structures over live rail",
+  { key:"struct",  label:"Structures over live rail",      short:"Structure",   color:"#5cb9da",
     note:"ÖBB freight trains run under the slab. Every load path has to work around them." },
-  { key:"vibro",   label:"Vibration & acoustics",
+  { key:"vibro",   label:"Vibration & acoustics",          short:"Vibration",   color:"#b48ad6",
     note:"Lab and lecture use requires the structure to be decoupled from the tracks." },
-  { key:"fire",    label:"Fire safety & escape routes",
+  { key:"fire",    label:"Fire safety & escape routes",    short:"Fire",        color:"#e8526b",
     note:"Railway escape routes and fire brigade access must stay clear at all times." },
-  { key:"climate", label:"Climate repair & open space",
+  { key:"climate", label:"Climate repair & open space",    short:"Climate",     color:"#4fb286",
     note:"Fully sealed site. 1.5 m of substrate on concrete, 30–40% shading, rainwater management." },
-  { key:"procure", label:"Procurement & cost control",
+  { key:"procure", label:"Procurement & cost control",     short:"Procurement", color:"#ffcf4d",
     note:"Public money, public tendering, and a budget that has to hold." },
-  { key:"edu",     label:"Educational building & accessibility",
+  { key:"edu",     label:"Educational building & accessibility", short:"Education", color:"#ff8a5c",
     note:"17,000 students, 1,000 pupils — and §115 of the Vienna Building Code across the whole site." },
 ];
 
@@ -170,12 +171,14 @@ const PR_ACTIONS = [
     cost:0, rep:-12 },
 ];
 
-/* ---------- Die Stationen auf der Karte ---------------------------------- */
+/* ---------- Die Stationen auf der Karte ----------------------------------
+   Startzustand: die Karte erscheint vor der Auswahl, Station 1 ist offen.
+   Mit dem Versand der Einladungen wird 1 erledigt und 2 geöffnet.           */
 const STATIONS = [
   { key:"board",    label:"Expert advisory board", place:"MA 21A, Rathausstraße",
-    desc:"Appoint the panel that decides which design wins.", state:"done" },
+    desc:"Appoint the panel that decides which design wins.", state:"open" },
   { key:"pr",       label:"Neighbours & PR",       place:"Augasse, 9th district",
-    desc:"The people who will live next to a building site for four years.", state:"open" },
+    desc:"The people who will live next to a building site for four years.", state:"locked" },
   { key:"permits",  label:"Building authority",    place:"MA 37, Baupolizei",
     desc:"Permits, objections, and the rules nobody can talk their way out of.", state:"locked" },
   { key:"partners", label:"Partners & investors",  place:"Wienerberg",

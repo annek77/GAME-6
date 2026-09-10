@@ -1,6 +1,6 @@
 /* ==========================================================================
    POOL OF EXPERTS — game.js
-   Flow: intro → brief → ONE selection (grid + field checklist) → letter →
+   Flow: intro → map (station 1 open) → brief → ONE selection (grid + field checklist) → letter →
          pool reveal → the outside world reacts → the brief again, one line marked
          → three ways (repair under
          pressure / sit it out / fund something alongside) → map (station 2:
@@ -17,16 +17,20 @@
    ========================================================================== */
 
 const PHASES = [
-  ["intro",  "Start"],
+  ["map",    "Map"],
   ["p1",     "1 · The board"],
   ["reveal", "2 · The pool"],
-  ["map",    "3 · The project"],
-  ["outro",  "4 · What happened"],
+  ["pr",     "3 · Neighbours"],
+  ["outro",  "4 · The building"],
 ];
-/* which phase a sub-screen belongs to in the phase bar */
+/* which phase a sub-screen belongs to in the phase bar, and when a phase counts as done */
 const PHASE_OF = { confirm:"p1", sendletter:"p1", intermezzo:"p1",
-  reaction:"reveal", briefreveal:"reveal", options:"reveal", repaired:"reveal",
-  pr:"map" };
+  reaction:"reveal", briefreveal:"reveal", options:"reveal", repaired:"reveal" };
+const PHASE_DONE = {
+  p1:     ()=>state.invited.length>0 && !state.repairing,
+  reveal: ()=>state.response!==null,
+  pr:     ()=>state.stations.pr==="done",
+};
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -80,10 +84,9 @@ function spend(cat,amount){
 function renderPhasebar(){
   phasebar.innerHTML="";
   const cur = PHASE_OF[state.screen] || state.screen;
-  const idx = PHASES.findIndex(p=>p[0]===cur);
-  PHASES.forEach(([key,label],i)=>{
+  PHASES.forEach(([key,label])=>{
     const b=document.createElement("b"); b.textContent=label;
-    if(i===idx) b.classList.add("on"); else if(i<idx && idx>=0) b.classList.add("done");
+    if(key===cur) b.classList.add("on"); else if(PHASE_DONE[key] && PHASE_DONE[key]()) b.classList.add("done");
     phasebar.appendChild(b);
   });
   phasebar.style.display = state.screen==="intro" ? "none":"flex";
@@ -185,64 +188,41 @@ function briefMail({ctaLabel, onCta, highlight=null, intro=true}={}){
 }
 
 /* ========================================================================
-   INTRO — multi-beat opening scene (the Alte WU place-setter)
-   Ported from wu-opening-scene.html. Plays first, before phase 1; the final
-   CTA hands off into the brief via go("p1"), exactly like the old single slide.
+   INTRO — three beats, then the map.
    NO theme spoilers: no "bias", "gender", "discrimination", "quota", ratios.
    ======================================================================== */
 
-/* the narrative beats: building, history, the people, the neighbourhood, your part */
+/* three beats, each with a picture: the building, the empty years, your job */
 const BEATS = [
   {
     label:"AUGASSE · 9th DISTRICT",
     art: ALTEWU_SVG,
     h:"There is a building over the tracks",
     body:`
-      <p class="lede">In Vienna's 9th district, Alsergrund, the Augasse runs quietly past
-      ordinary blocks until the ground simply lifts. A long concrete structure stands raised
-      on a platform — the locals call it <em>die Platte</em> — bridging the railway lines of the
-      Franz-Josefs-Bahnhof some metres above the street.</p>
-      <p class="lede">Trains still move through the shadow beneath it. For decades, students moved
-      through the floors above. People who grew up here just call it <strong>the old WU</strong>.</p>`
+      <p class="lede">In Vienna's Alsergrund, the Augasse runs past ordinary blocks until the ground
+      lifts: a long concrete slab on a platform — <em>die Platte</em> — bridging the railway of the
+      Franz-Josefs-Bahnhof. Trains still pass beneath it.</p>
+      <p class="lede">Everyone here calls it <strong>the old WU</strong>.</p>`
   },
   {
-    label:"1975 — TODAY",
-    h:"A campus the city built, then outgrew",
+    label:"1982 — 2021",
+    art: ALTEWU_NIGHT_SVG,
+    h:"Empty since 2021",
     body:`
-      <p class="lede">It went up in the mid-1970s as the railway platform was constructed,
-      and from 1982 it housed the Vienna University of Economics and Business.</p>
-      <p class="lede">The WU moved on to a new campus in 2013. The University of Vienna held part of it
-      until 2021. Then the lecture halls fell silent. The signs came down, the corridors emptied,
-      and a building made for tens of thousands of people was left waiting — half in use, half asleep.</p>`
-  },
-  {
-    label:"GENERATIONS",
-    h:"Almost everyone here knows it",
-    body:`
-      <p class="lede">Ask around the Augasse and the stories come easily. The first exam taken on the
-      upper floors. The coffee from the machine that never quite worked. The friends made in a stairwell,
-      the all-nighters, the graduation walked out through those doors.</p>
-      <p class="lede">It was never a postcard. It was a place that decades of ordinary life passed through —
-      and the kind of building a neighbourhood quietly measures itself against, even when it's standing empty.</p>`
-  },
-  {
-    label:"NOW",
-    h:"And now its future is open",
-    body:`
-      <p class="lede">The city has decided: the old WU will not stay as it is. The plan is to turn
-      this concrete island over the tracks into a new education campus — open to the street again,
-      greener, made for many thousands of people once more.</p>
-      <p class="lede">But what it becomes is not yet decided. A competition is under way to choose the
-      vision that wins. And a competition needs a jury — a small group of experts trusted to decide,
-      on everyone's behalf, what this piece of Vienna turns into next.</p>`
+      <p class="lede">Built with the platform in the 1970s; home to the Vienna University of Economics
+      and Business from 1982. The WU left in 2013, the University of Vienna in 2021.</p>
+      <p class="lede">Ask around and the stories come easily — first exams, bad coffee, friends made in a
+      stairwell. Then the signs came down.</p>`
   },
   {
     label:"YOUR PART",
-    h:"That jury is your job",
+    art: MAP_MINI_SVG,
+    h:"Build the new WU",
     body:`
-      <p class="lede">Choosing those experts is the task in front of you. You have a shortlist of
-      candidates, a budget, and a deadline. The city is watching. The clock is already running.</p>
-      <p class="lede">Pick the best people. That's the whole job.</p>`,
+      <p class="lede">The city has decided: the slab becomes a new education campus for 17,000 students.
+      You lead the project.</p>
+      <p class="lede">${eur(BUDGET_START)} for fit-out and ancillary costs. Six stations between this
+      decision and the opening day.</p>`,
     cta:true
   }
 ];
@@ -280,8 +260,8 @@ function rIntro(){
     bar.appendChild(next);
   } else {
     // final CTA — hands off into Phase 1, exactly like the old intro
-    const goBtn = el(`<button class="btn" id="go">Open the brief</button>`);
-    goBtn.onclick = ()=>{ introStep=0; go("p1"); };
+    const goBtn = el(`<button class="btn" id="go">Open the map</button>`);
+    goBtn.onclick = ()=>{ introStep=0; go("map"); };
     bar.appendChild(goBtn);
   }
   wrap.appendChild(bar);
@@ -316,11 +296,11 @@ function renderHandPick(){
     </div>`);
   stage.appendChild(bar);
   const list=bar.querySelector("#checklist");
-  FIELDS.forEach(f=>list.appendChild(el(`<span class="field" data-k="${f.key}" title="${f.note}"><i></i>${f.label}</span>`)));
+  FIELDS.forEach(f=>list.appendChild(el(`<span class="field" data-k="${f.key}" style="--fc:${f.color}" title="${f.label} — ${f.note}"><i></i>${f.short}</span>`)));
 
   stage.appendChild(el(state.repairing
-    ? `<p class="hint wide">Replace whoever you want. Every replacement means a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} each. The six fields still have to be covered.</p>`
-    : `<p class="hint wide">The brief requires all six fields to be covered. Tap a card to add or remove someone.</p>`));
+    ? `<p class="hint wide"><b>Replace whoever you want.</b> Every replacement means a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} each. Nine seats, all six fields covered, within budget.</p>`
+    : `<p class="hint wide"><b>${JURY_SIZE} seats. Cover all six fields. Stay within budget.</b> Every member is paid a fee from your budget — long careers cost more. Tap a card to add or remove someone.</p>`));
   const grid=el(`<div class="grid" id="grid"></div>`);
   state.order.forEach(id=>grid.appendChild(makeCard(byId(id))));
   stage.appendChild(grid);
@@ -337,12 +317,12 @@ function makeCard(p){
       <div class="bio">${p.bio}</div>
       <div class="fields"></div>
       <div class="crit"></div>
-      <div class="fee">Fee ${eur(expertFee(p))}</div>
+      <div class="fee">${eur(expertFee(p))} fee</div>
     </div>`);
   const fl=c.querySelector(".fields");
   fieldsOf(p.id).forEach(k=>{
     const f=FIELDS.find(x=>x.key===k);
-    fl.appendChild(el(`<span class="ftag" data-k="${k}">${f.label}</span>`));
+    fl.appendChild(el(`<span class="ftag" data-k="${k}" style="--fc:${f.color}" title="${f.label}">${f.short}</span>`));
   });
   const crit=c.querySelector(".crit");
   CRITERIA.forEach(cr=>{
@@ -596,7 +576,7 @@ function rSendLetter(){
     </div>`);
   stage.appendChild(wrap);
   document.getElementById("sl-back").onclick=()=>go("confirm");
-  document.getElementById("sl-send").onclick=()=>go("intermezzo");
+  document.getElementById("sl-send").onclick=()=>{ state.stations.board="done"; state.stations.pr="open"; go("intermezzo"); };
 }
 
 /* ---------- terminal ticker before the pool (ex draft-reveal.js) ---------- */
@@ -703,7 +683,7 @@ function rMap(){
   const allDone = STATIONS.slice(0,2).every(st=>state.stations[st.key]==="done");
   const wrap=el(`<div class="slide wide">
     <h1>Campus Althangrund</h1>
-    <p class="lede">Six stations between the decision and the building. Two of them are yours in this prototype.</p>
+    <p class="lede">Six stations between the decision and the opening day. Two of them are playable in this prototype.</p>
     <div class="map" id="map"></div>
     <div class="btnbar">${allDone?`<button class="btn" id="map-build">Build it →</button>`:""}</div>
   </div>`);
@@ -718,7 +698,7 @@ function rMap(){
       ${s==="done"?`<div class="st-result">${stationResult(st.key)}</div>`:""}
       ${s==="open"?`<button class="btn st-go">Go there</button>`:""}
     </div>`);
-    if(s==="open") card.querySelector(".st-go").onclick=()=>go(st.key);
+    if(s==="open") card.querySelector(".st-go").onclick=()=>go(st.key==="board"?"p1":st.key);
     map.appendChild(card);
   });
   stage.appendChild(wrap);

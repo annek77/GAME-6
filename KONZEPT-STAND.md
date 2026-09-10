@@ -19,7 +19,7 @@ Zeitungs-Schlagzeilen in den SVGs bleiben **Deutsch** (authentische Wiener Artef
 | **Arbeitsteilung** | **Anne baut das Spiel.** Kathi, Jana und Anne schreiben danach das Paper |
 | **Abgabe** | **15. September 2026** — Paper (14–20 Seiten) **plus Link zur spielbaren Version** |
 | **Hosting** | GitHub Pages, **Repo öffentlich** (Variante A). Pages geht auf dem Free-Plan nicht mit privatem Repo |
-| **Git** | Lokales Repo liegt in `GAME 6/`, ein Commit mit dem Ist-Stand vor Umbau. Kein Remote |
+| **Git** | Repo `annek77/GAME-6`, Branch `master`, öffentlich. Live: https://annek77.github.io/GAME-6/ |
 
 ### Der Anlass für den Umbau
 
@@ -349,31 +349,75 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 
 ---
 
-## 9. Codestand (10.09.2026)
+## 9. Codestand (10.09.2026, nach dem Umbau)
 
-**Neu angelegt:**
+**Dateien** (alle statisch, kein Build; Ladereihenfolge in `index.html`):
 
-- `art.js` — alle SVG-Illustrationen an einem Ort, inhaltlich unverändert aus
-  `game.js`, `draft-reveal.js`, `draft-letter.js` extrahiert
-- `rules.js` — Budget, Honorare, Auflagen, Pflichtfelder, Ausgleichsmaßnahmen,
-  PR-Maßnahmen, Stationen, Endqualitäts-Stufen
-- `.gitignore`, lokales Git-Repo mit Ist-Stand-Commit
+| Datei | Inhalt |
+|---|---|
+| `index.html` | Nur Markup: Rahmen, Titelleiste, Cockpit (HUD), Budget-Panel, Feed, Phasenleiste, Bühne |
+| `style.css` | Gesamtes CSS. Kein CSS mehr in JS-Strings |
+| `data.js` | Die 26 Profile, Kriterien-Chips. Unverändert |
+| `rules.js` | Budget, Honorare, `BRIEF_TERMS`, Pflichtfelder (mit Kurz-Tag und Farbe), `COMPENSATIONS`, `PR_ACTIONS`, `STATIONS`, `FINISH_TIERS`, `REAL_JURY`, `OUTRO_FIGURES`, `SOURCES` |
+| `art.js` | Alle SVGs (Alte WU, Zeitungen, Teeküche, Alte Donau, Pool-Halle, Kabinen, Pappfiguren, Stempel) |
+| `game.js` | Spiellogik und alle Screens |
+| `parked-events.js` | **Nicht geladen.** Die alten Druck-Events (Teeküche, Krone, Urlaub, Ausland-Anfrage) samt Stadt-Mails, als Referenz für den Disruptor-Block |
+| `draft-sound.js` | **Nicht geladen.** Fertiger Web-Audio-Layer ohne Dateien |
 
-**Noch nicht angefasst:** `game.js`, `index.html`, `data.js`, die vier
-`draft-*.js`. Der Umbau steht noch aus.
+Die vier `draft-*.js`-Monkey-Patches sind aufgelöst und gelöscht. `JURY_SIZE = 9`
+(ungerade, wie Auflage 2 verlangt; 25 % davon = 3).
+
+**Screen-Kette** (`go()` in `game.js`):
+
+```
+intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftrag (Karten-Miniatur)
+ → map       Karte zuerst: Station 1 offen, 2–6 gesperrt
+ → p1        Briefing-Mail mit den fünf Auflagen → Grid-Auswahl (26 Karten,
+             Pflichtfelder-Checkliste, Honorar je Karte, Restbudget)
+ → confirm   Liste + Honorarsumme; „Back" bucht die Honorare wieder aus
+ → sendletter  Amtsbrief (Deutsch)
+ → intermezzo  Terminal-Ticker
+ → reveal    Pool-Szene: Umkleiden Frauen/Männer, nur Ist-Zahlen, keine Wertung
+ → reaction  Zeitungsseite + Stimmen, 4 Stufen nach Frauenzahl (0–1 / 2 / 3 / 4+),
+             Ruf −30 / −18 / −8 / −3; bei 0 Frauen zusätzlich NON_COMPLIANCE.chamber
+ → briefreveal  dieselbe Mail, Satz 4 gelb; daneben „3" und die eigene Zahl
+ → options   Reparieren (Grid im Reparaturmodus, 2 Wochen = €100.000 je Wechsel,
+             Honorardifferenz) · Aussitzen (Ruf −10) · Ausgleich (COMPENSATIONS)
+ → repaired  (nur nach Reparatur) Liste mit Kosten
+ → map       Station 1 erledigt, 2 offen, 3–6 gesperrt
+ → pr        Station 2: eine Entscheidung aus PR_ACTIONS → zurück zur Karte
+ → outro     4 Schritte: Gebäude nach FINISH_TIERS + zwei Fakten nebeneinander ·
+             eigene Jury neben REAL_JURY · OUTRO_FIGURES · Quellen · Play again
+```
+
+**Geld:** Alles läuft über `spend(cat, amount)` in die Kategorien aus `SPEND_CATS`
+(`experts`, `delay`, `pr`, `compensation`; `consultants` ist angelegt, wird noch
+nicht bespielt). Ausgleich, PR und Reparatur sind gegen Überziehung gesichert.
+
+**Cockpit:** Budget-Gauge immer ab dem Briefing, aufklappbar (gestapelter Balken,
+Legende nur für Kategorien > 0). Zeitplan erscheint mit der ersten Verzögerung,
+Ruf mit der Reaktion, Fortschritt mit der Karte.
+
+**Test:** jsdom-Harness (nicht im Repo) spielt vier Pfade: 0 Frauen + Reparatur,
+2 + Aussitzen, 3 + Ersatzpreisrichterin bei knappem Budget, 4 + Kindergarten. Alle
+grün am 10.09.2026.
+
+### Von Claude formulierte Texte (kein Beleg, Spielfiktion — bitte gegenlesen)
+
+- Reaktion: die deutschen Schlagzeilen und die englischen „Stimmen" (Presse,
+  Bezirksrat, Pressekonferenz) in `REACTIONS`
+- Ende: die vier Ausstattungs-Absätze in `FINISH_TEXT`, die Maßnahmen-Sätze in
+  `MEASURE_TEXT` (z. B. „340 Besucherinnen" aus Abschnitt 3 übernommen)
+- Options-Screen, Karte, Station 2, Briefing-Anrede
 
 ### Bekannte Altlasten
 
-- Vier `draft-*.js` überschreiben Funktionen aus `game.js`; die Reihenfolge der
-  `<script>`-Tags entscheidet, welche Version gilt
-- `draft-intro.js` und `draft-sound.js` werden **gar nicht geladen** (toter Code).
-  `draft-sound.js` ist ein fertiger Web-Audio-Layer ohne Dateien — brauchbar
-- CSS steckt teils in `innerHTML`-Strings statt im Stylesheet
-- Deadline wandert bei Verzögerung mit → man kann sie nie reißen
-- Alle sechs Frauen haben `prestige: 3` — das ist ein Geschlechter-Tell im
-  Signal-Set. Profil-Audit (gleiche Textlänge, abgeglichene Seniorität) offen
-
----
+- Deadline wandert bei Verzögerung mit → man kann sie nie reißen (unverändert)
+- Fünf der sechs Frauen haben `prestige: 3` — Geschlechter-Tell im Signal-Set.
+  Profil-Audit offen
+- Notlagen-Verhandlung (Abschnitt 5) nicht gebaut; Budget kann nicht unter 0
+- „Ruf kostet später Geld" (Abschnitt 3) ist nicht verdrahtet — Ruf wirkt nur
+  als Anzeige
 
 ## 10. Offene Punkte
 
@@ -385,9 +429,9 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
    `REAL_JURY`, `SOURCES`, `OUTRO_FIGURES`.
 3. **Profil-Audit**: Textlängen angleichen, Seniorität abgleichen, Prestige
    entkoppeln
-4. **Punkt 8** — Endbildschirm mit dem Gebäude, dessen Qualität am Restbudget
-   hängt. Heute ausdrücklich **nicht** gebaut
+4. ~~**Punkt 8** — Endbildschirm~~ — **gebaut, 10.09.2026** (Abschnitt 9)
 5. **GitHub-Remote** anlegen und pushen (Anne macht das selbst)
 6. **Audio** einbinden (`draft-sound.js` existiert bereits)
-7. **Quellen- und Methodenseite** im Spiel
+7. ~~**Quellen- und Methodenseite** im Spiel~~ — Quellenseite gebaut (letzter
+   Schritt des Abspanns); Methodenteil offen
 8. **Settings / Barrierefreiheit**: Mute, „weniger Reize", Tastaturbedienung

@@ -61,6 +61,46 @@ const ALTEWU_SVG = `<svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg
   </g>
 </svg>`;
 
+/* Same building at night, empty: dark sky, moon, dark windows with three still lit. */
+const ALTEWU_NIGHT_SVG = ALTEWU_SVG
+  .replace('aria-label="The old WU campus:', 'aria-label="The old WU campus at night, almost every window dark:')
+  .replace('<rect x="0" y="0" width="620" height="240" fill="#d6f0fb" stroke="none"/>', '<rect x="0" y="0" width="620" height="240" fill="#1d3a4d" stroke="none"/>')
+  .replace('<circle cx="548" cy="36" r="20" fill="#ffcf4d" stroke="#143041" stroke-width="3"/>', '<circle cx="548" cy="36" r="18" fill="#fffdf6" stroke="#143041" stroke-width="3"/><circle cx="556" cy="30" r="14" fill="#1d3a4d" stroke="none"/>')
+  .replace('<g fill="#cfe6ef">', '<g fill="#31515f">')
+  .replace('<rect x="70" y="40" width="480" height="72" fill="#e7edf0"/>', '<rect x="70" y="40" width="480" height="72" fill="#5d7480"/>')
+  .replace('<g fill="#a3e5f7" stroke-width="2">', '<g fill="#233d4b" stroke-width="2">')
+  .replace(/fill="#fffdf6"\/><rect x="248"/, 'fill="#ffcf4d"/><rect x="248"')
+  .replace(/height="18" fill="#fffdf6"\/>\n      <rect x="344"/, 'height="18" fill="#ffcf4d"/>\n      <rect x="344"')
+  .replace(/height="18" fill="#fffdf6"\/>\n      <rect x="472"/, 'height="18" fill="#ffcf4d"/>\n      <rect x="472"')
+  .replace('<rect x="0" y="112" width="620" height="14" fill="#9fb6c0"/>', '<rect x="0" y="112" width="620" height="14" fill="#6b8490"/>')
+  .replace(/fill="#cdd9df"/g, 'fill="#4e6672"')
+  .replace('<rect x="0" y="204" width="620" height="36" fill="#bcdfe9"/>', '<rect x="0" y="204" width="620" height="36" fill="#2b4a5a"/>')
+  .replace('<circle cx="586" cy="140" r="16" fill="#6fc08c"/>', '<circle cx="586" cy="140" r="16" fill="#3f7a58"/>');
+
+/* The project as a small map: six stations on a path, the first one lit. */
+const MAP_MINI_SVG = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A route of six numbered stations, the first one highlighted">
+  <rect x="0" y="0" width="620" height="200" fill="#d6f0fb" stroke="none"/>
+  <path d="M80 140 C 150 140, 150 60, 220 60 S 290 140, 360 140 S 430 60, 500 60 L 540 60" fill="none" stroke="#143041" stroke-width="3" stroke-dasharray="8 7" stroke-linecap="round"/>
+  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" font-family="'VT323',monospace" font-size="30" text-anchor="middle">
+    <rect x="52" y="112" width="56" height="56" rx="10" fill="#ffcf4d"/><text x="80" y="151" fill="#143041" stroke="none">1</text>
+    <rect x="192" y="32" width="56" height="56" rx="10" fill="#fffdf6"/><text x="220" y="71" fill="#3a6378" stroke="none">2</text>
+    <rect x="332" y="112" width="56" height="56" rx="10" fill="#fffdf6"/><text x="360" y="151" fill="#3a6378" stroke="none">3</text>
+    <rect x="472" y="32" width="56" height="56" rx="10" fill="#fffdf6"/><text x="500" y="71" fill="#3a6378" stroke="none">4</text>
+  </g>
+  <g stroke="#143041" stroke-width="3" stroke-linejoin="round">
+    <rect x="556" y="20" width="52" height="80" rx="6" fill="#e7edf0"/>
+    <rect x="564" y="30" width="10" height="8" fill="#a3e5f7"/><rect x="580" y="30" width="10" height="8" fill="#a3e5f7"/>
+    <rect x="564" y="46" width="10" height="8" fill="#a3e5f7"/><rect x="580" y="46" width="10" height="8" fill="#a3e5f7"/>
+    <rect x="564" y="62" width="10" height="8" fill="#a3e5f7"/><rect x="580" y="62" width="10" height="8" fill="#a3e5f7"/>
+    <rect x="540" y="100" width="80" height="10" fill="#9fb6c0"/>
+    <circle cx="586" cy="150" r="14" fill="#6fc08c"/><line x1="586" y1="164" x2="586" y2="184"/>
+  </g>
+  <text x="80" y="188" font-family="'Space Grotesk',sans-serif" font-size="12" fill="#3a6378" text-anchor="middle">Board</text>
+  <text x="220" y="20" font-family="'Space Grotesk',sans-serif" font-size="12" fill="#3a6378" text-anchor="middle">Neighbours</text>
+  <text x="360" y="188" font-family="'Space Grotesk',sans-serif" font-size="12" fill="#3a6378" text-anchor="middle">Permits</text>
+  <text x="500" y="20" font-family="'Space Grotesk',sans-serif" font-size="12" fill="#3a6378" text-anchor="middle">Partners …</text>
+</svg>`;
+
 /* ---------- SVG art ---------- */
 function newspaper({masthead,mastColor,paper,line1,line2,sub}){
   return `<svg viewBox="0 0 620 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${masthead}: ${line1} ${line2}">
