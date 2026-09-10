@@ -77,25 +77,32 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
      und in der Kategorie `experts` verbuchen. Sonst hat die Auswahl keine
      Geldwirkung und das Cockpit zeigt nur Nullen.
 
-3. **Briefing mit den fünf Auflagen.** ⚠️ **Hier stoppen und mich fragen,
-   bevor du anfängst.** Der Text in `BRIEF_TERMS` (`rules.js`) ist ein
-   **Platzhalter mit erfundenem Wortlaut**. Parallel läuft eine Recherche zu
-   den echten Vergaberichtlinien der Stadt Wien und zur Wettbewerbsordnung
-   Architektur. Der Ausgewogenheits-Satz ist das Herzstück des Reveals — er
-   muss auf belegtem Wortlaut stehen, sonst bricht die Kernaussage und das
-   begleitende Uni-Paper wird angreifbar. Frag mich, ob die Rechercheergebnisse
-   da sind. Wenn nicht: Punkt 3 überspringen, mit 4 und 5 weitermachen und
-   später nachziehen.
+3. **Briefing mit den fünf Auflagen.** Die Texte stehen fertig in
+   `BRIEF_TERMS` (`rules.js`) und sind **wörtlich belegt** — die Recherche ist
+   abgeschlossen. **Ändere keinen einzigen dieser Sätze**, auch nicht
+   sprachlich; jeder trägt eine Quellenangabe, die im Uni-Paper zitiert wird.
 
-   Wenn die Ergebnisse da sind: `BRIEF_TERMS` mit dem echten Wortlaut
-   überschreiben. Der Ausgewogenheits-Satz bleibt an vierter Stelle und darf
-   nicht hervorgehoben werden. Die Mail muss so gespeichert sein, dass sie im
-   Reveal erneut angezeigt werden kann.
+   Der Ausgewogenheits-Satz steht an vierter Stelle und darf **nicht**
+   hervorgehoben werden — er soll zwischen den anderen untergehen. Die Mail
+   muss so gespeichert sein, dass sie im Reveal erneut angezeigt werden kann.
 
 4. **Außenwelt-Reaktion + drei Optionen.** Die Quota-Mail der Stadt fliegt raus.
    Stattdessen reagiert die Öffentlichkeit auf das Ergebnis — Presse,
    Bezirksrat, Pressekonferenz. Drei Wege: reparieren, aussitzen, freikaufen
    (`COMPENSATIONS` in `rules.js`).
+
+   **Wichtig: keine Strafzahlung, keine Behörde, die Geld einbehält.** Es gibt
+   in Österreich keine durchsetzbare Vorgabe (siehe `NON_COMPLIANCE`). Die
+   einzige echte Folge ist der Entzug der Kammer-Kooperation und die
+   öffentliche Kennzeichnung des Verfahrens. Alles, was Geld kostet, ist
+   **freiwillig** — Weitersuchen, PR, Ausgleichsmaßnahmen. Diese Freiwilligkeit
+   ist die Aussage; verwandle sie nicht in eine Strafe.
+
+   Die billigste Option im Katalog ist `substitute` — eine Frau als
+   **Ersatzpreisrichterin** benennen. Erfüllt die einzige Muss-Regel des
+   Landes formal korrekt, ohne dass sie mitstimmt. Sie steht gleichwertig
+   neben den anderen und wird **nicht** kommentiert, nicht ironisiert, nicht
+   optisch abgewertet. Ihre Wirkung zeigt sich erst im Abspann.
 
 5. **Reveal.** Die Briefing-Mail nochmal einblenden, den Ausgewogenheits-Satz
    gelb markiert. „Das stand in Ihrem Briefing."
@@ -112,6 +119,13 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
 8. **Endbildschirm.** Die WU steht immer, man scheitert nie. Die Ausstattung
    hängt am Restbudget (`FINISH_TIERS`). Dazu die zwei Fakten nebeneinander:
    die Ausgleichsmaßnahme und die Zusammensetzung des Beirats — ohne Kommentar.
+
+   Danach der eigentliche Schluss: **das echte Preisgericht** (`REAL_JURY`).
+   Der Wettbewerb Campus Althangrund läuft wirklich, ausgeschrieben 2025 von
+   der BIG, Entscheidung Ende 2026. 14 Hauptpreisrichter:innen, 4 Frauen —
+   und unter den sieben Fachpreisrichtern keine einzige. Neben die eigene Jury
+   stellen, mit Quelle. Kein Kommentar, keine Moral. Dann die drei belegten
+   Zahlen aus `OUTRO_FIGURES` und eine Quellenseite aus `SOURCES`.
 
 9. **Einmal komplett durchspielen**, jeden Pfad: mit und ohne Reparatur, mit
    Freikauf, mit Aussitzen, Budget knapp und Budget üppig. Keine Sackgassen,
@@ -141,9 +155,17 @@ beim Bauen. Das Spiel urteilt nie über die Spielerin.
 ## Was nicht deine Aufgabe ist
 
 Erfinde keine neuen Mechaniken dazu. Abschnitt 10 der Konzeptdoku listet die
-offenen Punkte — Disruptor-Verteilung, Profil-Audit, unbelegte Zahlen im Outro,
-Audio, Quellenseite, Settings. Die sind bekannt und **nicht** Teil dieses
-Auftrags. Wenn dir beim Bauen etwas davon in die Quere kommt, sag es mir.
+offenen Punkte — Disruptor-Verteilung, Profil-Audit, Audio, Settings. Die sind
+bekannt und **nicht** Teil dieses Auftrags. Wenn dir beim Bauen etwas davon in
+die Quere kommt, sag es mir.
+
+**Und erfinde keine Fakten.** Jede Rechtsnorm, jede Zahl und jedes Zitat im
+Spiel steht belegt in `rules.js` (`BRIEF_TERMS`, `CHAMBER_RULE`,
+`NON_COMPLIANCE`, `REAL_JURY`, `OUTRO_FIGURES`, `SOURCES`) und stammt aus
+`../Recherche_Serious-Game_Gender-Jurys-Architektur-AT.md`. Brauchst du eine
+Zahl oder einen Paragraphen, der dort nicht steht: **frag mich, formuliere
+nichts Plausibles.** Das Spiel wird mit einem wissenschaftlichen Paper
+abgegeben — eine erfundene Rechtsgrundlage kostet uns die Arbeit.
 
 ## Fang so an
 

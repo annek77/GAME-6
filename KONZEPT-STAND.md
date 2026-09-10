@@ -106,27 +106,66 @@ Der Satz, den die Spielerin mitnehmen soll:
 > Die Rechnung dafür steht trotzdem — und du bezahlst sie aus dem Geld,
 > mit dem du bauen wolltest."*
 
-### Die Auflage im Briefing (der Amtsdeutsch-Trick)
+### Die Auflage im Briefing — echter Wortlaut, belegt
 
 Die erste Stadt-Wien-Mail listet **fünf Auflagen** auf. An **vierter Stelle**,
-zwischen vier ebenso trockenen Punkten, steht:
+zwischen vier ebenso trockenen Punkten, steht der Satz, um den sich alles dreht.
+Er ist **nicht erfunden** — er steht wörtlich so in einem Dokument der Stadt Wien:
 
-> *„In accordance with the procurement guidelines of the City of Vienna, a
-> balanced composition of the advisory board shall be ensured. Where this is not
-> achieved, appropriate compensatory measures are to be taken."*
+> *„Ein Frauenanteil im Preisgericht von mindestens 25% und eine Beteiligung
+> ‚junger' PreisrichterInnen wird angestrebt."*
+>
+> — Stadt Wien, MA 18: Werkstattbericht Nr. 91 (Juni 2008), Kap. I,
+> Grundsatz (4), S. 9
 
-Regeln dafür:
+Warum dieser Satz besser ist als jeder erfundene:
 
-- **Das Wort „Frauen" kommt nicht vor.** „Ausgewogene Zusammensetzung" reicht.
-- Der Satz muss zwischen mindestens vier gleich langweiligen Auflagen stehen.
-  Steht er allein, ist er ein Warnschild.
-- **Im Reveal wird die alte Mail nochmal eingeblendet, der Satz gelb markiert.**
-  „Das stand in Ihrem Briefing."
+- **„wird angestrebt".** Zahnloser geht es nicht. Kein Muss, keine Frist,
+  keine Sanktion.
+- **25 %, nicht 50 %.** Bei zehn Personen also drei Frauen — niedrig genug,
+  dass es machbar wirkt, und trotzdem oft nicht erreicht.
+- **Er steht im Grundsatzkapitel, nicht im Verfahrensteil.** Das operative
+  Kapitel zum Preisgericht wiederholt ihn nicht. Genau die Platzierung, die
+  wir erfinden wollten — real vorgefunden.
+- Er nennt zwar „Frauenanteil", aber in Amtsdeutsch zwischen vier ebenso
+  dröge formulierten Auflagen (Jurygröße, Barrierefreiheit, Unabhängigkeit,
+  Frist). Steht er allein, ist er ein Warnschild.
 
-Warum: Es ist fair (es stand da), es überrascht trotzdem (niemand liest das), und
-der Nebensatz ist **selbst schon die Lernbotschaft** — so funktioniert
-Gleichstellungspolitik real: Die Vorgabe existiert, ist zahnlos formuliert, und
-niemand nimmt sie ernst, bis die Rechnung kommt.
+**Im Reveal wird die Mail nochmal eingeblendet, der Satz gelb markiert.**
+„Das stand in Ihrem Briefing."
+
+### ★ Es gibt keine Sanktion. Alle Kosten sind freiwillig.
+
+**In Österreich existiert keine rechtlich durchsetzbare Geschlechtervorgabe für
+Preisgerichte.** Das Bundesvergabegesetz (§ 165 BVergG 2018) kennt nur
+Unabhängigkeit und fachliche Qualifikation. Es gibt keine Strafzahlung, keinen
+Mitteleinbehalt, keine Rechtsfolge.
+
+Die **einzige** Konsequenz überhaupt: Die Kammer entzieht die Kooperation, und
+das Verfahren wird auf `architekturwettbewerb.at` öffentlich als „ohne
+Kooperation" gekennzeichnet. Ein Reputationsmechanismus.
+
+Das bestätigt unsere Entscheidung „die Außenwelt reagiert, nicht das Spiel" —
+es ist real genau so. Und es schärft die Aussage: **Niemand zwingt dich. Du
+zahlst, weil du nicht in der Zeitung stehen willst.** Alle Kosten im Spiel sind
+freiwillig — Verzögerung durchs Weitersuchen, PR nach schlechter Presse,
+Ausgleichsmaßnahmen zur Gesichtswahrung.
+
+### ★ Der bequeme Knopf: die Ersatzpreisrichterin
+
+Die einzige **Muss**-Bestimmung Österreichs stammt von der zt:Kammer Ost:
+
+> *„Mindestens eine Frau muss der Jury als Fachpreisrichterin
+> (Hauptpreisrichterin oder **Ersatzpreisrichterin**) angehören."*
+
+Sie bindet nur das Nominierungskontingent der Kammer, hat keine Sanktion — und
+ist **durch eine Ersatzpreisrichterin erfüllbar.** Also formal korrekt, ohne
+dass eine Frau mitstimmt.
+
+Im Spiel ist das die billigste Option im Ausgleichskatalog (`substitute` in
+`COMPENSATIONS`, 15.000 €). Schnell, günstig, rechtlich einwandfrei. Das Spiel
+kommentiert sie mit keinem Wort. Im Abspann steht nur, wer am Ende entschieden
+hat.
 
 ### Wie das Spiel „das passt nicht" sagt
 
@@ -155,6 +194,45 @@ Kein Kommentar dazu. Der Widerspruch macht die Arbeit.
 
 Bleibt **nach der Auswahl**. Danach darf emotional eine weitere Ebene aufgehen.
 
+### ★★ Der Abschluss: das echte Preisgericht
+
+Der Wettbewerb **Campus Althangrund läuft gerade wirklich.** Ausgeschrieben am
+06.08.2025 von der BIG als zweistufiger Realisierungswettbewerb, erste
+Jurysitzungen 25.–27.02.2026, Entscheidung Ende 2026 — also in genau dem
+Zeitraum, in dem dieses Spiel abgegeben wird. Zehn Beiträge sind in der zweiten
+Stufe, ein Sieger steht noch nicht fest.
+
+Die reale Jury (`REAL_JURY` in `rules.js`, Quelle architekturwettbewerb.at):
+
+| Gruppe | Frauen | Männer |
+|---|---:|---:|
+| Von der Kammer nominiert | 2 | 0 |
+| **Fachpreisrichter:innen** | **0** | **7** |
+| Sachpreisrichter:innen | 2 | 3 |
+| **Hauptpreisrichter:innen gesamt** | **4** | **10** |
+
+**28,6 %.** Beide Architektinnen kamen über die Kammernominierung herein. Unter
+den sieben Fachpreisrichtern außerhalb dieses Kontingents ist keine einzige Frau.
+
+Und die Pointe: Ausloberin ist die **BIG**, eine Bundesgesellschaft — nicht die
+Stadt Wien. Der 25-%-Zielwert des Werkstattberichts 91 galt hier formal **gar
+nicht.** Er ist erfüllt, aber durch Zufall, nicht durch Norm.
+
+Das ist der stärkstmögliche Schluss: Nach der eigenen Jury zeigt das Spiel die
+echte — für genau dieses Gebäude, gerade tagend, mit Namen und Quelle.
+
+### Die drei Zahlen für den Abspann
+
+Ersetzen die bisherigen unbelegten Werte (60 % / 11–15 % / < 2 %).
+Stehen als `OUTRO_FIGURES` in `rules.js`, Quellen in `SOURCES`:
+
+- **57,6 %** der Architekturstudierenden in Österreich sind Frauen
+  *(unidata, WS 2025/26)*
+- **22,7 %** der Architekt:innen mit aufrechter Befugnis in Wien/NÖ/Bgld sind
+  Frauen; bei Ingenieurkonsulent:innen **6,1 %** *(Kammer-Jahresbericht 2025)*
+- **0 von 7** Fachpreisrichter:innen im echten Althangrund-Preisgericht sind
+  Frauen *(architekturwettbewerb.at)*
+
 ---
 
 ## 4. Pflicht-Fachgebiete (neu, gesetzt in dieser Session)
@@ -169,7 +247,7 @@ Pflichtfelder**, die abgedeckt sein müssen — abgeleitet aus dem STEK 68:
 | Brandschutz & Fluchtwege | ÖBB-Fluchtwege und Feuerwehrzufahrten |
 | Klimareparatur & Freiraum | Vollversiegelt, 1,5 m Substrat, 30–40 % Beschattung |
 | Vergaberecht & Kostensteuerung | Öffentliches Geld |
-| Bildungsbau & Barrierefreiheit | 17.000 Studierende, ÖNORM B 1600 |
+| Bildungsbau & Barrierefreiheit | 17.000 Studierende, § 115 Bauordnung für Wien |
 
 Sichtbar als **Checkliste** während der Auswahl. Das ist gleichzeitig die
 Checklisten-Mechanik aus Kathis Konzept.
@@ -264,7 +342,9 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 | `design-notizen.md`: 50/50 „erreichbar, aber unbezahlbar — NICHT unmöglich" | Erreichbar, aber nur gegen die fachliche Optimierung. Der Konflikt ist bezahlbar, nicht lösbar |
 | Quota-Mail der Stadt bei 7 Einladungen | **Raus.** Die Außenwelt reagiert, das Spiel zitiert keine Regel |
 | Zwei Auswahlrunden | **Eine** Auswahl, danach Korrekturschleife |
-| Outro-Zahlen: 60 % / 11–15 % / < 2 % | Widersprechen dem eigenen Briefing. **Müssen belegt werden**, Recherche läuft |
+| Outro-Zahlen: 60 % / 11–15 % / < 2 % | **Ersetzt** durch belegte Werte in `OUTRO_FIGURES` |
+| Annahme: es gäbe eine Vorgabe mit Sanktion | **Falsch.** Keine durchsetzbare Norm, keine Strafzahlung. Nur Reputation |
+| Barrierefreiheit über ÖNORM B 1600 | **Falsch.** In Wien nicht verbindlich. Richtig: § 115 BO Wien + OIB-Richtlinie 4 |
 | Reveal-Regel „kein Thema vor dem Ende" | Wird durch den Amtsdeutsch-Nebensatz sauber umgangen |
 
 ---
@@ -298,12 +378,11 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 ## 10. Offene Punkte
 
 1. **Disruptor-Verteilung** final festlegen (Vorschlag in Abschnitt 7)
-2. **Recherche** zu gesetzlichen Auflagen und Zahlen — Prompt in
-   `PROMPT-RECHERCHE.md`, läuft in eigenem Chat.
-   ⚠️ **Blockiert Punkt 3 des Bauauftrags:** Der Wortlaut der Auflage in
-   `BRIEF_TERMS` ist erfunden. Er ist das Herzstück des Reveals und muss auf
-   belegtem Originalwortlaut stehen, sonst bricht die Kernaussage und das
-   Paper wird angreifbar.
+2. ~~Recherche zu gesetzlichen Auflagen und Zahlen~~ — **erledigt, 10.09.2026.**
+   Ergebnisse in `../Recherche_Serious-Game_Gender-Jurys-Architektur-AT.md`
+   (1119 Zeilen, mit Primärquellen und Abrufdaten). Alles Relevante ist in
+   `rules.js` eingearbeitet: `BRIEF_TERMS`, `CHAMBER_RULE`, `NON_COMPLIANCE`,
+   `REAL_JURY`, `SOURCES`, `OUTRO_FIGURES`.
 3. **Profil-Audit**: Textlängen angleichen, Seniorität abgleichen, Prestige
    entkoppeln
 4. **Punkt 8** — Endbildschirm mit dem Gebäude, dessen Qualität am Restbudget
