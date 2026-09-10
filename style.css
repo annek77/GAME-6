@@ -240,6 +240,21 @@ p{line-height:1.55;max-width:64ch}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ---- the project map ---- */
+.map{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:14px}
+.station-card{background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:12px 14px;box-shadow:5px 5px 0 rgba(20,48,65,.15);display:flex;flex-direction:column;gap:6px;position:relative}
+.station-card.locked{background:#e6eef2;color:var(--ink-soft);box-shadow:none;border-style:dashed}
+.station-card.locked h3{color:var(--ink-soft)}
+.station-card.open{border-color:var(--gold-deep);box-shadow:5px 5px 0 var(--gold-deep)}
+.station-card.done{background:#eef8f2}
+.st-head{display:flex;justify-content:space-between;align-items:center;font-family:'VT323',monospace;font-size:17px;color:var(--ink-soft)}
+.st-no{width:26px;height:26px;border:2px solid currentColor;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px}
+.station-card h3{font-family:'VT323',monospace;font-size:26px;line-height:1}
+.st-place{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft)}
+.station-card p{font-size:13px;line-height:1.45;flex:1}
+.st-result{font-family:'VT323',monospace;font-size:16px;border-top:2px dotted var(--line);padding-top:6px}
+.station-card .btn.st-go{font-size:19px;padding:5px 16px;align-self:flex-start}
+
 /* ---- the brief again, one line marked ---- */
 .reveal-row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
 .reveal-mail{flex:1 1 420px;min-width:0}

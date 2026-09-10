@@ -3,7 +3,8 @@
    Flow: intro → brief → ONE selection (grid + field checklist) → letter →
          pool reveal → the outside world reacts → the brief again, one line marked
          → three ways (repair under
-         pressure / sit it out / fund something alongside) → … → outro
+         pressure / sit it out / fund something alongside) → map (station 2:
+         neighbours & PR, four stations locked) → outro
    The former second round ("applications under pressure") is gone. Its
    pressure-event screens (kitchen, press, holiday, abroad enquiry) are
    parked below, unreachable, until a later step decides on them.
@@ -16,12 +17,18 @@
 
 const PHASES = [
   ["intro",  "Start"],
-  ["p1",     "1 · You decide"],
+  ["p1",     "1 · The board"],
   ["reveal", "2 · The pool"],
-  ["outro",  "3 · What happened"],
+  ["map",    "3 · The project"],
+  ["outro",  "4 · What happened"],
 ];
+/* which phase a sub-screen belongs to in the phase bar */
+const PHASE_OF = { confirm:"p1", sendletter:"p1", intermezzo:"p1",
+  reaction:"reveal", briefreveal:"reveal", options:"reveal", repaired:"reveal",
+  pr:"map", reflect:"outro" };
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
+function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
 const state = {
   screen:"intro",
   order:[],                    // shuffled profile ids for the grid
@@ -38,6 +45,10 @@ const state = {
   response:null,               // "repair" | "sitout" | "compensate"
   compensation:null,           // key from COMPENSATIONS
   repairing:false, repairBase:[], repairSwaps:0,
+
+  // the project map: station key → "done" | "open" | "locked"
+  stations:freshStations(),
+  prAction:null,               // key from PR_ACTIONS
 
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
@@ -70,7 +81,8 @@ function spend(cat,amount){
 
 function renderPhasebar(){
   phasebar.innerHTML="";
-  const idx = PHASES.findIndex(p=>p[0]===state.screen);
+  const cur = PHASE_OF[state.screen] || state.screen;
+  const idx = PHASES.findIndex(p=>p[0]===cur);
   PHASES.forEach(([key,label],i)=>{
     const b=document.createElement("b"); b.textContent=label;
     if(i===idx) b.classList.add("on"); else if(i<idx && idx>=0) b.classList.add("done");
@@ -82,12 +94,13 @@ function go(screen){
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
+     map:rMap, pr:rPR,
      outro:rOutro, reflect:rReflect })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","outro","reflect"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","outro","reflect"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro","reflect"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro","reflect"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -489,7 +502,7 @@ function rOptions(){
       spend("compensation",c.cost); hudAddRep(c.rep);
       if(c.key==="substitute") state.chamberOk=true;
       hudFeed("Stadt Wien", `${c.label}.`);
-      go("outro");   // → map once station screen exists (step 6)
+      go("map");
     };
     comp.appendChild(b);
   });
@@ -501,7 +514,7 @@ function rOptions(){
   document.getElementById("opt-sit").onclick=()=>{
     state.response="sitout"; hudAddRep(-10);
     hudFeed("Newsroom", "The story runs a second week.");
-    go("outro");   // → map (step 6)
+    go("map");
   };
 }
 
@@ -516,7 +529,7 @@ function rRepaired(){
     <div class="verdict"><ul>${list}</ul></div>
     <div class="btnbar"><button class="btn" id="rp-go">Carry on</button></div>
   </div>`));
-  document.getElementById("rp-go").onclick=()=>go("outro");   // → map (step 6)
+  document.getElementById("rp-go").onclick=()=>go("map");
 }
 
 /* ========================================================================
@@ -779,6 +792,68 @@ function rBriefReveal(){
 }
 
 /* ========================================================================
+   THE MAP — six stations. One done, one open, four visibly locked.
+   The locks are part of the statement: this is the size of the real job.
+   ======================================================================== */
+function stationResult(key){
+  if(key==="board") return `${state.invited.length} members · fees ${eur(state.spend.experts)}`;
+  if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction); return `${a.label} · ${eur(a.cost)}`; }
+  return "";
+}
+function rMap(){
+  stage.innerHTML="";
+  const allDone = STATIONS.slice(0,2).every(st=>state.stations[st.key]==="done");
+  const wrap=el(`<div class="slide wide">
+    <h1>Campus Althangrund</h1>
+    <p class="lede">Six stations between the decision and the building. Two of them are yours in this prototype.</p>
+    <div class="map" id="map"></div>
+    <div class="btnbar">${allDone?`<button class="btn" id="map-build">Build it →</button>`:""}</div>
+  </div>`);
+  const map=wrap.querySelector("#map");
+  STATIONS.forEach((st,i)=>{
+    const s=state.stations[st.key];
+    const card=el(`<div class="station-card ${s}">
+      <div class="st-head"><span class="st-no">${i+1}</span><span class="st-state">${s==="done"?"✓ done":s==="open"?"▶ open":"🔒 locked"}</span></div>
+      <h3>${st.label}</h3>
+      <div class="st-place">${st.place}</div>
+      <p>${st.desc}</p>
+      ${s==="done"?`<div class="st-result">${stationResult(st.key)}</div>`:""}
+      ${s==="open"?`<button class="btn st-go">Go there</button>`:""}
+    </div>`);
+    if(s==="open") card.querySelector(".st-go").onclick=()=>go(st.key);
+    map.appendChild(card);
+  });
+  stage.appendChild(wrap);
+  const b=document.getElementById("map-build"); if(b) b.onclick=()=>go("outro");   // → ending (step 8)
+}
+
+/* ---------- Station 2: Neighbours & PR — one decision ---------- */
+function rPR(){
+  stage.innerHTML="";
+  const card=el(`<div class="appcard wide">
+    <span class="badge">Station 2 · Augasse, 9th district</span>
+    <h2>Neighbours &amp; PR</h2>
+    <p>Four years of building site over a live railway, and the people next door did not choose it.
+       Whatever you do here, they will hear the drilling. The question is what else they hear from you.</p>
+    <div class="btnbar col mt" id="pr-actions"></div>
+  </div>`);
+  const bar=card.querySelector("#pr-actions");
+  PR_ACTIONS.forEach(a=>{
+    const b=el(`<button class="btn ${a.cost?"":"ghost"}" data-k="${a.key}">${a.label}<span class="cost">${a.cost?eur(a.cost):"no cost"} · ${a.desc}</span></button>`);
+    if(a.cost>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
+    b.onclick=()=>{
+      state.prAction=a.key; state.stations.pr="done";
+      if(a.cost) spend("pr",a.cost);
+      hudAddRep(a.rep);
+      hudFeed("Augasse", a.rep>0 ? `${a.label}. The neighbours take note.` : "The neighbours hear the drilling. Nothing else.");
+      go("map");
+    };
+    bar.appendChild(b);
+  });
+  stage.appendChild(card);
+}
+
+/* ========================================================================
    OUTRO — verdict on the pool you built, real numbers, reflection
    ======================================================================== */
 let outroIdx=0;
@@ -883,6 +958,7 @@ function resetGame(){
   state.hudSeen={time:false,rep:false};
   state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
+  state.stations=freshStations(); state.prAction=null;
   state.candidates=[]; state.kitchenShown=false; state.holidayShown=false; state.foreignersShown=false;
   outroIdx=0; introStep=0;
   go("intro");
