@@ -251,9 +251,9 @@ const SOURCES = [
    Alle belegt, alle aus SOURCES. Ersetzen die bisherigen, unbelegten
    Werte (60 % / 11–15 % / <2 %) im Outro.                                  */
 const OUTRO_FIGURES = [
-  { n:"57,6 %", t:"of architecture students in Austria are women.",
+  { n:"57.6%", t:"of architecture students in Austria are women.",
     src:"unidata" },
-  { n:"22,7 %", t:"of licensed architects in Vienna, Lower Austria and Burgenland are women. Among licensed engineering consultants: 6.1%.",
+  { n:"22.7%", t:"of licensed architects in Vienna, Lower Austria and Burgenland are women. Among licensed engineering consultants: 6.1%.",
     src:"kammerst" },
   { n:"0 of 7", t:"specialist jurors on the real Campus Althangrund panel are women.",
     src:"jury" },
