@@ -1,12 +1,13 @@
 # Übergabe-Prompt für den Bau-Chat
 
-Empfehlung: **Claude Fable 5**, Cowork, Ordner `Pool of experts` verbunden.
-Ein Chat für den Code, sequenziell. Recherche und Paper laufen in eigenen Fenstern.
+*Notiz für Anne, nicht kopieren:* Empfehlung Claude Fable 5, Cowork, Ordner
+`Pool of experts` verbunden. Ein Chat für den Code, sequenziell. Recherche und
+Paper laufen in eigenen Fenstern. **Ab der Linie alles kopieren.**
 
 ---
 
-Wir bauen ein Serious Game fertig. **Deadline: 15. September 2026.** Heute ist der
-Prototyp halbfertig — deine Aufgabe ist der Umbau, nicht der Neubau.
+Wir bauen ein Serious Game fertig. **Deadline: 15. September 2026.** Der Prototyp
+ist halbfertig — deine Aufgabe ist der Umbau, nicht der Neubau.
 
 **Lies zuerst `GAME 6/KONZEPT-STAND.md` vollständig.** Das ist die maßgebliche
 Grundlage. Sie ersetzt `design-notizen.md` und `HANDOVER.md` überall dort, wo sie
@@ -55,7 +56,19 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
 2. **Auswahl-Fix.** Aktuell wählt man zweimal hintereinander Leute aus, und die
    erste Runde wird im Code nie wieder gelesen. Es gibt künftig **eine** Auswahl,
    danach die **Korrekturschleife unter Druck**. Details in Abschnitt 3 der
-   Konzeptdoku.
+   Konzeptdoku. Dabei zwei Mechaniken, die es bisher gar nicht gibt:
+
+   - **Die Pflichtfelder-Checkliste.** Die Ausschreibung verlangt sechs
+     abgedeckte Fachgebiete (`FIELDS` / `FIELD_MAP` / `coverageOf()` /
+     `missingFields()` in `rules.js`). Während der Auswahl sichtbar mitlaufen
+     lassen: welche Felder sind abgedeckt, welche fehlen. **Das ist der Grund,
+     warum man überhaupt jemanden auswählt** — man deckt Anforderungen ab, man
+     sammelt nicht „gute Leute". Drei der sechs Felder sind im Feld nur
+     männlich besetzt; das ist Absicht und wird nirgends kommentiert.
+   - **Honorare.** Jedes Beiratsmitglied kostet (`expertFee()` in `rules.js`,
+     an Seniorität gekoppelt). Beim Bestätigen der Auswahl vom Budget abziehen
+     und in der Kategorie `experts` verbuchen. Sonst hat die Auswahl keine
+     Geldwirkung und das Cockpit zeigt nur Nullen.
 
 3. **Briefing mit den fünf Auflagen.** Text steht in `rules.js` als
    `BRIEF_TERMS`. Der Ausgewogenheits-Satz steht an vierter Stelle und darf nicht
@@ -87,8 +100,14 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
    Freikauf, mit Aussitzen, Budget knapp und Budget üppig. Keine Sackgassen,
    kein Screen, der zweimal feuert, HUD-Werte konsistent.
 
-Wenn die Zeit knapp wird, hat **Punkt 8 Vorrang vor Politur** — ein Spiel ohne
-Ende ist schlechter als eines mit rauen Kanten.
+**Priorität, falls die Zeit knapp wird:** Punkte 1 bis 5 sind das Herz — ohne
+sie funktioniert die Kernaussage nicht. Punkt 8 muss trotzdem existieren, und
+sei es schlicht; ein Spiel ohne Ende ist schlechter als eines mit rauen Kanten.
+Punkte 6 und 7 dürfen minimal ausfallen.
+
+**Was bleibt, wie es ist:** Die fünf Intro-Beats über die Alte WU, der Look
+(Frame, Titelleiste, Wasser-Hintergrund, Amtsbrief-Optik), die Zeitungs-SVGs,
+die Pool-Szene und die 26 Profile in `data.js`. Daran nichts ändern.
 
 ## Die wichtigste inhaltliche Regel
 
