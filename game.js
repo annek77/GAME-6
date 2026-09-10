@@ -1156,4 +1156,24 @@ function resetGame(){
   go("intro");
 }
 
-/* boot: index.html calls go("intro") after this file has loaded. */
+/* ---------- test jumps: index.html#pr, #reveal, #options, #realworld, #map,
+   #latestations, #outro. Seeds a finished board (6 own picks: mostly men,
+   one woman) so every later screen has something to show. Not linked
+   anywhere in the game.                                                    */
+function debugJump(){
+  const target=(location.hash||"").slice(1);
+  const seedable=new Set(["reveal","reaction","briefreveal","options","realworld","map","pr","latestations","outro"]);
+  if(!seedable.has(target)) return false;
+  state.order=shuffle(PROFILES.map(p=>p.id));
+  ["resch","hofer","brunner","schwarz","graf","danneberg",...CHAMBER_NOMINATION.ids].forEach(id=>state.selected.add(id));
+  state.invited=[...state.selected]; state.deckDone=true;
+  spend("experts",feesOf(state.selected));
+  state.stations.board="done"; state.stations.pr="open";
+  if(["map","pr","latestations","outro"].includes(target)){ state.reactionTier=3; state.response="sitout"; state.hudSeen.rep=true; state.rep=90; }
+  if(["latestations","outro"].includes(target)){ state.prAction="container"; state.prSeason="wait"; state.accessAction="ramp"; state.stations.pr="done"; spend("pr",150000); hudAddDelay(2); }
+  go(target);
+  return true;
+}
+
+/* boot: index.html calls start() after this file has loaded. */
+function start(){ if(!debugJump()) go("intro"); }
