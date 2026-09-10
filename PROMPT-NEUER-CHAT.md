@@ -77,10 +77,20 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
      und in der Kategorie `experts` verbuchen. Sonst hat die Auswahl keine
      Geldwirkung und das Cockpit zeigt nur Nullen.
 
-3. **Briefing mit den fünf Auflagen.** Text steht in `rules.js` als
-   `BRIEF_TERMS`. Der Ausgewogenheits-Satz steht an vierter Stelle und darf nicht
-   hervorgehoben werden. Die Mail muss so gespeichert sein, dass sie im Reveal
-   erneut angezeigt werden kann.
+3. **Briefing mit den fünf Auflagen.** ⚠️ **Hier stoppen und mich fragen,
+   bevor du anfängst.** Der Text in `BRIEF_TERMS` (`rules.js`) ist ein
+   **Platzhalter mit erfundenem Wortlaut**. Parallel läuft eine Recherche zu
+   den echten Vergaberichtlinien der Stadt Wien und zur Wettbewerbsordnung
+   Architektur. Der Ausgewogenheits-Satz ist das Herzstück des Reveals — er
+   muss auf belegtem Wortlaut stehen, sonst bricht die Kernaussage und das
+   begleitende Uni-Paper wird angreifbar. Frag mich, ob die Rechercheergebnisse
+   da sind. Wenn nicht: Punkt 3 überspringen, mit 4 und 5 weitermachen und
+   später nachziehen.
+
+   Wenn die Ergebnisse da sind: `BRIEF_TERMS` mit dem echten Wortlaut
+   überschreiben. Der Ausgewogenheits-Satz bleibt an vierter Stelle und darf
+   nicht hervorgehoben werden. Die Mail muss so gespeichert sein, dass sie im
+   Reveal erneut angezeigt werden kann.
 
 4. **Außenwelt-Reaktion + drei Optionen.** Die Quota-Mail der Stadt fliegt raus.
    Stattdessen reagiert die Öffentlichkeit auf das Ergebnis — Presse,

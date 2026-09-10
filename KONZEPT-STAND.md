@@ -298,8 +298,12 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 ## 10. Offene Punkte
 
 1. **Disruptor-Verteilung** final festlegen (Vorschlag in Abschnitt 7)
-2. **Recherche** zu gesetzlichen Auflagen und Zahlen — Prompt liegt vor,
-   läuft in eigenem Chat
+2. **Recherche** zu gesetzlichen Auflagen und Zahlen — Prompt in
+   `PROMPT-RECHERCHE.md`, läuft in eigenem Chat.
+   ⚠️ **Blockiert Punkt 3 des Bauauftrags:** Der Wortlaut der Auflage in
+   `BRIEF_TERMS` ist erfunden. Er ist das Herzstück des Reveals und muss auf
+   belegtem Originalwortlaut stehen, sonst bricht die Kernaussage und das
+   Paper wird angreifbar.
 3. **Profil-Audit**: Textlängen angleichen, Seniorität abgleichen, Prestige
    entkoppeln
 4. **Punkt 8** — Endbildschirm mit dem Gebäude, dessen Qualität am Restbudget
