@@ -240,6 +240,31 @@ p{line-height:1.55;max-width:64ch}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ---- the brief again, one line marked ---- */
+.reveal-row{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
+.reveal-mail{flex:1 1 420px;min-width:0}
+.reveal-facts{flex:0 1 220px;display:flex;flex-direction:column;gap:14px}
+.fact{background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:12px 16px;box-shadow:4px 4px 0 rgba(20,48,65,.14)}
+.fact .n{font-family:'VT323',monospace;font-size:54px;line-height:1}
+.fact .t{font-size:13px;color:var(--ink-soft);line-height:1.35;margin-top:2px}
+
+/* ---- outside-world reaction & the three ways ---- */
+.appcard.wide{max-width:720px}
+.slide.wide{max-width:900px}
+.voices{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.voice{border-left:4px solid var(--ink-soft);padding:4px 12px}
+.voice b{font-family:'VT323',monospace;font-size:18px;letter-spacing:.5px;display:block}
+.voice p{margin:2px 0 0;font-size:14px}
+.voice.chamber{border-left-color:var(--danger);background:#fff0f2;border-radius:0 8px 8px 0}
+.ways{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:14px}
+.way{background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:14px 16px;box-shadow:5px 5px 0 rgba(20,48,65,.15);display:flex;flex-direction:column;gap:8px}
+.way h3{font-family:'VT323',monospace;font-size:26px;line-height:1}
+.way p{font-size:14px;flex:1}
+.way .btn{font-size:20px;padding:6px 18px}
+.comp{display:flex;flex-direction:column;gap:8px}
+.compbtn{text-align:left;font-size:19px;padding:6px 14px}
+.compbtn .cost{white-space:normal}
+
 /* ---- briefing mail: five terms, deliberately uniform ---- */
 .mail.brief{max-width:640px}
 .mail.brief .body p{max-width:none;margin-bottom:10px}
@@ -309,20 +334,13 @@ p{line-height:1.55;max-width:64ch}
 .dr-pool-grid{display:flex;flex-direction:column;gap:1.6rem;margin-bottom:1.8rem}
 .dr-lane{background:var(--water);border:3px solid var(--ink);border-radius:10px;padding:.9rem 1rem 1rem}
 .dr-lane-label{font-family:'VT323',monospace;font-size:1.3rem;margin-bottom:.6rem;display:flex;align-items:center;gap:.7rem}
-.dr-overflow-note{background:#e53935;color:#fff;font-size:.75rem;padding:2px 7px;border-radius:4px;font-family:'Space Grotesk',sans-serif}
-.dr-missing-note{background:var(--gold);color:var(--ink);font-size:.75rem;padding:2px 7px;border-radius:4px;font-family:'Space Grotesk',sans-serif}
-.dr-ok-note{background:var(--ok);color:#fff;font-size:.75rem;padding:2px 7px;border-radius:4px;font-family:'Space Grotesk',sans-serif}
 .dr-slots-row{display:flex;flex-wrap:wrap;gap:.5rem}
 .dr-slot{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:default}
 .dr-doll svg{display:block}
 .dr-summary{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;border:3px solid var(--ink);border-radius:8px;padding:.7rem 1rem;font-size:1rem;margin-bottom:1.4rem}
 .dr-summary strong{font-weight:700}
-.dr-summary--ok{background:var(--ok);color:#fff}
-.dr-summary--off{background:var(--pink)}
-.dr-imbalance{font-style:italic;opacity:.85}
-.dr-balanced{font-style:italic}
-.dr-reflect{background:var(--paper);border:2px solid var(--ink);border-radius:8px;padding:.9rem 1.1rem;margin-bottom:1.6rem;font-size:.95rem;line-height:1.6}
-.dr-reflect p{max-width:none}
+.dr-summary{background:var(--paper)}
+.dr-none{font-family:'VT323',monospace;font-size:1.6rem;color:var(--ink-soft);padding:.6rem .4rem}
 .dr-btn-primary{font-family:'VT323',monospace;font-size:1.5rem;background:var(--ink);color:var(--water);border:3px solid var(--ink);border-radius:6px;padding:.45rem 1.4rem .35rem;cursor:pointer;letter-spacing:.05em;transition:background .15s,color .15s}
 .dr-btn-primary:hover{background:var(--water-deep);color:var(--ink)}
 

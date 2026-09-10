@@ -1,17 +1,18 @@
 /* ==========================================================================
    POOL OF EXPERTS — game.js
-   Flow: intro → brief → ONE selection (grid + field checklist) → letter → pool reveal → outro
-   The former second round ("applications under pressure") is gone; the
-   correction loop under pressure is built in step 4. The pressure-event
-   screens (kitchen, press, holiday, abroad enquiry) are kept below for that.
+   Flow: intro → brief → ONE selection (grid + field checklist) → letter →
+         pool reveal → the outside world reacts → the brief again, one line marked
+         → three ways (repair under
+         pressure / sit it out / fund something alongside) → … → outro
+   The former second round ("applications under pressure") is gone. Its
+   pressure-event screens (kitchen, press, holiday, abroad enquiry) are
+   parked below, unreachable, until a later step decides on them.
    Load order (index.html): data.js → rules.js → art.js → game.js.
      data.js  — the 26 profiles, criteria, Vienna mails
      rules.js — money (WEEK_COST, JURY_SIZE, …), brief terms, fields, measures
      art.js   — every SVG illustration
    The former draft-*.js monkey-patches are merged in here.
    ========================================================================== */
-
-const WOMEN_TARGET = 5, MEN_TARGET = 5;   // the prepared 50:50 structure
 
 const PHASES = [
   ["intro",  "Start"],
@@ -31,12 +32,19 @@ const state = {
   // the fourth position is the point. The reveal re-renders exactly this.
   briefTerms:BRIEF_TERMS.map(t=>t.key),
 
+  // after the board is public: how the outside world reacted, what you did about it
+  reactionTier:null,           // 0..3, see REACTIONS
+  chamberOk:true,              // false when no woman sits on the board (CHAMBER_RULE)
+  response:null,               // "repair" | "sitout" | "compensate"
+  compensation:null,           // key from COMPENSATIONS
+  repairing:false, repairBase:[], repairSwaps:0,
+
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
   delayWeeks:0, extensions:0, rep:100,
   hudSeen:{ time:false, rep:false },   // gauges appear once their dimension matters
 
-  // pressure events (re-wired in step 4)
+  // parked pressure events
   candidates:[],
   kitchenShown:false, holidayShown:false, foreignersShown:false,
 };
@@ -73,12 +81,13 @@ function renderPhasebar(){
 function go(screen){
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
-     reveal:rReveal, outro:rOutro, reflect:rReflect })[screen]();
+     reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
+     outro:rOutro, reflect:rReflect })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","outro","reflect"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","outro","reflect"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","outro","reflect"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","outro","reflect"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -274,6 +283,11 @@ function rPhase1(){
   stage.appendChild(briefMail({ctaLabel:"Start choosing", onCta:()=>renderHandPick()}));
 }
 
+/* Also the repair screen: with state.repairing the grid opens pre-filled with
+   the current board, and every replacement costs REPAIR_WEEKS of delay. */
+const REPAIR_WEEKS = 2;
+function repairSwaps(){ return [...state.selected].filter(id=>!state.repairBase.includes(id)).length; }
+
 function renderHandPick(){
   stage.innerHTML="";
   if(state.order.length===0) state.order=shuffle(PROFILES.map(p=>p.id));
@@ -289,7 +303,9 @@ function renderHandPick(){
   const list=bar.querySelector("#checklist");
   FIELDS.forEach(f=>list.appendChild(el(`<span class="field" data-k="${f.key}" title="${f.note}"><i></i>${f.label}</span>`)));
 
-  stage.appendChild(el(`<p class="hint wide">The brief requires all six fields to be covered. Tap a card to add or remove someone.</p>`));
+  stage.appendChild(el(state.repairing
+    ? `<p class="hint wide">Replace whoever you want. Every replacement means a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} each. The six fields still have to be covered.</p>`
+    : `<p class="hint wide">The brief requires all six fields to be covered. Tap a card to add or remove someone.</p>`));
   const grid=el(`<div class="grid" id="grid"></div>`);
   state.order.forEach(id=>grid.appendChild(makeCard(byId(id))));
   stage.appendChild(grid);
@@ -336,10 +352,18 @@ function refreshSel(){
   document.getElementById("cnt").textContent=n;
   const cov=coverageOf(state.selected), missing=missingFields(state.selected);
   document.querySelectorAll("#checklist .field").forEach(f=>f.classList.toggle("ok",!!cov[f.dataset.k]));
-  document.getElementById("fees").innerHTML=`Fees <b>${eur(feesOf(state.selected))}</b><small>budget ${eur(state.budget)}</small>`;
   const c=document.getElementById("confirm");
   const ready = n===JURY_SIZE && missing.length===0;
   c.disabled=!ready;
+  if(state.repairing){
+    const sw=repairSwaps(), delta=feesOf(state.selected)-feesOf(new Set(state.repairBase));
+    document.getElementById("fees").innerHTML=`Delay <b>+${sw*REPAIR_WEEKS} weeks · ${eur(sw*REPAIR_WEEKS*WEEK_COST)}</b><small>fees ${delta>=0?"+":"−"}${eur(Math.abs(delta))} · budget ${eur(state.budget)}</small>`;
+    c.textContent = !ready ? (n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more` : `${missing.length} field${missing.length>1?"s":""} not covered`)
+                  : sw===0 ? "Keep the board as it is"
+                  : `Confirm ${sw} replacement${sw>1?"s":""} (+${sw*REPAIR_WEEKS}w)`;
+    return;
+  }
+  document.getElementById("fees").innerHTML=`Fees <b>${eur(feesOf(state.selected))}</b><small>budget ${eur(state.budget)}</small>`;
   c.textContent = ready ? "Confirm jury"
                 : n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more`
                 : `${missing.length} field${missing.length>1?"s":""} not covered`;
@@ -353,15 +377,151 @@ function flashFull(){
 /* Confirming is the moment the money moves: fees leave the budget, category "experts". */
 function onConfirmHandPick(){
   if(state.selected.size!==JURY_SIZE || missingFields(state.selected).length) return;
+  if(state.repairing){
+    const sw=repairSwaps();
+    spend("experts",feesOf(state.selected)-feesOf(new Set(state.repairBase)));
+    if(sw>0) hudAddDelay(sw*REPAIR_WEEKS);
+    state.invited=[...state.selected]; state.repairSwaps=sw; state.repairing=false;
+    go("repaired"); return;
+  }
   state.invited=[...state.selected];
   spend("experts",feesOf(state.selected));
   go("confirm");
 }
 
 /* ========================================================================
-   PRESSURE EVENTS — kept from the old second round, currently unreachable.
-   Step 4 (the correction loop) wires them back in; their go("apps") targets
-   are placeholders until then.
+   THE OUTSIDE WORLD REACTS — press, district council, press conference.
+   Not the game, not a rule: people look at the photo and count. Always
+   happens; only the volume scales with the count. No verdict from the game.
+   ======================================================================== */
+const REACTIONS = [
+  { min:0, rep:-30, masthead:"KRONEN ZEITUNG", mastColor:"#d81e2c", paper:"#fffdf6",
+    line:w=>[ "Alte WU: Neun Köpfe,", w===0?"keine einzige Frau":"eine einzige Frau" ],
+    sub:"Bezirksrat Alsergrund fordert Aufklärung vom Wettbewerbsbüro.",
+    feed:["Kronen Zeitung", "Alte WU: Neun Köpfe, kaum Frauen"],
+    voices:[
+      ["Page one", "The photo from the first session runs on the front page. Nine chairs. The caption counts them."],
+      ["District council", "A councillor tables a question for the next Alsergrund district council: on what basis the board was composed."],
+      ["Press conference", "At the project press conference, the first question is not about the building."],
+    ]},
+  { min:2, rep:-18, masthead:"derStandard", mastColor:"#7a3b8f", paper:"#fbe9df",
+    line:w=>[ "Wer entscheidet über", "die neue Alte WU?" ],
+    sub:"Kommentar: Ein Beirat, der aussieht wie die Branche – zwei Frauen, sieben Männer.",
+    feed:["Der Standard", "Wer entscheidet über die neue Alte WU?"],
+    voices:[
+      ["Commentary", "A columnist runs the numbers of your board next to the numbers of the profession. They match. That is her point."],
+      ["Press conference", "Two questions on the composition of the board, one on the building."],
+    ]},
+  { min:3, rep:-8, masthead:"FALTER", mastColor:"#2e7d4f", paper:"#fffdf6",
+    line:w=>[ "Beirat für die Alte WU", "steht – mit Fragen" ],
+    sub:"Drei Frauen, sechs Männer: Bezirksrätin will wissen, wer die Auswahl getroffen hat.",
+    feed:["Falter", "Beirat für die Alte WU steht – mit Fragen"],
+    voices:[
+      ["District council", "A councillor asks, in writing, who selected the board and by which criteria. The answer is due in four weeks."],
+      ["Press conference", "One question on the composition. You answer it; the next question is about the trees."],
+    ]},
+  { min:4, rep:-3, masthead:"derStandard", mastColor:"#7a3b8f", paper:"#fbe9df",
+    line:w=>[ "Alte WU: Beirat", "komplett besetzt" ],
+    sub:"Neun Fachleute entscheiden über den Entwurf. Erste Sitzung im Herbst.",
+    feed:["Der Standard", "Alte WU: Beirat komplett besetzt"],
+    voices:[
+      ["Local pages", "A short report on page 12. The photo shows nine people and the old slab behind them."],
+      ["Press conference", "Someone asks how the board came about. You say: by the brief. That is the end of it."],
+    ]},
+];
+function reactionFor(w){ let t=REACTIONS[0]; REACTIONS.forEach((r,i)=>{ if(w>=r.min) t=REACTIONS[i]; }); return t; }
+
+function rReaction(){
+  const {w}=countInvited();
+  const r=reactionFor(w);
+  if(state.reactionTier===null){          // effects only once
+    state.reactionTier=REACTIONS.indexOf(r);
+    state.chamberOk = w>0;
+    hudAddRep(r.rep);
+    hudFeed(r.feed[0], r.feed[1]);
+  }
+  const [l1,l2]=r.line(w);
+  const svg=newspaper({masthead:r.masthead,mastColor:r.mastColor,paper:r.paper,line1:l1,line2:l2,sub:r.sub});
+  const voices=r.voices.map(([who,txt])=>`<div class="voice"><b>${who}</b><p>${txt}</p></div>`).join("");
+  const chamber = state.chamberOk ? "" : `<div class="voice chamber"><b>Chamber of Architects</b><p>${NON_COMPLIANCE.chamber}</p></div>`;
+  stage.innerHTML="";
+  const card=el(`<div class="appcard wide">
+    <span class="badge">The week after the first session</span>
+    <div class="art">${svg}</div>
+    <h2>The board is public</h2>
+    <div class="voices">${voices}${chamber}</div>
+    <div class="btnbar mt"><button class="btn" id="rx-go">What now?</button></div>
+  </div>`);
+  stage.appendChild(card);
+  document.getElementById("rx-go").onclick=()=>go("briefreveal");
+}
+
+/* ---------- three ways, none of them required ---------- */
+function rOptions(){
+  stage.innerHTML="";
+  const wrap=el(`<div class="slide wide">
+    <h1>Three ways to go on</h1>
+    <p class="lede">Nobody can make you do anything. Each of these is your choice, and each costs something different.</p>
+    <div class="ways">
+      <div class="way">
+        <h3>Reopen the search</h3>
+        <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} in delay costs, plus the difference in fees.</p>
+        <button class="btn" id="opt-repair">Back to the selection</button>
+      </div>
+      <div class="way">
+        <h3>Sit it out</h3>
+        <p>The board stays. The story runs for another week or two and then something else happens. It costs nothing now.</p>
+        <button class="btn ghost" id="opt-sit">Keep the board, carry on</button>
+      </div>
+      <div class="way">
+        <h3>Do something alongside</h3>
+        <p>The board stays. You fund a measure next to it. Pick one:</p>
+        <div class="comp" id="comp"></div>
+      </div>
+    </div>
+  </div>`);
+  const comp=wrap.querySelector("#comp");
+  COMPENSATIONS.forEach(c=>{
+    const b=el(`<button class="btn ghost compbtn" data-k="${c.key}">${c.label}<span class="cost">${eur(c.cost)} · ${c.desc}</span></button>`);
+    if(c.cost>state.budget){ b.disabled=true; b.title="Not enough budget left"; }
+    b.onclick=()=>{
+      state.response="compensate"; state.compensation=c.key;
+      spend("compensation",c.cost); hudAddRep(c.rep);
+      if(c.key==="substitute") state.chamberOk=true;
+      hudFeed("Stadt Wien", `${c.label}.`);
+      go("outro");   // → map once station screen exists (step 6)
+    };
+    comp.appendChild(b);
+  });
+  stage.appendChild(wrap);
+  document.getElementById("opt-repair").onclick=()=>{
+    state.response="repair"; state.repairing=true; state.repairBase=[...state.invited]; state.selected=new Set(state.invited);
+    state.screen="p1"; renderPhasebar(); renderHUD(); stage.scrollTop=0; renderHandPick();
+  };
+  document.getElementById("opt-sit").onclick=()=>{
+    state.response="sitout"; hudAddRep(-10);
+    hudFeed("Newsroom", "The story runs a second week.");
+    go("outro");   // → map (step 6)
+  };
+}
+
+function rRepaired(){
+  stage.innerHTML="";
+  const sw=state.repairSwaps;
+  const list=state.invited.map(id=>{const p=byId(id);const isNew=!state.repairBase.includes(id);return `<li>${p.name} — ${p.spec}${isNew?' <small>new</small>':''}</li>`;}).join("");
+  stage.appendChild(el(`<div class="slide">
+    <h1>Board revised</h1>
+    <p class="lede">${sw===0 ? "You kept the board as it was. Nothing changed, nothing was spent."
+      : `${sw} member${sw>1?"s":""} replaced. The new search took ${sw*REPAIR_WEEKS} weeks — ${eur(sw*REPAIR_WEEKS*WEEK_COST)} in delay costs. Fees now ${eur(state.spend.experts)}.`}</p>
+    <div class="verdict"><ul>${list}</ul></div>
+    <div class="btnbar"><button class="btn" id="rp-go">Carry on</button></div>
+  </div>`));
+  document.getElementById("rp-go").onclick=()=>go("outro");   // → map (step 6)
+}
+
+/* ========================================================================
+   PRESSURE EVENTS — kept from the old second round, currently unreachable
+   (not in go()'s map). Their go("apps") targets are placeholders.
    ======================================================================== */
 /* ---------- Teeküche ---------- */
 function rKitchen(){
@@ -557,54 +717,65 @@ function rIntermezzo(){
 }
 
 /* ---------- the pool reveal (ex draft-reveal.js) ---------- */
-function makeLane(label,count,target){
-  const slots=Math.max(count,target), overflow=Math.max(0,count-target), missing=Math.max(0,target-count);
+/* One row of changing-room cabins: exactly as many as there are people.
+   No prepared seats, no overflow, no verdict — the two rows next to each
+   other are the whole picture. */
+function makeLane(label,count){
   let figures="";
-  for(let i=0;i<slots;i++){
-    const isOverflow=i>=target, isEmpty=i>=count;
-    figures+=`<div class="dr-slot" title="${isEmpty?"Empty":(isOverflow?"No cabin left":"Taken")}">
-      ${_cabinIcon(i+1)}
-      <div class="dr-doll">${_paperDoll({overflow:isOverflow&&!isEmpty,empty:isEmpty})}</div>
-    </div>`;
+  for(let i=0;i<count;i++){
+    figures+=`<div class="dr-slot">${_cabinIcon(i+1)}<div class="dr-doll">${_paperDoll()}</div></div>`;
   }
-  const note = overflow>0 ? `<span class="dr-overflow-note">+${overflow} without a cabin</span>`
-             : missing>0  ? `<span class="dr-missing-note">${missing} cabin${missing>1?"s":""} empty</span>`
-             :              `<span class="dr-ok-note">Perfectly filled</span>`;
+  if(count===0) figures=`<span class="dr-none">—</span>`;
   return `<div class="dr-lane">
-    <div class="dr-lane-label">${label} ${note}</div>
+    <div class="dr-lane-label">${label}</div>
     <div class="dr-slots-row">${figures}</div>
   </div>`;
 }
 
 function rReveal(){
   const {w,m}=countInvited();
-  const balanced = w===WOMEN_TARGET && m===MEN_TARGET;
-  const diff=Math.abs(w-m);
   stage.innerHTML="";
   const wrap=el(`<div class="dr-reveal">
       <h2 class="dr-title">Welcome to the Expert Pool.</h2>
       <div class="dr-venue-art">${POOLHALL_SVG}</div>
-      <p class="dr-subtitle">${WOMEN_TARGET+MEN_TARGET} cabins — ${WOMEN_TARGET} for women, ${MEN_TARGET} for men. Every seat was prepared.</p>
+      <p class="dr-subtitle">Thursday, 09:00. First session. Everyone finds their changing room.</p>
       <div class="dr-pool-grid">
-        ${makeLane("Cabins for women",w,WOMEN_TARGET)}
-        ${makeLane("Cabins for men",m,MEN_TARGET)}
+        ${makeLane("Women's changing rooms",w)}
+        ${makeLane("Men's changing rooms",m)}
       </div>
-      <div class="dr-summary ${balanced?"dr-summary--ok":"dr-summary--off"}">
-        <span>Your jury:</span>
+      <div class="dr-summary">
+        <span>Your board:</span>
         <strong>${w} ${w===1?"woman":"women"}</strong>
         <span>&amp;</span>
         <strong>${m} ${m===1?"man":"men"}</strong>
-        ${balanced ? `<span class="dr-balanced">— balanced ✓</span>` : `<span class="dr-imbalance">— ${diff} seat${diff!==1?"s":""} out of place</span>`}
       </div>
-      <div class="dr-reflect">
-        <p>The pool committee had planned the infrastructure for an even split —
-          cabins, name tags, towels, everything <em>five a side</em>.
-          Whoever didn't fit stood outside. Whoever was missing left empty seats.</p>
-      </div>
-      <button class="dr-btn-primary" id="dr-go">So… what happened? →</button>
+      <button class="dr-btn-primary" id="dr-go">Continue →</button>
     </div>`);
   stage.appendChild(wrap);
-  document.getElementById("dr-go").onclick=()=>go("outro");
+  document.getElementById("dr-go").onclick=()=>go("reaction");
+}
+
+/* ========================================================================
+   THE REVEAL — the same mail again, one line marked. Nothing else.
+   ======================================================================== */
+function rBriefReveal(){
+  const {w}=countInvited();
+  const need=Math.ceil(JURY_SIZE*0.25);
+  stage.innerHTML="";
+  const wrap=el(`<div class="slide wide">
+    <h1>That was in your briefing.</h1>
+    <div class="reveal-row">
+      <div class="reveal-mail"></div>
+      <div class="reveal-facts">
+        <div class="fact"><div class="n">${need}</div><div class="t">at least 25% of ${JURY_SIZE} jurors — term 4 of the brief</div></div>
+        <div class="fact"><div class="n">${w}</div><div class="t">${w===1?"woman":"women"} on your board</div></div>
+      </div>
+    </div>
+    <div class="btnbar"><button class="btn" id="br-go">What now?</button></div>
+  </div>`);
+  wrap.querySelector(".reveal-mail").appendChild(briefMail({highlight:"balance"}));
+  stage.appendChild(wrap);
+  document.getElementById("br-go").onclick=()=>go("options");
 }
 
 /* ========================================================================
@@ -710,6 +881,8 @@ function resetGame(){
   state.budget=BUDGET_START; state.spend=freshSpend();
   state.delayWeeks=0; state.extensions=0; state.rep=100;
   state.hudSeen={time:false,rep:false};
+  state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
+  state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
   state.candidates=[]; state.kitchenShown=false; state.holidayShown=false; state.foreignersShown=false;
   outroIdx=0; introStep=0;
   go("intro");
