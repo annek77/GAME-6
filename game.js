@@ -7,10 +7,10 @@
          neighbours & PR, four stations locked) → the ending (building, the
          real jury, three figures, sources)
    The former second round ("applications under pressure") is gone. Its
-   pressure-event screens (kitchen, press, holiday, abroad enquiry) are
-   parked below, unreachable, until a later step decides on them.
+   pressure-event screens live in parked-events.js (not loaded) for a later
+   disruptor step.
    Load order (index.html): data.js → rules.js → art.js → game.js.
-     data.js  — the 26 profiles, criteria, Vienna mails
+     data.js  — the 26 profiles and criteria
      rules.js — money (WEEK_COST, JURY_SIZE, …), brief terms, fields, measures
      art.js   — every SVG illustration
    The former draft-*.js monkey-patches are merged in here.
@@ -56,10 +56,6 @@ const state = {
   delayWeeks:0, extensions:0, rep:100,
   hudSeen:{ time:false, rep:false, progress:false },   // gauges appear once their dimension matters
   budgetOpen:false,            // the budget gauge unfolds into the spend chart
-
-  // parked pressure events
-  candidates:[],
-  kitchenShown:false, holidayShown:false, foreignersShown:false,
 };
 
 const stage = document.getElementById("stage");
@@ -155,29 +151,6 @@ document.getElementById("g-money").onclick=()=>{ state.budgetOpen=!state.budgetO
 function hudAddDelay(weeks){ state.delayWeeks+=weeks; state.hudSeen.time=true; spend("delay",weeks*WEEK_COST); hudFlash("g-time"); }
 function hudAddRep(delta){ state.rep=Math.max(0,Math.min(100,state.rep+delta)); state.hudSeen.rep=true; hudFlash("g-rep"); renderHUD(); }
 function hudFeed(src,text){ document.getElementById("feed").innerHTML=`<span class="src">${src}</span> — <b>${text}</b>`; }
-
-/* ---------- Vienna email helper ---------- */
-function viennaMail(which, ctaLabel, onCta, secondary){
-  const m = VIENNA[which];
-  const wrap = el(`<div>
-    <div class="mail">
-      <div class="from">
-        <div class="crest">WIEN</div>
-        <div class="who">Stadt Wien<small>Competition Office</small></div>
-      </div>
-      <div class="subject">${m.subject}</div>
-      <div class="body">${m.body}</div>
-    </div>
-    <div class="btnbar"></div>
-  </div>`);
-  const bar = wrap.querySelector(".btnbar");
-  if(secondary){
-    const s=el(`<button class="btn ghost">${secondary.label}</button>`);
-    s.onclick=secondary.onClick; bar.appendChild(s);
-  }
-  const c=el(`<button class="btn">${ctaLabel}</button>`); c.onclick=onCta; bar.appendChild(c);
-  return wrap;
-}
 
 /* ---------- The briefing mail — five terms, one voice, no emphasis ----------
    Texts come verbatim from BRIEF_TERMS (rules.js); every one carries a source
@@ -561,114 +534,6 @@ function rRepaired(){
 }
 
 /* ========================================================================
-   PRESSURE EVENTS — kept from the old second round, currently unreachable
-   (not in go()'s map). Their go("apps") targets are placeholders.
-   ======================================================================== */
-/* ---------- Teeküche ---------- */
-function rKitchen(){
-  stage.innerHTML="";
-  const card=el(`<div class="appcard">
-    <span class="badge">The kitchenette</span>
-    <div class="art">${KITCHEN_SVG}</div>
-    <h2>A colleague has a tip</h2>
-    <p>Over coffee, a colleague leans in: "I know two brilliant people — want me to put them forward?" It would bring you two more applicants. It would also look a lot like an inside job.</p>
-    <div class="btnbar col mt">
-      <button class="btn" id="k-take">Take the tip<span class="cost">+2 applicants · reputation takes a hit</span></button>
-      <button class="btn ghost" id="k-decline">Decline — keep it clean<span class="cost">no new applicants</span></button>
-    </div>
-  </div>`);
-  stage.appendChild(card);
-  document.getElementById("k-take").onclick=()=>{
-    const seen=new Set(state.candidates.map(p=>p.id));
-    const extra=shuffle(PROFILES.filter(p=>p.gender==="woman" && !seen.has(p.id))).slice(0,2);
-    state.candidates=state.candidates.concat(extra);
-    state.kitchenShown=true;
-    hudAddRep(-25);
-    hudFeed("Krone","Freunderlwirtschaft bei der Alten WU?");
-    go("kronepress");
-  };
-  document.getElementById("k-decline").onclick=()=>{ state.kitchenShown=true; go("apps"); };
-}
-
-function rKronepress(){
-  stage.innerHTML="";
-  const card=el(`<div class="appcard">
-    <span class="badge">The press picks it up</span>
-    <div class="art">${KRONE_SVG}</div>
-    <h2>The headline is out</h2>
-    <p>The cronyism story is spreading. You can bring in a crisis-PR agency to calm it down — or ride it out and risk losing people.</p>
-    <div class="btnbar col mt">
-      <button class="btn" id="kp-pr">Hire crisis PR<span class="cost">+2 weeks delay · reputation recovers</span></button>
-      <button class="btn ghost" id="kp-ride">Ride it out<span class="cost">a qualified woman withdraws</span></button>
-    </div>
-  </div>`);
-  stage.appendChild(card);
-  document.getElementById("kp-pr").onclick=()=>{
-    hudAddDelay(2); hudAddRep(20);
-    hudFeed("Stadt Wien","Statement issued. The story cools down.");
-    go("apps");
-  };
-  document.getElementById("kp-ride").onclick=()=>{
-    const wIdx=state.candidates.findIndex((p,i)=>i>=state.idx && p.gender==="woman");
-    if(wIdx>=0) state.candidates.splice(wIdx,1);
-    hudAddRep(-10);
-    hudFeed("Inbox","“Given the press, I’m withdrawing my application.”");
-    go("apps");
-  };
-}
-
-/* ---------- Holiday ---------- */
-function rHoliday(){
-  stage.innerHTML="";
-  const card=el(`<div class="appcard">
-    <span class="badge">Summer at the Alte Donau</span>
-    <div class="art">${ALTEDONAU_SVG}</div>
-    <h2>Holiday season</h2>
-    <p>Half of Vienna is out at the Alte Donau. Replies trickle in slowly and decisions stall. Nothing you did — just the calendar.</p>
-    <div class="btnbar col mt">
-      <button class="btn" id="h-wait">Wait it out<span class="cost">+2 weeks delay</span></button>
-    </div>
-  </div>`);
-  stage.appendChild(card);
-  document.getElementById("h-wait").onclick=()=>{
-    state.holidayShown=true;
-    hudAddDelay(2);
-    hudFeed("Stadt Wien","Holiday season slows every reply. Two weeks lost.");
-    go("apps");
-  };
-}
-
-function rForeigners(){
-  stage.innerHTML="";
-  stage.appendChild(viennaMail("foreigners","Understood",()=>rForeignersPress()));
-}
-/* newspaper fallout after the abroad enquiry. Sets foreignersShown here —
-   without it afterDecision() would re-fire this screen after every decision. */
-function rForeignersPress(){
-  state.foreignersShown=true;
-  hudAddDelay(2);
-  hudAddRep(-15);
-  hudFeed("Kronen Zeitung","Jury-Suche: Woher kommen die Experten?");
-  const FOREIGNERS_SVG=newspaper({masthead:"KRONEN ZEITUNG",mastColor:"#d81e2c",paper:"#fffdf6",
-    line1:"Wettbewerbsbüro sucht",line2:"Experten im Ausland?",
-    sub:"Jury-Suche für Alte WU: Keine geeigneten Österreicher gefunden?"});
-  stage.innerHTML="";
-  const card=el(`<div class="appcard">
-    <span class="badge">In the press</span>
-    <div class="art">${FOREIGNERS_SVG}</div>
-    <h2>It made the morning paper</h2>
-    <p>A report speculates about why the jury search is stalling.
-       No accusation — but the question is out there now. The enquiry
-       cost two weeks, and gained nothing.</p>
-    <div class="btnbar col mt">
-      <button class="btn" id="fp-close">Close</button>
-    </div>
-  </div>`);
-  stage.appendChild(card);
-  document.getElementById("fp-close").onclick=()=>go("apps");
-}
-
-/* ========================================================================
    CONFIRM → INTERMEZZO → POOL REVEAL
    ======================================================================== */
 function rConfirm(){
@@ -1010,7 +875,6 @@ function resetGame(){
   state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
   state.stations=freshStations(); state.prAction=null;
-  state.candidates=[]; state.kitchenShown=false; state.holidayShown=false; state.foreignersShown=false;
   outroIdx=0; introStep=0;
   go("intro");
 }

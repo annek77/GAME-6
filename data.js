@@ -184,32 +184,3 @@ const PROFILES = [
     bio:"Passive solar utilisation and transparent, intelligent envelopes. Fusion of outdoor space, daylight and interior.",
     sig:{ availability:2, assertiveness:2, prestige:3, seniority:2, publicValue:3 } },
 ];
-
-/* City-of-Vienna narrator messages for the new flow:
-   hand-pick → applications under pressure → pool reveal. No more "assistant". */
-const VIENNA = {
-  phase1: {
-    subject:"New jury commission — the Old WU site",
-    body:"Dear partner, the City of Vienna is delighted to entrust you with the jury for our Old WU competition. Please assemble nine excellent experts. Take your time — quality first. Warm regards, Stadt Wien.",
-  },
-  applications: {
-    subject:"The official call has opened",
-    body:"Wonderful start! We've now opened the formal public call, so candidates apply one by one and you review each in turn. A heads-up: the applicant field skews heavily male — that's the reality of the profession, not your doing. There's also a deadline. Do your best. Stadt Wien.",
-  },
-  deadline: {
-    subject:"Deadline approaching",
-    body:"A gentle reminder that the application window is closing. You may extend the call to wait for more applicants — but every extension delays the project start and adds cost. Your decision. Stadt Wien.",
-  },
-  quota: {
-    subject:"Equal-representation guidelines",
-    body:"For the record, our guidelines target a 50/50 jury. We know that's hard given who actually applies — so this is not a reproach to you. We simply have to note it. Stadt Wien.",
-  },
-  foreigners: {
-    subject:"May we invite experts from abroad?",
-    body:"You ask the City whether the pool could be widened to architects from outside Austria. The answer takes two weeks to come back: the call is restricted to the existing pool. No. Stadt Wien.",
-  },
-  moremen: {
-    subject:"May we relax the balance target?",
-    body:"You ask whether the 50/50 guideline could be set aside — simply fill the jury with whoever applied. That, too, has consequences. The city will need to officially respond, and the press will notice. Stadt Wien.",
-  },
-};
