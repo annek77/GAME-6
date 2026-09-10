@@ -27,15 +27,27 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
 - **Teste laufend mit**, nicht erst am Schluss. Nach jedem Abschnitt: `node --check`
   auf die geänderten Dateien, plus eine Logik-Simulation der Screen-Kette.
   Nichts gilt als fertig, bevor es einmal durchgelaufen ist.
-- **Commit nach jedem abgeschlossenen Punkt**, mit sprechender Nachricht.
-  Das Repo liegt lokal in `GAME 6/`.
+- **Führe keine Git-Befehle aus.** Das Repo liegt in einem verbundenen
+  Windows-Ordner; Git aus der Linux-Sandbox hinterlässt dort Lock-Dateien, die
+  sich nicht mehr entfernen lassen und jeden weiteren Git-Befehl blockieren.
+  Sag mir stattdessen nach jedem fertigen Punkt **einen Satz für die
+  Commit-Nachricht** — ich committe und pushe selbst über GitHub Desktop.
+
+## Umgebung
+
+- Repo: `annek77/GAME-6`, Branch `master`, öffentlich.
+- Live unter **https://annek77.github.io/GAME-6/** — ein bis zwei Minuten nach
+  jedem Push. Das ist der Link, der abgegeben wird.
+- Lokaler Pfad: `C:\Users\annek\Games\Pool of experts\GAME 6`
+- Das Spiel läuft rein statisch, kein Build, kein Backend.
 
 ## Der Auftrag, in dieser Reihenfolge
 
 1. **Aufräumen.** Die vier `draft-*.js` sind Monkey-Patches, die Funktionen aus
    `game.js` überschreiben — die Reihenfolge der `<script>`-Tags entscheidet, was
-   gilt. Das in saubere Dateien auflösen. `art.js` und `rules.js` sind schon
-   angelegt und eingebunden werden. `draft-intro.js` ist tot und kann weg.
+   gilt. Das in saubere Dateien auflösen. **`art.js` und `rules.js` liegen schon
+   im Ordner, sind aber noch nirgends eingebunden** — das gehört zu diesem
+   Punkt. `draft-intro.js` ist tot und kann weg.
    `draft-sound.js` ist ein funktionierender Web-Audio-Layer ohne externe
    Dateien — behalten, aber noch nicht einbinden. CSS aus den
    `innerHTML`-Strings ins Stylesheet ziehen.
@@ -71,6 +83,13 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
    hängt am Restbudget (`FINISH_TIERS`). Dazu die zwei Fakten nebeneinander:
    die Ausgleichsmaßnahme und die Zusammensetzung des Beirats — ohne Kommentar.
 
+9. **Einmal komplett durchspielen**, jeden Pfad: mit und ohne Reparatur, mit
+   Freikauf, mit Aussitzen, Budget knapp und Budget üppig. Keine Sackgassen,
+   kein Screen, der zweimal feuert, HUD-Werte konsistent.
+
+Wenn die Zeit knapp wird, hat **Punkt 8 Vorrang vor Politur** — ein Spiel ohne
+Ende ist schlechter als eines mit rauen Kanten.
+
 ## Die wichtigste inhaltliche Regel
 
 Das Spiel darf das Thema **vor dem Reveal nicht benennen**. Keine „Quote", keine
@@ -82,6 +101,13 @@ Der Konflikt im Spiel ist **buchhalterisch, nicht moralisch**: Das Gesetz
 verlangt Ausgewogenheit, die Zahlen geben sie nicht her, die Öffentlichkeit
 schaut zu. Man kann das nicht lösen, nur bezahlen — und das Geld fehlt später
 beim Bauen. Das Spiel urteilt nie über die Spielerin.
+
+## Was nicht deine Aufgabe ist
+
+Erfinde keine neuen Mechaniken dazu. Abschnitt 10 der Konzeptdoku listet die
+offenen Punkte — Disruptor-Verteilung, Profil-Audit, unbelegte Zahlen im Outro,
+Audio, Quellenseite, Settings. Die sind bekannt und **nicht** Teil dieses
+Auftrags. Wenn dir beim Bauen etwas davon in die Quere kommt, sag es mir.
 
 ## Fang so an
 
