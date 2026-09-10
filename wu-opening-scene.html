@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pool of Experts — Opening</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --water:#a3e5f7; --water-deep:#5cb9da; --ui:#d7f4ff; --ui-head:#70cbe8;
+  --pink:#ffc2df; --pink-card:#ffe1ef; --tile:#9ae2f6;
+  --gold:#ffcf4d; --gold-deep:#e8a200; --warn:#ff8a5c; --danger:#e8526b;
+  --ink:#143041; --ink-soft:#3a6378; --paper:#fffdf6; --ok:#4fb286; --line:#bfe0ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif; color:var(--ink);
+  background:var(--water);
+  background-image:
+    radial-gradient(circle at 18% 28%, rgba(255,255,255,.32) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 62%, rgba(255,255,255,.22) 0 2px, transparent 3px),
+    linear-gradient(rgba(255,255,255,.12) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255,255,255,.12) 2px, transparent 2px);
+  background-size:170px 170px,210px 210px,36px 36px,36px 36px;
+  min-height:100vh; display:flex; flex-direction:column;
+}
+img{image-rendering:pixelated}
+
+.frame{
+  width:min(1120px,95vw); margin:22px auto; flex:1;
+  background:rgba(215,244,255,.72); border:5px solid var(--ink);
+  border-radius:18px; box-shadow:14px 14px 0 rgba(20,48,65,.18);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.titlebar{
+  font-family:'VT323',monospace; background:var(--ui);
+  border-bottom:5px solid var(--ink); padding:8px 18px;
+  display:flex; align-items:center; gap:12px; letter-spacing:1px;
+}
+.titlebar .logo{font-size:30px;line-height:1}
+.titlebar .tag{font-size:17px;color:var(--ink-soft);margin-left:2px}
+.titlebar .dots{margin-left:auto;display:flex;gap:7px}
+.titlebar .dots i{width:15px;height:15px;border:2px solid var(--ink);border-radius:50%;background:#fff}
+.titlebar .dots i:last-child{background:var(--danger)}
+
+.stage{flex:1;padding:26px clamp(16px,4vw,40px);overflow-y:auto}
+
+h1{font-family:'VT323',monospace;font-size:clamp(34px,6vw,58px);line-height:.95;letter-spacing:1px;margin-bottom:14px}
+h2{font-family:'VT323',monospace;font-size:clamp(24px,4vw,38px);margin-bottom:10px}
+.lede{font-size:18px;max-width:60ch;line-height:1.5;color:var(--ink-soft);margin-bottom:8px}
+p{line-height:1.55;max-width:64ch}
+.spacer{height:16px}
+
+.btn{
+  font-family:'VT323',monospace; font-size:24px; letter-spacing:1px; cursor:pointer;
+  background:var(--gold); border:4px solid var(--ink); border-radius:10px;
+  padding:8px 26px; box-shadow:5px 5px 0 var(--ink); transition:transform .05s,box-shadow .05s;
+}
+.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink)}
+.btn:disabled{cursor:not-allowed;opacity:.45;background:#cfe6ef;box-shadow:5px 5px 0 rgba(20,48,65,.3)}
+.btn.ghost{background:var(--ui)}
+.btnbar{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px;align-items:center}
+
+.slide{max-width:64ch}
+.art{border:3px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:16px;box-shadow:4px 4px 0 rgba(20,48,65,.14)}
+.art svg{display:block;width:100%;height:auto}
+
+.beatlabel{font-family:'VT323',monospace;font-size:18px;color:var(--ink-soft);letter-spacing:1px;margin-bottom:4px}
+
+/* beat progress dots */
+.dotnav{display:flex;gap:8px;margin-top:22px}
+.dotnav i{width:12px;height:12px;border:2px solid var(--ink);border-radius:50%;background:#fff}
+.dotnav i.on{background:var(--ink)}
+
+/* gentle entrance */
+.fadein{animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+@media (max-width:560px){
+  .frame{width:97vw;margin:10px auto}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="titlebar">
+    <span class="logo">◍ POOL OF EXPERTS</span>
+    <span class="tag"></span>
+    <span class="dots"><i></i><i></i><i></i></span>
+  </div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+/* ==========================================================================
+   POOL OF EXPERTS — opening story scene (standalone)
+   Multi-beat place-setter for the Alte WU (Augasse, Alsergrund) before any
+   mechanic starts. Ends on a CTA that hands off exactly like game.js's intro.
+   NO theme spoilers: no "bias", "gender", "discrimination", "quota", ratios.
+   ========================================================================== */
+
+const stage = document.getElementById("stage");
+function el(h){const t=document.createElement("template");t.innerHTML=h.trim();return t.content.firstElementChild;}
+
+/* ---------- SVG art: the Alte WU over the railway (flat, thick-ink, limited palette) ----------
+   Style matched to demo-pressure-hud.html / game.js: stroke #143041 width 3,
+   stroke-linejoin/linecap round, palette = --water/--water-deep/--gold/--paper/--ok/--ink. */
+const ALTEWU_SVG = `<svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The old WU campus: a long concrete building raised on a platform over the railway tracks of the Franz-Josefs-Bahnhof, Augasse, Vienna">
+  <rect x="0" y="0" width="620" height="240" fill="#d6f0fb" stroke="none"/>
+  <circle cx="548" cy="36" r="20" fill="#ffcf4d" stroke="#143041" stroke-width="3"/>
+  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- distant Gründerzeit rooftops of the Augasse -->
+    <g fill="#cfe6ef">
+      <rect x="20" y="78" width="34" height="34"/>
+      <path d="M20 78 l17 -14 l17 14 z"/>
+      <rect x="60" y="84" width="30" height="28"/>
+      <path d="M60 84 l15 -12 l15 12 z"/>
+    </g>
+    <!-- the platform ("die Platte") raised over the tracks -->
+    <rect x="0" y="112" width="620" height="14" fill="#9fb6c0"/>
+    <!-- the long concrete slab building (UZA 1) -->
+    <rect x="70" y="40" width="480" height="72" fill="#e7edf0"/>
+    <!-- grid of windows -->
+    <g fill="#a3e5f7" stroke-width="2">
+      <rect x="88" y="52" width="22" height="18"/><rect x="120" y="52" width="22" height="18"/>
+      <rect x="152" y="52" width="22" height="18"/><rect x="184" y="52" width="22" height="18"/>
+      <rect x="216" y="52" width="22" height="18"/><rect x="248" y="52" width="22" height="18"/>
+      <rect x="280" y="52" width="22" height="18"/><rect x="312" y="52" width="22" height="18"/>
+      <rect x="344" y="52" width="22" height="18"/><rect x="376" y="52" width="22" height="18"/>
+      <rect x="408" y="52" width="22" height="18"/><rect x="440" y="52" width="22" height="18"/>
+      <rect x="472" y="52" width="22" height="18"/><rect x="504" y="52" width="22" height="18"/>
+      <rect x="88" y="80" width="22" height="18"/><rect x="120" y="80" width="22" height="18"/>
+      <rect x="152" y="80" width="22" height="18"/><rect x="184" y="80" width="22" height="18"/>
+      <rect x="216" y="80" width="22" height="18" fill="#fffdf6"/><rect x="248" y="80" width="22" height="18"/>
+      <rect x="280" y="80" width="22" height="18"/><rect x="312" y="80" width="22" height="18" fill="#fffdf6"/>
+      <rect x="344" y="80" width="22" height="18"/><rect x="376" y="80" width="22" height="18"/>
+      <rect x="408" y="80" width="22" height="18"/><rect x="440" y="80" width="22" height="18" fill="#fffdf6"/>
+      <rect x="472" y="80" width="22" height="18"/><rect x="504" y="80" width="22" height="18"/>
+    </g>
+    <!-- concrete support pillars carrying the slab down to track level -->
+    <rect x="96" y="126" width="20" height="78" fill="#cdd9df"/>
+    <rect x="216" y="126" width="20" height="78" fill="#cdd9df"/>
+    <rect x="336" y="126" width="20" height="78" fill="#cdd9df"/>
+    <rect x="456" y="126" width="20" height="78" fill="#cdd9df"/>
+    <!-- the active goods railway running underneath -->
+    <rect x="0" y="204" width="620" height="36" fill="#bcdfe9"/>
+    <g stroke="#3a6378" stroke-width="2">
+      <line x1="0" y1="214" x2="620" y2="214"/>
+      <line x1="0" y1="230" x2="620" y2="230"/>
+    </g>
+    <!-- a small train passing through the shadow under the platform -->
+    <rect x="150" y="180" width="120" height="24" rx="4" fill="#5cb9da"/>
+    <rect x="160" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
+    <rect x="186" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
+    <rect x="212" y="186" width="20" height="12" rx="2" fill="#fffdf6"/>
+    <circle cx="172" cy="206" r="5" fill="#143041"/>
+    <circle cx="248" cy="206" r="5" fill="#143041"/>
+    <!-- a lone tree of the Augasse, surviving at the edge -->
+    <line x1="586" y1="204" x2="586" y2="150"/>
+    <circle cx="586" cy="140" r="16" fill="#6fc08c"/>
+  </g>
+</svg>`;
+
+/* ---------- the beats ----------
+   3-5 short narrative beats: building, history, the people who passed through,
+   the neighbourhood, and the fact that its future is being decided now. */
+const BEATS = [
+  {
+    label:"AUGASSE · 9th DISTRICT",
+    art: ALTEWU_SVG,
+    h:"There is a building over the tracks",
+    body:`
+      <p class="lede">In Vienna's 9th district, Alsergrund, the Augasse runs quietly past
+      ordinary blocks until the ground simply lifts. A long concrete structure stands raised
+      on a platform — the locals call it <em>die Platte</em> — bridging the railway lines of the
+      Franz-Josefs-Bahnhof some metres above the street.</p>
+      <p class="lede">Trains still move through the shadow beneath it. For decades, students moved
+      through the floors above. People who grew up here just call it <strong>the old WU</strong>.</p>`
+  },
+  {
+    label:"1975 — TODAY",
+    h:"A campus the city built, then outgrew",
+    body:`
+      <p class="lede">It went up in the mid-1970s as the railway platform was constructed,
+      and from 1982 it housed the Vienna University of Economics and Business.
+      <!-- TODO: verify / fill from briefing — architects (briefing names "Büro Kurt Hlaweniczka" but flags as unverified) --></p>
+      <p class="lede">The WU moved on to a new campus in 2013. The University of Vienna held part of it
+      until 2021. Then the lecture halls fell silent. The signs came down, the corridors emptied,
+      and a building made for tens of thousands of people was left waiting — half in use, half asleep.</p>`
+  },
+  {
+    label:"GENERATIONS",
+    h:"Almost everyone here knows it",
+    body:`
+      <p class="lede">Ask around the Augasse and the stories come easily. The first exam taken on the
+      upper floors. The coffee from the machine that never quite worked. The friends made in a stairwell,
+      the all-nighters, the graduation walked out through those doors.</p>
+      <p class="lede">It was never a postcard. It was a place that decades of ordinary life passed through —
+      and the kind of building a neighbourhood quietly measures itself against, even when it's standing empty.</p>`
+  },
+  {
+    label:"NOW",
+    h:"And now its future is open",
+    body:`
+      <p class="lede">The city has decided: the old WU will not stay as it is. The plan is to turn
+      this concrete island over the tracks into a new education campus — open to the street again,
+      greener, made for many thousands of people once more.</p>
+      <p class="lede">But what it becomes is not yet decided. A competition is under way to choose the
+      vision that wins. And a competition needs a jury — a small group of experts trusted to decide,
+      on everyone's behalf, what this piece of Vienna turns into next.</p>`
+  },
+  {
+    label:"YOUR PART",
+    h:"That jury is your job",
+    body:`
+      <p class="lede">Choosing those experts is the task in front of you. You have a shortlist of
+      candidates, a budget, and a deadline. The city is watching. The clock is already running.</p>
+      <p class="lede">Pick the best people. That's the whole job.</p>`,
+    cta:true
+  }
+];
+
+let step = 0;
+
+function render(){
+  stage.scrollTop = 0;
+  stage.innerHTML = "";
+  const b = BEATS[step];
+  const last = step === BEATS.length - 1;
+
+  const wrap = el(`<div class="slide fadein"></div>`);
+  wrap.appendChild(el(`<div class="beatlabel">${b.label}</div>`));
+  if(b.art) wrap.appendChild(el(`<div class="art">${b.art}</div>`));
+  wrap.appendChild(el(`<h1>${b.h}</h1>`));
+  const bodyHost = el(`<div></div>`);
+  bodyHost.innerHTML = b.body;
+  while(bodyHost.firstChild) wrap.appendChild(bodyHost.firstChild);
+
+  // progress dots
+  const nav = el(`<div class="dotnav"></div>`);
+  BEATS.forEach((_,i)=>nav.appendChild(el(`<i class="${i===step?"on":""}"></i>`)));
+  wrap.appendChild(nav);
+
+  // buttons
+  const bar = el(`<div class="btnbar"></div>`);
+  if(step > 0){
+    const back = el(`<button class="btn ghost">Back</button>`);
+    back.onclick = ()=>{ step--; render(); };
+    bar.appendChild(back);
+  }
+  if(!last){
+    const next = el(`<button class="btn">Continue →</button>`);
+    next.onclick = ()=>{ step++; render(); };
+    bar.appendChild(next);
+  } else {
+    // final CTA — mirrors game.js intro handing off into the brief
+    const go = el(`<button class="btn" id="go">Open the brief</button>`);
+    go.onclick = startGame;
+    bar.appendChild(go);
+  }
+  wrap.appendChild(bar);
+  stage.appendChild(wrap);
+}
+
+function startGame(){
+  // In the real game, this is where the opening hands off into Phase 1
+  // (game.js: go("p1")). Standalone here, so it just confirms the handoff.
+  stage.scrollTop = 0;
+  stage.innerHTML = "";
+  stage.appendChild(el(`
+    <div class="slide fadein">
+      <div class="beatlabel">BRIEF</div>
+      <h1>The brief is open</h1>
+      <p class="lede">From here, the game proper begins — you start building the jury.</p>
+      <p class="lede" style="font-size:14px">(Standalone opening scene. In the full game this button
+      hands off into Phase&nbsp;1, exactly like the intro in <code>game.js</code>.)</p>
+      <div class="btnbar"><button class="btn ghost" id="restart">Replay the opening</button></div>
+    </div>`));
+  document.getElementById("restart").onclick = ()=>{ step=0; render(); };
+}
+
+render();
+</script>
+</body>
+</html>

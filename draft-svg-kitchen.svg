@@ -1,0 +1,92 @@
+<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" style="background:#fffdf6">
+
+  <!-- Kitchen counter -->
+  <rect x="60" y="130" width="320" height="12" fill="#ffcf4d" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="60" y="142" width="320" height="40" fill="#a3e5f7" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Cabinet doors under counter -->
+  <rect x="72" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="142" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="212" y="148" width="60" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="282" y="148" width="88" height="28" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Cabinet handles -->
+  <rect x="99" y="160" width="8" height="3" rx="1" fill="#143041"/>
+  <rect x="169" y="160" width="8" height="3" rx="1" fill="#143041"/>
+  <rect x="239" y="160" width="8" height="3" rx="1" fill="#143041"/>
+  <rect x="318" y="160" width="8" height="3" rx="1" fill="#143041"/>
+
+  <!-- Wall cabinets above -->
+  <rect x="60" y="60" width="140" height="60" fill="#fffdf6" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="68" y="66" width="58" height="48" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
+  <rect x="134" y="66" width="58" height="48" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
+  <rect x="94" y="88" width="8" height="3" rx="1" fill="#143041"/>
+  <rect x="160" y="88" width="8" height="3" rx="1" fill="#143041"/>
+
+  <!-- Coffee machine (pixel art style) -->
+  <rect x="220" y="88" width="40" height="42" rx="2" fill="#143041" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="226" y="94" width="28" height="16" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="2"/>
+  <circle cx="240" cy="118" r="6" fill="#ffcf4d" stroke="#143041" stroke-width="2"/>
+  <rect x="234" y="128" width="12" height="4" rx="1" fill="#a3e5f7" stroke="#143041" stroke-width="1"/>
+  <!-- Steam -->
+  <path d="M236 86 Q234 80 236 74" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
+  <path d="M244 86 Q242 78 244 70" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Coffee cups on counter -->
+  <rect x="290" y="116" width="20" height="14" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M310 120 Q316 120 316 124 Q316 128 310 128" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
+  <rect x="292" y="113" width="16" height="4" rx="1" fill="#ffcf4d" stroke="#143041" stroke-width="1"/>
+
+  <rect x="318" y="116" width="20" height="14" rx="2" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M338 120 Q344 120 344 124 Q344 128 338 128" fill="none" stroke="#143041" stroke-width="2" stroke-linecap="round"/>
+  <rect x="320" y="113" width="16" height="4" rx="1" fill="#ffcf4d" stroke="#143041" stroke-width="1"/>
+
+  <!-- Person 1 (left, listening, --ink colored body) -->
+  <!-- Head -->
+  <circle cx="116" cy="88" r="16" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
+  <!-- Hair pixels -->
+  <rect x="100" y="74" width="32" height="8" rx="4" fill="#143041"/>
+  <!-- Body -->
+  <rect x="100" y="104" width="32" height="36" rx="4" fill="#4fb286" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Arms down -->
+  <rect x="86" y="106" width="14" height="24" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="132" y="106" width="14" height="24" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Person 2 (right, whispering/leaning in) -->
+  <!-- Head -->
+  <circle cx="182" cy="85" r="16" fill="#ffc2df" stroke="#143041" stroke-width="3"/>
+  <!-- Hair pixels -->
+  <rect x="166" y="71" width="32" height="10" rx="4" fill="#ffcf4d"/>
+  <rect x="166" y="71" width="32" height="10" rx="4" fill="none" stroke="#143041" stroke-width="2"/>
+  <!-- Body leaning left -->
+  <rect x="166" y="101" width="32" height="36" rx="4" fill="#a3e5f7" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Arm reaching forward (whispering gesture) -->
+  <rect x="148" y="103" width="18" height="12" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="198" y="103" width="14" height="24" rx="4" fill="#ffc2df" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Speech bubble "..." from person 2 toward person 1 -->
+  <ellipse cx="148" cy="68" rx="26" ry="16" fill="#fffdf6" stroke="#143041" stroke-width="3"/>
+  <!-- Bubble tail pointing right/down toward person 2 -->
+  <polygon points="158,78 168,84 154,84" fill="#fffdf6" stroke="#143041" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Three dots -->
+  <circle cx="136" cy="68" r="3" fill="#143041"/>
+  <circle cx="148" cy="68" r="3" fill="#143041"/>
+  <circle cx="160" cy="68" r="3" fill="#143041"/>
+
+  <!-- Floor line -->
+  <line x1="40" y1="182" x2="580" y2="182" stroke="#143041" stroke-width="3"/>
+
+  <!-- Window on right wall -->
+  <rect x="440" y="50" width="100" height="120" rx="4" fill="#a3e5f7" stroke="#143041" stroke-width="3" stroke-linejoin="round"/>
+  <line x1="490" y1="50" x2="490" y2="170" stroke="#143041" stroke-width="2"/>
+  <line x1="440" y1="110" x2="540" y2="110" stroke="#143041" stroke-width="2"/>
+  <!-- Window shine -->
+  <rect x="448" y="58" width="18" height="40" rx="2" fill="#fffdf6" opacity="0.5"/>
+
+  <!-- Plant on windowsill -->
+  <rect x="510" y="162" width="16" height="18" rx="2" fill="#ffcf4d" stroke="#143041" stroke-width="2"/>
+  <ellipse cx="518" cy="158" rx="12" ry="10" fill="#4fb286" stroke="#143041" stroke-width="2"/>
+  <ellipse cx="510" cy="152" rx="8" ry="7" fill="#4fb286" stroke="#143041" stroke-width="2"/>
+  <ellipse cx="526" cy="154" rx="7" ry="6" fill="#4fb286" stroke="#143041" stroke-width="2"/>
+
+</svg>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pool of Experts — Pressure HUD demo</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --water:#a3e5f7; --water-deep:#5cb9da; --ui:#d7f4ff; --ui-head:#70cbe8;
+  --pink:#ffc2df; --pink-card:#ffe1ef; --gold:#ffcf4d; --gold-deep:#e8a200;
+  --warn:#ff8a5c; --danger:#e8526b; --ink:#143041; --ink-soft:#3a6378;
+  --paper:#fffdf6; --ok:#4fb286; --line:#bfe0ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif;color:var(--ink);background:var(--water);
+  background-image:
+    radial-gradient(circle at 18% 28%, rgba(255,255,255,.32) 0 2px, transparent 3px),
+    radial-gradient(circle at 72% 62%, rgba(255,255,255,.22) 0 2px, transparent 3px),
+    linear-gradient(rgba(255,255,255,.12) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255,255,255,.12) 2px, transparent 2px);
+  background-size:170px 170px,210px 210px,36px 36px,36px 36px;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+img{image-rendering:pixelated}
+
+.frame{width:min(1120px,95vw);margin:22px auto;flex:1;background:rgba(215,244,255,.72);
+  border:5px solid var(--ink);border-radius:18px;box-shadow:14px 14px 0 rgba(20,48,65,.18);
+  display:flex;flex-direction:column;overflow:hidden}
+.titlebar{font-family:'VT323',monospace;background:var(--ui);border-bottom:5px solid var(--ink);
+  padding:8px 18px;display:flex;align-items:center;gap:12px;letter-spacing:1px}
+.titlebar .logo{font-size:30px;line-height:1}
+.titlebar .tag{font-size:17px;color:var(--ink-soft)}
+.titlebar .dots{margin-left:auto;display:flex;gap:7px}
+.titlebar .dots i{width:15px;height:15px;border:2px solid var(--ink);border-radius:50%;background:#fff}
+.titlebar .dots i:last-child{background:var(--danger)}
+
+/* ---- HUD (new, styled to match) ---- */
+.hud{display:flex;gap:10px;padding:9px 18px;background:var(--ui-head);
+  border-bottom:5px solid var(--ink);flex-wrap:wrap}
+.gauge{flex:1;min-width:170px;background:var(--paper);border:3px solid var(--ink);border-radius:10px;
+  padding:7px 13px;box-shadow:4px 4px 0 rgba(20,48,65,.14)}
+.gauge .k{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.6px}
+.gauge .v{font-family:'VT323',monospace;font-size:30px;line-height:1.05}
+.gauge .sub{font-size:11px;color:var(--ink-soft)}
+.gauge.flash{animation:flash .5s ease}
+@keyframes flash{0%{background:#fff4d6}100%{background:var(--paper)}}
+.rep .bar{height:12px;border:3px solid var(--ink);border-radius:6px;background:#fff;margin-top:5px;overflow:hidden}
+.rep .fill{height:100%;background:var(--ok);transition:width .4s ease,background .4s ease}
+
+/* ---- PR feed ---- */
+.feed{font-family:'VT323',monospace;font-size:18px;background:var(--ink);color:#bfe9f7;
+  padding:6px 18px;display:flex;gap:10px;align-items:center;border-bottom:5px solid var(--ink)}
+.feed b{color:var(--gold)}.feed .src{color:#7fb8cc}
+
+.stage{flex:1;padding:26px clamp(16px,4vw,40px);overflow-y:auto}
+
+/* ---- buttons (from original) ---- */
+.btn{font-family:'VT323',monospace;font-size:22px;letter-spacing:1px;cursor:pointer;
+  background:var(--gold);border:4px solid var(--ink);border-radius:10px;padding:7px 22px;
+  box-shadow:5px 5px 0 var(--ink);transition:transform .05s,box-shadow .05s;text-align:left}
+.btn:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink)}
+.btn.ghost{background:var(--ui)}
+.btn .cost{display:block;font-family:'Space Grotesk';font-size:12px;letter-spacing:0;
+  color:var(--ink-soft);font-weight:500;margin-top:1px}
+.btnbar{display:flex;gap:14px;flex-wrap:wrap;margin-top:22px;align-items:stretch}
+.btnbar.col{flex-direction:column;align-items:flex-start}
+.btnbar.col .btn{width:100%;max-width:560px}
+
+/* ---- Vienna mail / brief (from original) ---- */
+.mail{max-width:580px;background:var(--paper);border:4px solid var(--ink);border-radius:12px;
+  box-shadow:7px 7px 0 rgba(20,48,65,.16);overflow:hidden}
+.mail .from{display:flex;align-items:center;gap:12px;padding:13px 18px;background:var(--ui);border-bottom:3px solid var(--ink)}
+.mail .crest{width:42px;height:42px;flex:0 0 auto;border:3px solid var(--ink);border-radius:7px;
+  background:linear-gradient(160deg,#e8526b 0 50%,#fff 50% 100%);display:flex;align-items:center;
+  justify-content:center;font-family:'VT323',monospace;font-size:13px;line-height:.9;text-align:center;color:var(--ink)}
+.mail .who{font-weight:700}
+.mail .who small{display:block;font-weight:400;color:var(--ink-soft);font-size:13px}
+.mail .subject{padding:12px 18px 4px;font-family:'VT323',monospace;font-size:24px}
+.mail .body{padding:4px 18px 18px;font-size:15px;line-height:1.55;color:#23434f}
+
+/* ---- application/dilemma card (from original) ---- */
+.appcard{background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:18px 20px;
+  max-width:620px;box-shadow:6px 6px 0 rgba(20,48,65,.16)}
+.appcard .badge{display:inline-block;font-family:'VT323',monospace;font-size:16px;background:var(--ui-head);
+  border:2px solid var(--ink);border-radius:6px;padding:0 9px;margin-bottom:8px}
+.appcard h2{font-family:'VT323',monospace;font-size:30px;margin-bottom:8px}
+.appcard p{font-size:15px;line-height:1.55;color:#23434f;max-width:60ch}
+.art{border:3px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:12px;box-shadow:4px 4px 0 rgba(20,48,65,.14)}
+.art svg{display:block;width:100%;height:auto}
+
+.verdict{background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:16px 20px;
+  max-width:60ch;box-shadow:5px 5px 0 rgba(20,48,65,.15)}
+.verdict .tagline{font-family:'VT323',monospace;font-size:26px;margin-bottom:8px}
+h1{font-family:'VT323',monospace;font-size:clamp(30px,5vw,46px);line-height:.95;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="titlebar">
+    <span class="logo">◍ POOL OF EXPERTS</span>
+    <span class="tag">· pressure-HUD demo (not the real game)</span>
+    <span class="dots"><i></i><i></i><i></i></span>
+  </div>
+
+  <div class="hud">
+    <div class="gauge" id="g-money">
+      <div class="k">Public money burned</div>
+      <div class="v" id="money">€0</div>
+      <div class="sub">+€50,000 for every week of delay</div>
+    </div>
+    <div class="gauge" id="g-time">
+      <div class="k">Schedule</div>
+      <div class="v" id="weeks">on time</div>
+      <div class="sub" id="deadline">deadline: 01 Aug 2026</div>
+    </div>
+    <div class="gauge rep" id="g-rep">
+      <div class="k">Reputation</div>
+      <div class="v" id="repword">Solid</div>
+      <div class="bar"><div class="fill" id="repfill" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="feed" id="feed"><span class="src">Quiet news day</span> — the call has just opened.</div>
+  <div class="stage" id="stage"></div>
+</div>
+
+<script>
+const WEEK_COST = 50000;
+const state = { weeks:0, rep:100, invited:6, women:1, idx:0 };
+const fmtEuro = n => "€" + n.toLocaleString("en-GB");
+
+function deadlineStr(){
+  const d=new Date(2026,7,1); d.setDate(d.getDate()+state.weeks*7);
+  return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+}
+const repWord = ()=> state.rep>=80?"Solid":state.rep>=55?"Shaky":state.rep>=30?"Damaged":"In crisis";
+const repColor= ()=> state.rep>=80?"var(--ok)":state.rep>=55?"var(--gold)":state.rep>=30?"var(--warn)":"var(--danger)";
+function flash(id){const g=document.getElementById(id);g.classList.remove("flash");void g.offsetWidth;g.classList.add("flash");}
+function renderHUD(){
+  document.getElementById("money").textContent=fmtEuro(state.weeks*WEEK_COST);
+  document.getElementById("weeks").textContent=state.weeks?"+"+state.weeks+"w late":"on time";
+  document.getElementById("deadline").textContent=deadlineStr();
+  document.getElementById("repword").textContent=repWord();
+  const f=document.getElementById("repfill");f.style.width=state.rep+"%";f.style.background=repColor();
+}
+function setFeed(src,text){document.getElementById("feed").innerHTML=`<span class="src">${src}</span> — <b>${text}</b>`;}
+function apply({weeks=0,rep=0,women=0,invited=0,src,head}){
+  if(weeks){state.weeks+=weeks;flash("g-money");flash("g-time");}
+  if(rep){state.rep=Math.max(0,Math.min(100,state.rep+rep));flash("g-rep");}
+  state.women+=women;state.invited+=invited;renderHUD();
+  if(head) setFeed(src||"Stadt Wien",head);
+}
+
+/* ---------- art: kitchenette + Austrian tabloid ---------- */
+const KITCHEN = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A colleague leaning over the kitchenette counter with two coffees">
+  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="0" y="0" width="620" height="200" fill="#e8f7fd" stroke="none"/>
+    <g stroke="#bfe0ec" stroke-width="2">
+      <line x1="40" y1="0" x2="40" y2="150"/><line x1="120" y1="0" x2="120" y2="150"/>
+      <line x1="200" y1="0" x2="200" y2="150"/><line x1="280" y1="0" x2="280" y2="150"/>
+      <line x1="360" y1="0" x2="360" y2="150"/><line x1="440" y1="0" x2="440" y2="150"/>
+      <line x1="520" y1="0" x2="520" y2="150"/>
+      <line x1="0" y1="38" x2="620" y2="38"/><line x1="0" y1="76" x2="620" y2="76"/><line x1="0" y1="114" x2="620" y2="114"/>
+    </g>
+    <rect x="42" y="58" width="74" height="92" rx="8" fill="#fffdf6"/>
+    <rect x="42" y="58" width="74" height="20" rx="8" fill="#5cb9da"/>
+    <circle cx="100" cy="92" r="7" fill="#ffcf4d"/>
+    <rect x="66" y="104" width="26" height="8" rx="3" fill="#3a6378"/>
+    <rect x="70" y="120" width="20" height="22" rx="3" fill="#ffc2df"/>
+    <path d="M250 96 q-4 -12 4 -22" fill="none" stroke="#9fc7d6"/>
+    <path d="M262 96 q4 -12 -4 -22" fill="none" stroke="#9fc7d6"/>
+    <rect x="240" y="98" width="34" height="30" rx="5" fill="#ffc2df"/>
+    <path d="M274 104 q16 2 0 18" fill="none"/>
+    <path d="M300 96 q-4 -12 4 -22" fill="none" stroke="#9fc7d6"/>
+    <rect x="292" y="100" width="32" height="28" rx="5" fill="#fffdf6"/>
+    <path d="M324 106 q15 2 0 16" fill="none"/>
+    <path d="M430 150 v-34 q0 -30 30 -30 h26 q30 0 30 30 v34 z" fill="#5cb9da"/>
+    <path d="M430 132 q-26 4 -30 18" fill="#5cb9da"/>
+    <circle cx="476" cy="64" r="26" fill="#ffe1ef"/>
+    <path d="M452 58 q4 -28 30 -24 q24 2 18 26 q-10 -12 -26 -8 q-14 2 -22 6 z" fill="#3a6378"/>
+    <circle cx="468" cy="64" r="2.5" fill="#143041" stroke="none"/>
+    <circle cx="484" cy="64" r="2.5" fill="#143041" stroke="none"/>
+    <path d="M468 74 q8 7 16 0" fill="none"/>
+    <rect x="406" y="28" width="58" height="30" rx="10" fill="#fffdf6"/>
+    <path d="M430 58 l-8 12 l16 -8 z" fill="#fffdf6"/>
+    <circle cx="422" cy="43" r="2.5" fill="#143041" stroke="none"/>
+    <circle cx="435" cy="43" r="2.5" fill="#143041" stroke="none"/>
+    <circle cx="448" cy="43" r="2.5" fill="#143041" stroke="none"/>
+    <rect x="0" y="148" width="620" height="52" fill="#70cbe8"/>
+    <line x1="0" y1="160" x2="620" y2="160" stroke="#3a6378" stroke-width="2"/>
+  </g></svg>`;
+
+/* Alte Donau — many people at the water (teaser for the final pool) */
+const ALTEDONAU = `<svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crowds swimming and lounging at the Alte Donau on a summer day, the Donauturm in the background">
+  <rect x="0" y="0" width="620" height="200" fill="#d6f0fb"/>
+  <circle cx="548" cy="34" r="22" fill="#ffcf4d" stroke="#143041" stroke-width="3"/>
+  <g stroke="#143041" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="0" y="82" width="620" height="22" fill="#8bd0a0" stroke="none"/>
+    <!-- Donauturm -->
+    <path d="M108 96 L112 40 M112 40 L116 96" fill="none"/>
+    <ellipse cx="112" cy="44" rx="17" ry="7" fill="#d7f4ff"/>
+    <line x1="112" y1="37" x2="112" y2="28"/>
+    <!-- trees -->
+    <line x1="206" y1="92" x2="206" y2="80"/><circle cx="206" cy="74" r="12" fill="#6fc08c"/>
+    <line x1="250" y1="92" x2="250" y2="82"/><circle cx="250" cy="78" r="10" fill="#6fc08c"/>
+    <line x1="420" y1="92" x2="420" y2="80"/><circle cx="420" cy="74" r="12" fill="#6fc08c"/>
+    <!-- water -->
+    <rect x="0" y="100" width="620" height="100" fill="#5cb9da" stroke="none"/>
+    <!-- swimmers (heads in the water — teaser for the pool) -->
+    <g>
+      <circle cx="70" cy="126" r="9" fill="#ffe1ef"/><path d="M58 132 q12 8 24 0" fill="none" stroke-width="2"/>
+      <circle cx="150" cy="138" r="9" fill="#ffd9c2"/><path d="M138 144 q12 8 24 0" fill="none" stroke-width="2"/>
+      <circle cx="225" cy="128" r="9" fill="#ffe1ef"/><path d="M213 134 q12 8 24 0" fill="none" stroke-width="2"/>
+      <circle cx="470" cy="132" r="9" fill="#ffd9c2"/><path d="M458 138 q12 8 24 0" fill="none" stroke-width="2"/>
+      <circle cx="540" cy="146" r="9" fill="#ffe1ef"/><path d="M528 152 q12 8 24 0" fill="none" stroke-width="2"/>
+      <circle cx="370" cy="150" r="9" fill="#ffd9c2"/><path d="M358 156 q12 8 24 0" fill="none" stroke-width="2"/>
+    </g>
+    <!-- pedal boat with two people -->
+    <path d="M280 130 q40 22 70 0 z" fill="#ffc2df"/>
+    <circle cx="300" cy="120" r="8" fill="#ffe1ef"/><circle cx="330" cy="120" r="8" fill="#ffd9c2"/>
+    <!-- ripples on top -->
+    <g stroke="#a3e5f7" stroke-width="3" fill="none">
+      <path d="M0 112 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/>
+      <path d="M0 168 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/>
+    </g>
+    <!-- sandy bank with loungers -->
+    <rect x="0" y="180" width="620" height="20" fill="#ffe9b8" stroke="none"/>
+    <line x1="0" y1="180" x2="620" y2="180"/>
+    <rect x="40" y="184" width="60" height="10" rx="3" fill="#ff9bbf"/>
+    <circle cx="60" cy="180" r="7" fill="#ffe1ef"/>
+    <rect x="180" y="186" width="60" height="9" rx="3" fill="#ffcf4d"/>
+    <circle cx="200" cy="182" r="7" fill="#ffd9c2"/>
+    <rect x="470" y="185" width="60" height="9" rx="3" fill="#ff9bbf"/>
+    <circle cx="500" cy="181" r="7" fill="#ffe1ef"/>
+  </g></svg>`;
+
+/* German tabloid front page (Kronen-Zeitung style) */
+function newspaper({masthead, mastColor, paper, line1, line2, sub}){
+  return `<svg viewBox="0 0 620 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${masthead}: ${line1} ${line2}">
+    <g stroke="#143041" stroke-width="3" stroke-linejoin="round">
+      <rect x="0" y="0" width="620" height="250" fill="${paper}" stroke="none"/>
+      <rect x="0" y="0" width="620" height="48" fill="${mastColor}" stroke="none"/>
+      <text x="20" y="35" font-family="'VT323',monospace" font-size="34" fill="#fff" stroke="none" letter-spacing="1">${masthead}</text>
+      <path d="M560 14 l8 12 l10 -14 l10 14 l8 -12 v18 h-44 z" fill="#ffcf4d"/>
+      <text x="20" y="66" font-family="'Space Grotesk',sans-serif" font-size="11" fill="#3a6378" stroke="none">WIEN · FREITAG · UNABHÄNGIG · € 1,20</text>
+      <line x1="0" y1="74" x2="620" y2="74" stroke="#143041" stroke-width="2"/>
+      <text x="20" y="118" font-family="'Space Grotesk',sans-serif" font-weight="700" font-size="34" fill="#143041" stroke="none">${line1}</text>
+      <text x="20" y="156" font-family="'Space Grotesk',sans-serif" font-weight="700" font-size="34" fill="#143041" stroke="none">${line2}</text>
+      <text x="20" y="182" font-family="'Space Grotesk',sans-serif" font-size="14" fill="#3a6378" stroke="none">${sub}</text>
+      <rect x="20" y="196" width="150" height="44" rx="4" fill="#d9e7ee"/>
+      <g stroke="#c3d5dd" stroke-width="6"><line x1="190" y1="204" x2="600" y2="204"/><line x1="190" y1="218" x2="600" y2="218"/><line x1="190" y1="232" x2="520" y2="232"/></g>
+    </g></svg>`;
+}
+const KRONE = newspaper({masthead:"KRONEN ZEITUNG", mastColor:"#d81e2c", paper:"#fffdf6",
+  line1:"Freunderlwirtschaft", line2:"bei der Alten WU?",
+  sub:"Vergabe unter Verdacht – Jury soll Bekannte bevorzugt haben."});
+const STANDARD = newspaper({masthead:"derStandard", mastColor:"#7a3b8f", paper:"#fbe9df",
+  line1:"Jury-Vorsitz will", line2:"Frauen-Vorgabe lockern",
+  sub:"Kritik an Plan, die 50/50-Zielvorgabe für die Alte WU aufzuweichen."});
+
+/* ---------- the dilemmas (placeholder copy) ---------- */
+const EVENTS = [
+  { from:"wien", h:"A note on your shortlist",
+    p:"A gentle word from the Competition Office: your invited experts are mostly men. You could re-open the call to widen the field — but the project clock keeps ticking.",
+    opts:[
+      { b:"Re-open the call", c:"+4 weeks delay · a few more applicants", ghost:false, fx:{weeks:4, head:"Call re-opened to widen the field — start date pushed back."} },
+      { b:"Leave it as it is", c:"no delay · field stays thin", ghost:true, fx:{head:"You decide to proceed with the current field."} },
+    ]},
+  { badge:"The kitchenette", h:"A colleague has a tip",
+    p:"Over coffee, a colleague leans in: “I know two brilliant people — want me to put them forward?” It would bring you two more applicants. It would also look a lot like an inside job.",
+    opts:[
+      { b:"Take the tip", c:"+2 applicants · reputation risk", ghost:false,
+        fx:{invited:2, rep:-25, src:"Krone", head:"Freunderlwirtschaft bei der Alten WU?"}, then:"krone" },
+      { b:"Decline — keep it clean", c:"no new applicants", ghost:true, fx:{head:"You keep the process at arm's length."} },
+    ]},
+  { badge:"Summer at the Alte Donau", h:"Holiday season", art:ALTEDONAU,
+    p:"Half of Vienna is out at the Alte Donau. Replies trickle in slowly and decisions stall. Nothing you did — just the calendar.",
+    opts:[ { b:"Wait it out", c:"+2 weeks delay", ghost:false, fx:{weeks:2, head:"Holiday season slows every reply. Two weeks lost."} } ]},
+  { from:"wien", h:"May we invite experts from abroad?",
+    p:"You ask the City whether the pool could be widened to architects from outside Austria. The answer takes a while to come back.",
+    opts:[ { b:"Send the enquiry", c:"+2 weeks delay · likely a no", ghost:false, fx:{weeks:2, head:"Enquiry answered: the call is restricted to the existing pool. No."} } ]},
+  { from:"wien", h:"May we just invite more men?",
+    p:"You ask whether the balance target could be relaxed — fill the jury with whoever applied. That, too, has consequences.",
+    opts:[ { b:"Ask to relax the target", c:"+2 weeks · reputation hit · a no", ghost:false,
+        fx:{weeks:2, rep:-20, src:"Der Standard", head:"Jury-Vorsitz will Frauen-Vorgabe lockern."}, then:"standard" } ]},
+];
+
+function optButtons(opts, onPick){
+  const bar=document.createElement("div"); bar.className="btnbar col";
+  opts.forEach(o=>{
+    const b=document.createElement("button");
+    b.className="btn"+(o.ghost?" ghost":"");
+    b.innerHTML=`${o.b}<span class="cost">${o.c}</span>`;
+    b.onclick=()=>onPick(o); bar.appendChild(b);
+  });
+  // always-present easy button
+  const easy=document.createElement("button");
+  easy.className="btn";
+  easy.innerHTML=`Just fill the jury and move on<span class="cost">instant · no delay · skip the rest</span>`;
+  easy.onclick=()=>{ state.idx=EVENTS.length; setFeed("Stadt Wien","Jury filled. The project moves ahead."); renderEnd(); };
+  bar.appendChild(easy);
+  return bar;
+}
+
+function renderEvent(){
+  if(state.idx>=EVENTS.length) return renderEnd();
+  const e=EVENTS[state.idx], stage=document.getElementById("stage");
+  stage.innerHTML="";
+  let host;
+  if(e.from==="wien"){
+    host=document.createElement("div"); host.className="mail";
+    host.innerHTML=`<div class="from"><div class="crest">WIEN</div>
+      <div class="who">Stadt Wien<small>Competition Office</small></div></div>
+      <div class="subject">${e.h}</div><div class="body">${e.p}</div>`;
+  } else {
+    host=document.createElement("div"); host.className="appcard";
+    host.innerHTML=`<span class="badge">${e.badge}</span>${e.art?`<div class="art">${e.art}</div>`:""}<h2>${e.h}</h2><p>${e.p}</p>`;
+  }
+  stage.appendChild(host);
+  stage.appendChild(optButtons(e.opts, o=>{
+    apply(o.fx); state.idx++;
+    if(o.then==="krone") return renderPress(KRONE, "krone");
+    if(o.then==="standard") return renderPress(STANDARD, "standard");
+    renderEvent();
+  }));
+}
+
+function renderPress(paperSVG, kind){
+  const stage=document.getElementById("stage"); stage.innerHTML="";
+  const card=document.createElement("div"); card.className="appcard";
+  card.innerHTML=`<span class="badge">The press picks it up</span><div class="art">${paperSVG}</div>
+    <h2>${kind==="krone"?"The headline is out":"It made the papers"}</h2>
+    <p>${kind==="krone"
+      ? "The cronyism story is spreading. You can bring in a crisis-PR agency to calm it down — or ride it out and risk losing people."
+      : "The story is out there now. Nothing to decide — it just sits on your reputation."}</p>`;
+  stage.appendChild(card);
+  const bar=document.createElement("div"); bar.className="btnbar col";
+  if(kind==="krone"){
+    const a=document.createElement("button"); a.className="btn";
+    a.innerHTML=`Hire crisis PR<span class="cost">−€20,000 (~0.4w) · +2 weeks · reputation recovers</span>`;
+    a.onclick=()=>{ apply({weeks:2, rep:+20, src:"Stadt Wien", head:"Statement issued. The story cools down."}); renderEvent(); };
+    const b=document.createElement("button"); b.className="btn ghost";
+    b.innerHTML=`Ride it out<span class="cost">no cost · a qualified woman withdraws</span>`;
+    b.onclick=()=>{ apply({women:-1, rep:-10, src:"Inbox", head:"“Given the press, I'm withdrawing my application.”"}); renderEvent(); };
+    bar.appendChild(a); bar.appendChild(b);
+  } else {
+    const n=document.createElement("button"); n.className="btn";
+    n.innerHTML=`Carry on`; n.onclick=()=>renderEvent(); bar.appendChild(n);
+  }
+  stage.appendChild(bar);
+}
+
+function renderEnd(){
+  const stage=document.getElementById("stage"); stage.innerHTML="";
+  const wrap=document.createElement("div");
+  wrap.innerHTML=`<h1>The pressure did its job</h1>
+    <div class="verdict"><div class="tagline">Where you landed</div>
+    <p style="margin-bottom:10px">Your jury stands at <b>${state.women} women, ${state.invited-state.women} men</b>.
+    It cost <b>${fmtEuro(state.weeks*WEEK_COST)}</b> of public money and <b>${state.weeks} weeks</b> of delay,
+    with reputation now <b>${repWord().toLowerCase()}</b>.</p>
+    <p style="color:var(--ink-soft);font-size:14px">Every path to a fairer panel cost time, money or reputation — and the easy button was always right there. That's the demo's point. (Real reveal, numbers and sources come later.)</p></div>
+    <div class="btnbar"><button class="btn" id="again">Play the demo again</button></div>`;
+  stage.appendChild(wrap);
+  document.getElementById("again").onclick=restart;
+}
+function restart(){ state.weeks=0;state.rep=100;state.invited=6;state.women=1;state.idx=0;
+  renderHUD(); setFeed("Quiet news day","the call has just opened."); renderEvent(); }
+
+renderHUD(); renderEvent();
+</script>
+</body>
+</html>
