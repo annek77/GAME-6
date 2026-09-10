@@ -38,7 +38,9 @@ img{image-rendering:pixelated}
 }
 .titlebar .logo{font-size:30px;line-height:1}
 .titlebar .tag{font-size:17px;color:var(--ink-soft);margin-left:2px}
-.titlebar .dots{margin-left:auto;display:flex;gap:7px}
+.titlebar .mute{margin-left:auto;font-size:18px;line-height:1;background:#fff;border:2px solid var(--ink);border-radius:7px;padding:2px 7px;cursor:pointer}
+.titlebar .mute:hover{background:var(--gold)}
+.titlebar .dots{display:flex;gap:7px}
 .titlebar .dots i{width:15px;height:15px;border:2px solid var(--ink);border-radius:50%;background:#fff}
 .titlebar .dots i:last-child{background:var(--danger)}
 
@@ -235,6 +237,12 @@ button.gauge.open .caret{transform:rotate(180deg)}
   .bar .lab{width:96px;font-size:12px}
   .appactions .btn{width:100%}
 }
+/* ---- keyboard ---- */
+:focus-visible{outline:3px solid var(--gold-deep);outline-offset:2px}
+.card:focus-visible{outline:3px solid var(--gold-deep);outline-offset:3px}
+button.hcard{font:inherit;color:inherit;text-align:left}
+.keys{font-size:12px;color:var(--ink-soft);text-align:center;margin:0}
+kbd{font-family:'VT323',monospace;font-size:14px;border:1.5px solid var(--ink-soft);border-radius:4px;padding:0 5px;background:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ---- stations 3–6 and echoes ---- */

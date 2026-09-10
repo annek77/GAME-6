@@ -362,7 +362,7 @@ Alumni-Spende · Restposten Stahlfertigteile mit 40 % Rabatt
 | `art.js` | Alle SVGs (Alte WU Tag/Nacht, Karten-Miniatur, Zeitungen, Teeküche, Alte Donau, Pool-Halle, Kabinen, Pappfiguren, Stempel, neue WU in vier Stufen) |
 | `game.js` | Spiellogik und alle Screens |
 | `parked-events.js` | **Nicht geladen.** Die alten Druck-Events (Teeküche, Krone, Urlaub, Ausland-Anfrage) samt Stadt-Mails, als Referenz für den Disruptor-Block |
-| `draft-sound.js` | **Nicht geladen.** Fertiger Web-Audio-Layer ohne Dateien |
+| `sound.js` | Web-Audio-Layer ohne Dateien (ex `draft-sound.js`): Klick, Ja/Nein, Karte, Bestätigen, Geld, Schlagzeile, Pool-Rauschen; Mute-Knopf in der Titelleiste, Zustand im Browser gespeichert |
 
 Die vier `draft-*.js`-Monkey-Patches sind aufgelöst und gelöscht. `JURY_SIZE = 9`
 (ungerade, wie Auflage 2 verlangt; 25 % davon = 3).
@@ -422,6 +422,12 @@ Frauen, nach Seniorität 1,8, billigste Abdeckung 3,0 — `FIELD_MAP` daher unve
 Legende nur für Kategorien > 0). Zeitplan erscheint mit der ersten Verzögerung,
 Ruf mit der Reaktion, Fortschritt mit der Karte.
 
+**Bedienung:** Stapel mit Tasten Y/J, M, N und ←; Tischkarten per Tab + Enter/Leertaste
+(`role=button`, `aria-pressed`); Hand-Karten sind Buttons; sichtbare Fokusrahmen; Cockpit
+`aria-live`. Test-Sprungmarken per URL-Hash: `#pr`, `#reveal`, `#options`, `#realworld`,
+`#map`, `#latestations`, `#outro`. Cache-Busting über `?v=` in `index.html` — bei jeder
+Änderung hochzählen.
+
 **Test:** jsdom-Harness (nicht im Repo) spielt vier Pfade: 0 Frauen + Reparatur,
 2 + Aussitzen, 3 + Ersatzpreisrichterin bei knappem Budget, 4 + Kindergarten. Alle
 grün am 10.09.2026.
@@ -457,7 +463,8 @@ grün am 10.09.2026.
    entkoppeln
 4. ~~**Punkt 8** — Endbildschirm~~ — **gebaut, 10.09.2026** (Abschnitt 9)
 5. **GitHub-Remote** anlegen und pushen (Anne macht das selbst)
-6. **Audio** einbinden (`draft-sound.js` existiert bereits)
+6. ~~**Audio** einbinden~~ — **erledigt, 10.09.2026** (`sound.js`)
 7. ~~**Quellen- und Methodenseite** im Spiel~~ — Quellenseite gebaut (letzter
    Schritt des Abspanns); Methodenteil offen
-8. **Settings / Barrierefreiheit**: Mute, „weniger Reize", Tastaturbedienung
+8. **Settings / Barrierefreiheit**: Mute ✓, Tastaturbedienung ✓ (10.09.2026); „weniger
+   Reize" offen (`prefers-reduced-motion` wird respektiert)

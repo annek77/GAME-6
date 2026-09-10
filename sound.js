@@ -1,14 +1,16 @@
 /**
- * draft-sound.js — Web Audio API Sound Layer for "Pool of Experts"
+ * sound.js — Web Audio API sound layer for "Pool of Experts"
  * No external audio files. All sounds generated via Web Audio API.
- * Load via <script src="draft-sound.js"></script> BEFORE game.js
+ * Loaded before game.js. The browser only lets audio start after a user
+ * gesture, so the context is created lazily on first use.
+ * Mute state is remembered per browser (localStorage "poe-muted").
  */
 
 const SFX = (function () {
 
   let ctx = null;
   let masterGain = null;
-  let _muted = false;
+  let _muted = (()=>{ try { return localStorage.getItem("poe-muted")==="1"; } catch(e){ return false; } })();
   let _ambientSource = null;
   let _ambientGain = null;
   let _kitchenTimer = null;
@@ -265,6 +267,34 @@ const SFX = (function () {
     source.stop(now + duration + 0.01);
   }
 
+  // ─── Small UI one-shots ────────────────────────────────────────────────────
+  function _tone(freq, dur, type="sine", vol=0.25, slideTo=null){
+    if (!_init()) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator(); osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
+    if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(vol, now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(now); osc.stop(now + dur + 0.02);
+  }
+  function click()    { _tone(1800, 0.05, "square", 0.08); }              // any button
+  function card()     { letter(); }                                        // a card moves
+  function yes()      { _tone(520, 0.09, "triangle", 0.2); setTimeout(()=>_tone(780, 0.14, "triangle", 0.2), 70); }
+  function no()       { _tone(260, 0.16, "triangle", 0.18, 180); }
+  function confirm()  { [440, 554, 659].forEach((f,i)=>setTimeout(()=>_tone(f, 0.35, "triangle", 0.16), i*90)); }
+  function money()    { _tone(1200, 0.07, "sine", 0.14, 900); }
+  function headline() { _tone(110, 0.5, "sawtooth", 0.12, 70); setTimeout(()=>letter(), 60); }
+  function setMuted(v){
+    _muted = !!v;
+    try { localStorage.setItem("poe-muted", _muted ? "1" : "0"); } catch(e){}
+    if (masterGain) masterGain.gain.setTargetAtTime(_muted ? 0 : 1, ctx.currentTime, 0.05);
+    return _muted;
+  }
+
   // ─── Stop ──────────────────────────────────────────────────────────────────
 
   function stop() {
@@ -273,43 +303,15 @@ const SFX = (function () {
 
   // ─── Mute Toggle ───────────────────────────────────────────────────────────
 
-  function mute() {
-    _muted = !_muted;
-    if (masterGain) {
-      const now = ctx ? ctx.currentTime : 0;
-      masterGain.gain.setTargetAtTime(_muted ? 0 : 1, now, 0.05);
-    }
-    return _muted;
-  }
+  function mute() { return setMuted(!_muted); }
 
   // ─── Public API ────────────────────────────────────────────────────────────
 
   return {
-    pool,
-    kitchen,
-    plop,
-    letter,
-    stop,
-    mute,
+    pool, kitchen, plop, letter, stop,
+    click, card, yes, no, confirm, money, headline,
+    mute, setMuted,
     get isMuted() { return _muted; }
   };
 
 })();
-
-/*
- * ── game.js integration notes ──────────────────────────────────────────────
- *
- * In rReveal()      → add at top:  SFX.pool();
- * In rKitchen()     → add at top:  SFX.kitchen();
- * In rIntermezzo()  → add at top:  SFX.stop();
- * In rSendLetter()  → when brief-screen appears: SFX.letter();
- *
- * Plop calls → add later in draft-reveal.js when paper figures appear:
- *   SFX.plop();   (call once per figure reveal)
- *
- * Optional mute button example:
- *   document.getElementById('btn-mute').addEventListener('click', () => {
- *     const muted = SFX.mute();
- *     document.getElementById('btn-mute').textContent = muted ? '🔇' : '🔊';
- *   });
- */

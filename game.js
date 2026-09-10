@@ -10,10 +10,11 @@
    The former second round ("applications under pressure") is gone. Its
    pressure-event screens live in parked-events.js (not loaded) for a later
    disruptor step.
-   Load order (index.html): data.js → rules.js → art.js → game.js.
+   Load order (index.html): data.js → rules.js → art.js → sound.js → game.js.
      data.js  — the 26 profiles and criteria
      rules.js — money (WEEK_COST, JURY_SIZE, …), brief terms, fields, measures
      art.js   — every SVG illustration
+     sound.js — Web Audio layer (SFX), no files
    The former draft-*.js monkey-patches are merged in here.
    ========================================================================== */
 
@@ -87,6 +88,7 @@ const feesOf = idSet => [...idSet].reduce((sum,id)=>sum+expertFee(byId(id)),0);
 function spend(cat,amount){
   state.spend[cat]=(state.spend[cat]||0)+amount;
   state.budget-=amount;
+  if(amount>0) SFX.money();
   hudFlash("g-money"); renderHUD();
 }
 
@@ -105,6 +107,7 @@ function renderPhasebar(){
   phasebar.style.display = state.screen==="intro" ? "none":"flex";
 }
 function go(screen){
+  if(state.screen==="reveal" && screen!=="reveal") SFX.stop();
   state.screen=screen; renderPhasebar(); renderHUD(); stage.scrollTop=0;
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
@@ -133,6 +136,7 @@ function renderHUD(){
   if(!show){ document.getElementById("budget-panel").hidden=true; return; }
   const spent = BUDGET_START-state.budget;
   document.getElementById("hud-money").textContent   = eur(state.budget);
+  document.getElementById("hud").setAttribute("aria-live","polite");
   document.getElementById("hud-spent").textContent   = spent>0 ? eur(spent)+" spent of "+eur(BUDGET_START) : "nothing spent yet";
   // schedule and reputation stay hidden until they first move
   document.getElementById("g-time").hidden = !state.hudSeen.time;
@@ -365,8 +369,11 @@ function refreshSel(){
   // the hand: chosen people as small cards, chamber first
   const ids=[...CHAMBER_NOMINATION.ids, ...state.order.filter(id=>state.selected.has(id)&&!isChamber(id))];
   hand.innerHTML="";
-  ids.forEach(id=>{ const p=byId(id); const c=el(`<div class="hcard${isChamber(id)?" chamber":""}" title="${isChamber(id)?"Nominated by the Chamber":"Remove "+p.name}"><b>${p.name.split(" ").pop()}</b><small>${isChamber(id)?"Chamber":eur(expertFee(p))}</small></div>`);
-    if(!isChamber(id)) c.onclick=()=>{ state.selected.delete(id); refreshSel(); const card=document.querySelector(`.card[data-id="${id}"]`); if(card) card.classList.remove("sel"); };
+  ids.forEach(id=>{ const p=byId(id);
+    const c=el(isChamber(id)
+      ? `<div class="hcard chamber" title="Nominated by the Chamber"><b>${p.name.split(" ").pop()}</b><small>Chamber</small></div>`
+      : `<button type="button" class="hcard" title="Remove ${p.name}" aria-label="Remove ${p.name} from the board"><b>${p.name.split(" ").pop()}</b><small>${eur(expertFee(p))}</small></button>`);
+    if(!isChamber(id)) c.onclick=()=>{ state.selected.delete(id); SFX.no(); refreshSel(); const card=document.querySelector(`.card[data-id="${id}"]`); if(card){ card.classList.remove("sel"); card.setAttribute("aria-pressed","false"); } };
     hand.appendChild(c); });
   for(let i=n;i<JURY_SIZE;i++) hand.appendChild(el(`<div class="hcard empty"><b>·</b></div>`));
   // the six slots
@@ -450,7 +457,8 @@ function renderDeck(){
     <div class="deck-nav">${i>0?'<button class="link" id="d-prev">← previous</button>':''}<span></span><button class="link" id="d-table">Skip to the table →</button></div>
   </div>`);
   stage.appendChild(shell);
-  const put=(pile)=>{ ["yes","maybe","no"].forEach(k=>{ state.deck[k]=state.deck[k].filter(x=>x!==p.id); }); state.deck[pile].push(p.id);
+  const put=(pile)=>{ (pile==="yes"?SFX.yes:pile==="no"?SFX.no:SFX.card)();
+    ["yes","maybe","no"].forEach(k=>{ state.deck[k]=state.deck[k].filter(x=>x!==p.id); }); state.deck[pile].push(p.id);
     if(pile==="yes") state.selected.add(p.id); else state.selected.delete(p.id);
     state.deck.idx++; renderDeck(); };
   document.getElementById("d-yes").onclick=()=>put("yes");
@@ -458,8 +466,18 @@ function renderDeck(){
   document.getElementById("d-no").onclick=()=>put("no");
   const prev=document.getElementById("d-prev"); if(prev) prev.onclick=()=>{ state.deck.idx--; renderDeck(); };
   document.getElementById("d-table").onclick=()=>{ state.deckDone=true; renderTable(); };
+  shell.appendChild(el(`<p class="keys">Keys: <kbd>Y</kbd> yes · <kbd>M</kbd> maybe · <kbd>N</kbd> no · <kbd>←</kbd> previous</p>`));
   refreshSel();
 }
+/* deck shortcuts — only while the deck is on screen and nothing else has focus */
+document.addEventListener("keydown", e => {
+  if(state.screen!=="p1" || state.deckDone || state.repairing || !document.querySelector(".deck")) return;
+  if((e.target.matches && e.target.matches("input,textarea")) || e.altKey || e.ctrlKey || e.metaKey) return;
+  const k=e.key.toLowerCase();
+  const hit = k==="y"||k==="j" ? "#d-yes" : k==="m" ? "#d-maybe" : k==="n" ? "#d-no" : k==="arrowleft" ? "#d-prev" : null;
+  if(!hit) return;
+  const b=document.querySelector(hit); if(b && !b.disabled){ e.preventDefault(); b.click(); }
+});
 
 /* ---- round 2: the table ---- */
 function renderTable(){
@@ -487,7 +505,7 @@ function renderTable(){
 function makeCard(p){
   const pile=state.deck.no.includes(p.id)?"no":state.deck.maybe.includes(p.id)?"maybe":state.deck.yes.includes(p.id)?"yes":"";
   const c=el(`
-    <div class="card${state.selected.has(p.id)?" sel":""} pile-${pile}" data-id="${p.id}">
+    <div class="card${state.selected.has(p.id)?" sel":""} pile-${pile}" data-id="${p.id}" tabindex="0" role="button" aria-pressed="${state.selected.has(p.id)}" aria-label="${p.name}, ${p.spec}">
       <button type="button" class="nm">${p.name}</button>
       <div class="sp">${p.spec}</div>
       <div class="more" hidden><div class="ti">${p.title} · ${p.edu}</div><div class="bio">${p.bio}</div></div>
@@ -498,15 +516,17 @@ function makeCard(p){
   fieldsOf(p.id).forEach(k=>{ const f=FIELDS.find(x=>x.key===k); fl.appendChild(el(`<span class="ftag" data-k="${k}" style="--fc:${f.color}" title="${f.label}">${f.short}</span>`)); });
   c.querySelector(".nm").onclick=(e)=>{ e.stopPropagation(); const m=c.querySelector(".more"); m.hidden=!m.hidden; };
   c.onclick=()=>toggleCard(p,c);
+  c.onkeydown=(e)=>{ if(e.target!==c) return; if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggleCard(p,c); } };
   return c;
 }
 
 function toggleCard(p,c){
-  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); }
+  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); SFX.no(); }
   else{
     if(state.selected.size>=JURY_SIZE){ flashFull(); return; }
-    state.selected.add(p.id); c.classList.add("sel");
+    state.selected.add(p.id); c.classList.add("sel"); SFX.yes();
   }
+  c.setAttribute("aria-pressed",String(state.selected.has(p.id)));
   refreshSel();
 }
 function flashFull(){
@@ -578,6 +598,7 @@ function rReaction(){
   const r=reactionFor(w);
   if(state.reactionTier===null){          // effects only once
     state.reactionTier=REACTIONS.indexOf(r);
+    SFX.headline();
     hudAddRep(r.rep);
     hudFeed(r.feed[0], r.feed[1]);
   }
@@ -663,7 +684,7 @@ function rAbroad(){
   stage.innerHTML="";
   stage.appendChild(kicker("two weeks later"));
   if(!state.abroadAsked){
-    state.abroadAsked=true;
+    state.abroadAsked=true; SFX.headline();
     hudAddDelay(2); hudAddRep(-10);
     hudFeed("Kronen Zeitung","Wettbewerbsbüro sucht Experten im Ausland?");
   }
@@ -735,6 +756,7 @@ function rConfirm(){
 /* ---------- the formal invitation letter (ex draft-letter.js) ---------- */
 function rSendLetter(){
   stage.innerHTML="";
+  SFX.letter();
   const dateStr=fmtDate(gameDate(),"de-AT",{day:"2-digit",month:"long",year:"numeric"});
   const wrap=el(`
     <div class="slide letter-wrap">
@@ -766,7 +788,7 @@ function rSendLetter(){
     </div>`);
   stage.appendChild(wrap);
   document.getElementById("sl-back").onclick=()=>go("confirm");
-  document.getElementById("sl-send").onclick=()=>{ state.stations.board="done"; state.stations.pr="open"; go("intermezzo"); };
+  document.getElementById("sl-send").onclick=()=>{ SFX.confirm(); state.stations.board="done"; state.stations.pr="open"; go("intermezzo"); };
 }
 
 /* ---------- terminal ticker before the pool (ex draft-reveal.js) ---------- */
@@ -813,6 +835,7 @@ function makeLane(label,count){
 function rReveal(){
   const {w,m}=countInvited();
   stage.innerHTML="";
+  SFX.pool();
   stage.appendChild(kicker("first session"));
   const wrap=el(`<div class="dr-reveal">
       <h2 class="dr-title">The Expert Pool</h2>
@@ -1174,6 +1197,15 @@ function debugJump(){
   go(target);
   return true;
 }
+
+/* every button clicks; the mute switch in the title bar remembers itself */
+stage.addEventListener("click", e => { if(e.target.closest("button")) SFX.click(); });
+(function(){
+  const b=document.getElementById("mute");
+  const paint=()=>{ b.textContent=SFX.isMuted?"🔇":"🔊"; b.setAttribute("aria-pressed",String(SFX.isMuted)); };
+  b.onclick=()=>{ SFX.mute(); paint(); if(!SFX.isMuted) SFX.click(); };
+  paint();
+})();
 
 /* boot: index.html calls start() after this file has loaded. */
 function start(){ if(!debugJump()) go("intro"); }
