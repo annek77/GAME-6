@@ -4,7 +4,8 @@
          pool reveal → the outside world reacts → the brief again, one line marked
          → three ways (repair under
          pressure / sit it out / fund something alongside) → map (station 2:
-         neighbours & PR, four stations locked) → outro
+         neighbours & PR, four stations locked) → the ending (building, the
+         real jury, three figures, sources)
    The former second round ("applications under pressure") is gone. Its
    pressure-event screens (kitchen, press, holiday, abroad enquiry) are
    parked below, unreachable, until a later step decides on them.
@@ -25,7 +26,7 @@ const PHASES = [
 /* which phase a sub-screen belongs to in the phase bar */
 const PHASE_OF = { confirm:"p1", sendletter:"p1", intermezzo:"p1",
   reaction:"reveal", briefreveal:"reveal", options:"reveal", repaired:"reveal",
-  pr:"map", reflect:"outro" };
+  pr:"map" };
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -96,12 +97,12 @@ function go(screen){
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
      map:rMap, pr:rPR,
-     outro:rOutro, reflect:rReflect })[screen]();
+     outro:rOutro })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro","reflect"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro","reflect"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","repaired","map","pr","outro"]);
 function hudDeadline(){
   const d=new Date(2026,7,1); d.setDate(d.getDate()+state.delayWeeks*7);
   return "deadline: "+d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
@@ -882,101 +883,123 @@ function rPR(){
 }
 
 /* ========================================================================
-   OUTRO — verdict on the pool you built, real numbers, reflection
+   THE ENDING — the building stands, always. Its finish follows the budget
+   that is left. Then two facts side by side, then the real jury, then three
+   figures, then the sources. No verdict anywhere.
    ======================================================================== */
-let outroIdx=0;
-function rOutro(){ outroIdx=0; drawOutro(); }
+const FINISH_TEXT = {
+  excellent:{ h:"Finished as planned",
+    t:"Oak parquet in the lecture halls, a green roof over the whole slab, the library open until midnight. The neighbourhood café on the ground floor has its own entrance from the Augasse." },
+  solid:{ h:"Finished, with cuts",
+    t:"Linoleum in the corridors, parquet only in the main hall. The roof is green where the structure allows it. The café is there; the terrace is not." },
+  frugal:{ h:"Finished, stripped back",
+    t:"Linoleum throughout. The green roof shrank to planters along the edge. The library closes at eight; the café became a wall of vending machines." },
+  bare:{ h:"Finished. Just.",
+    t:"Grey screed floors, a gravel roof, the ground floor left as a shell for a later tenant. The lecture halls work. Everything else was cut." },
+};
+function finishTier(){ return FINISH_TIERS.find(t=>state.budget>=t.min) || FINISH_TIERS[FINISH_TIERS.length-1]; }
 
-function verdict(){
-  const {w}=countInvited();
-  if(w>=4 && w<=6) return { tag:"You built a balanced jury.",
-    text:[`Your final jury came out ${w} women, ${JURY_SIZE-w} men — balanced, and all of them qualified. You reached the target.`,
-      state.extensions>0
-        ? `But look what it took: ${state.extensions} extension${state.extensions===1?"":"s"} and ${state.delayWeeks} weeks of delay. In reality, most people don't have that room — and the pressure is designed to make you stop sooner.`
-        : `You managed it without extending — but notice how the deadline and the thin applicant field pushed against you the whole time. Most people give in to that.`] };
-  if(w<=2) return { tag:"The structure won.",
-    text:[`Your jury came out ${w} women, ${JURY_SIZE-w} men. With only about one in five applicants a woman, "just pick the best" lands here almost on its own.`,
-      `That's the leaky pipeline made visible: the skew was in who got to apply, long before you decided anything.`] };
-  return { tag:"Close, but the field tilted it.",
-    text:[`Your jury landed at ${w} women, ${JURY_SIZE-w} men — near balance, but short. The applicant pool was ~80% men, and that pressure shows up in the result.`,
-      `Reaching 5/5 here means actively working against the structure — and the deadline is built to discourage exactly that.`] };
+/* what you did about the board — one dry sentence, no adjective */
+const MEASURE_TEXT = {
+  substitute:  "A woman was appointed substitute juror. She attended every session.",
+  girlscafe:   "The girls' café opened in May. 340 visitors in the first month.",
+  kindergarten:"The kindergarten opened with the building. Sixty places, twenty of them for the neighbourhood.",
+  youth:       "The youth centre in the Grätzl is funded until 2031.",
+  mentoring:   "Twelve mentoring places at the Chamber, three years each.",
+};
+function measureSentence(){
+  if(state.response==="compensate") return MEASURE_TEXT[state.compensation];
+  if(state.response==="repair") return state.repairSwaps>0
+    ? `You reopened the search. ${state.repairSwaps} member${state.repairSwaps>1?"s":""} replaced, ${state.repairSwaps*REPAIR_WEEKS} weeks lost.`
+    : "You reopened the search and kept the board as it was.";
+  return "You kept the board. The story ran for two weeks, then something else happened.";
+}
+function decidedSentence(){
+  const {w,m}=countInvited();
+  const who = `${m} ${m===1?"man":"men"} and ${w} ${w===1?"woman":"women"}`;
+  const sub = state.compensation==="substitute" ? " One more woman sat on the substitutes' bench. She did not vote." : "";
+  return `The design was chosen by ${who}.${sub}`;
 }
 
-const OUTRO=[
-  {head:"Wait — what happened?", build:(w)=>{
-    const v=verdict();
-    const paras=v.text.map(t=>`<p>${t}</p>`).join("");
-    w.appendChild(el(`<div class="slide">
-      <p>You chose carefully. But the applicant field was skewed ~80/20 before you started,
-      and a deadline pushed you to stop early. The result isn't really about who you are —
-      it's about the structure you were handed.</p>
-      <div class="verdict"><div class="tagline">${v.tag}</div>${paras}</div></div>`));
+const ENDING=[
+  { head:()=>FINISH_TEXT[finishTier().key].h, build:(box)=>{
+      const t=FINISH_TEXT[finishTier().key];
+      const spent=SPEND_CATS.filter(c=>state.spend[c.key]>0).map(c=>`<li><i style="background:${c.color}"></i>${c.label}<b>${eur(state.spend[c.key])}</b></li>`).join("");
+      box.appendChild(el(`<div class="slide wide">
+        <p class="lede">The WU stands. ${t.t}</p>
+        <div class="bill"><div class="k">Left for fit-out and finishes</div><div class="v">${eur(Math.max(0,state.budget))}</div>
+          <ul class="legend">${spent}</ul></div>
+        <div class="facts2">
+          <div class="fact2"><p>${measureSentence()}</p></div>
+          <div class="fact2"><p>${decidedSentence()}</p></div>
+        </div>
+      </div>`));
   }},
-  {head:"This isn't just a game", build:(w)=>{
-    w.appendChild(el(`<div class="slide">
-      <p><b>First, the no-blame part:</b> if your experts didn't fit the system's swimwear,
-      it doesn't mean you chose badly. You probably picked excellent people. The problem is
-      the system, not you. Here's the reality in Austria:</p>
-      <div class="stat-row">
-        <div class="stat"><div class="n">60%</div><div class="t">of architecture students are women — often graduating top of their class.</div></div>
-        <div class="stat"><div class="n">11–15%</div><div class="t">of active architecture licences are held by women.</div></div>
-        <div class="stat"><div class="n">&lt; 2%</div><div class="t">women in civil engineering. Nearly 90% of independent firms are run by men.</div></div>
-      </div>
-      <p class="disc">Figures from the project's source material (verify before publishing).
-      This prototype uses woman/man as simplified analytical categories to make one form of
-      selection bias visible — it does not claim gender is fundamentally binary.</p></div>`));
+  { head:()=>"The real jury", build:(box)=>{
+      const {w,m}=countInvited();
+      const rows=REAL_JURY.groups.map(g=>`<tr><td>${g.label}</td><td>${g.women}</td><td>${g.men}</td></tr>`).join("");
+      box.appendChild(el(`<div class="slide wide">
+        <p class="lede">The competition for Campus Althangrund is real. It was launched by the BIG on 6 August 2025;
+        the jury first met on 25–27 February 2026 and decides at the end of 2026.</p>
+        <div class="juries">
+          <div class="jury">
+            <h3>Your board</h3>
+            <table><tr><th></th><th>Women</th><th>Men</th></tr>
+              <tr><td>Members</td><td>${w}</td><td>${m}</td></tr>
+              ${state.compensation==="substitute"?`<tr><td>Substitutes</td><td>1</td><td>0</td></tr>`:""}
+            </table>
+          </div>
+          <div class="jury">
+            <h3>The real jury</h3>
+            <table><tr><th></th><th>Women</th><th>Men</th></tr>${rows}
+              <tr class="sum"><td>Full jurors</td><td>${REAL_JURY.women}</td><td>${REAL_JURY.men}</td></tr>
+              <tr><td>Substitutes</td><td>${REAL_JURY.substitutes.women}</td><td>${REAL_JURY.substitutes.men}</td></tr>
+            </table>
+            <p class="names">${REAL_JURY.women_named.join(" · ")}</p>
+            <p class="src">Source: ${REAL_JURY.source}</p>
+          </div>
+        </div>
+      </div>`));
   }},
-  {head:"The leaky pipeline", build:(w)=>{
-    w.appendChild(el(`<div class="slide">
-      <p><b>Where do the qualified women go?</b> They're lost between university and leadership —
-      rigid, family-unfriendly hours and male-dominated networks. By the time a public call goes
-      out, the applicant pool is already thinned.</p>
-      <p>We built this game to make those invisible filters visible. Fixing it isn't about
-      blaming the chooser — it's about changing the structure so the system is ready for
-      every talent.</p></div>`));
+  { head:()=>"Three figures", build:(box)=>{
+      const tiles=OUTRO_FIGURES.map(f=>{ const s=SOURCES.find(x=>x.key===f.src); return `<div class="stat"><div class="n">${f.n}</div><div class="t">${f.t}</div><div class="src">${s?s.label:""}</div></div>`; }).join("");
+      box.appendChild(el(`<div class="slide wide"><div class="stat-row">${tiles}</div></div>`));
+  }},
+  { head:()=>"Sources", build:(box)=>{
+      const list=SOURCES.map(s=>`<li><a href="${s.url}" target="_blank" rel="noopener">${s.label}</a></li>`).join("");
+      const terms=BRIEF_TERMS.filter(t=>t.source).map(t=>`<li><span class="no">Term ${state.briefTerms.indexOf(t.key)+1}</span>${t.source}</li>`).join("")
+                 +`<li><span class="no">Chamber</span>${CHAMBER_RULE.source}</li>`;
+      box.appendChild(el(`<div class="slide wide">
+        <p class="lede">Every rule, figure and quotation in this game is documented. The brief's terms are translated from these documents; nothing was invented.</p>
+        <div class="srcgrid">
+          <div><h3>Documents</h3><ul class="sources">${list}</ul></div>
+          <div><h3>The five terms</h3><ul class="sources terms-src">${terms}</ul></div>
+        </div>
+        <p class="disc">This prototype uses woman/man as simplified analytical categories to make one form of
+        selection bias visible — it does not claim gender is fundamentally binary.</p>
+      </div>`));
   }},
 ];
 
+let outroIdx=0;
+function rOutro(){ outroIdx=0; drawOutro(); }
 function drawOutro(){
   stage.innerHTML="";
-  const s=OUTRO[outroIdx];
+  const s=ENDING[outroIdx];
   const wrap=el(`<div></div>`);
-  wrap.appendChild(el(`<h1>${s.head}</h1>`));
+  wrap.appendChild(el(`<h1>${s.head()}</h1>`));
   s.build(wrap);
   const nav=el(`<div class="dotnav"></div>`);
-  OUTRO.forEach((_,i)=>nav.appendChild(el(`<i class="${i===outroIdx?"on":""}"></i>`)));
+  ENDING.forEach((_,i)=>nav.appendChild(el(`<i class="${i===outroIdx?"on":""}"></i>`)));
   wrap.appendChild(nav);
   const bar=el(`<div class="btnbar"></div>`);
   if(outroIdx>0){const b=el(`<button class="btn ghost">Back</button>`);b.onclick=()=>{outroIdx--;drawOutro();};bar.appendChild(b);}
-  const last=outroIdx===OUTRO.length-1;
-  const n=el(`<button class="btn">${last?"To reflection":"Next"}</button>`);
-  n.onclick=()=>{ if(last) go("reflect"); else {outroIdx++;drawOutro();} };
+  const last=outroIdx===ENDING.length-1;
+  const n=el(`<button class="btn" id="${last?"again":"next"}">${last?"Play again":"Next"}</button>`);
+  n.onclick=()=>{ if(last) resetGame(); else {outroIdx++;drawOutro();} };
   bar.appendChild(n);
   wrap.appendChild(bar);
   stage.appendChild(wrap);
-}
-
-function rReflect(){
-  stage.innerHTML="";
-  const {w,m}=countInvited();
-  stage.appendChild(el(`
-    <div class="slide">
-      <h1>What happened in there?</h1>
-      <p class="lede">The interesting question isn't "who's to blame?" — it's which patterns formed,
-      and how selection could be designed more fairly.</p>
-      <div class="verdict"><p>Your jury: <b>${w}</b> women, <b>${m}</b> men${state.extensions?` · ${state.extensions} extension(s), ${state.delayWeeks}w delay`:""}.</p></div>
-      <ol class="qlist">
-        <li>How did the ~80/20 applicant field shape what felt possible?</li>
-        <li>When the deadline appeared, did you change how you chose?</li>
-        <li>Did extending feel worth the delay — and who, in reality, can afford that delay?</li>
-        <li>Were the criteria that felt like "hard quality" fair ones for a public building?</li>
-        <li>What would raise the number of women applying in the first place?</li>
-      </ol>
-      <div class="btnbar">
-        <button class="btn" id="again">Play again</button>
-      </div>
-    </div>`));
-  document.getElementById("again").onclick=resetGame;
 }
 
 function resetGame(){
