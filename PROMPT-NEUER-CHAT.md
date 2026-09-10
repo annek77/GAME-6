@@ -31,8 +31,15 @@ und verschaffe dir einen Überblick über `game.js`, `index.html`, `data.js`.
 - **Führe keine Git-Befehle aus.** Das Repo liegt in einem verbundenen
   Windows-Ordner; Git aus der Linux-Sandbox hinterlässt dort Lock-Dateien, die
   sich nicht mehr entfernen lassen und jeden weiteren Git-Befehl blockieren.
-  Sag mir stattdessen nach jedem fertigen Punkt **einen Satz für die
-  Commit-Nachricht** — ich committe und pushe selbst über GitHub Desktop.
+- **Gib mir nach jedem fertigen Punkt unaufgefordert die Commit-Nachricht.**
+  Als eigenen Codeblock zum Kopieren, eine Zeile, ohne Umlaute und
+  Sonderzeichen. Darunter in einem Satz, was sich geändert hat. Ich committe
+  und pushe selbst über GitHub Desktop — ohne diese Zeile weiß ich nicht, was
+  ich gerade hochlade. Beispiel:
+
+  ```
+  Auswahl auf eine Runde umgebaut, Pflichtfelder-Checkliste ergaenzt
+  ```
 
 ## Umgebung
 
