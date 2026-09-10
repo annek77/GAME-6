@@ -111,7 +111,7 @@ p{line-height:1.55;max-width:64ch}
 .card:hover{transform:translateY(-3px);box-shadow:4px 7px 0 rgba(20,48,65,.18)}
 .card.sel{background:#fff4d6;border-color:var(--gold-deep);box-shadow:4px 4px 0 var(--gold-deep)}
 .card.sel::after{
-  content:"✓ on jury"; position:absolute;top:-12px;right:10px;
+  content:"✓ on board"; position:absolute;top:-12px;right:10px;
   font-family:'VT323',monospace;font-size:16px;background:var(--gold);
   border:2px solid var(--ink);border-radius:6px;padding:0 8px;
 }
@@ -208,6 +208,7 @@ p{line-height:1.55;max-width:64ch}
 .gauge.gflash{animation:gflash .5s ease}
 @keyframes gflash{0%{background:#fff4d6}100%{background:var(--paper)}}
 button.gauge{font:inherit;color:inherit;text-align:left;cursor:pointer;appearance:none}
+button.gauge .k,button.gauge .v,button.gauge .sub{display:block}
 button.gauge .caret{font-size:12px;color:var(--ink-soft);margin-left:4px;display:inline-block;transition:transform .15s}
 button.gauge.open .caret{transform:rotate(180deg)}
 .budget-panel{padding:10px 18px 12px;background:var(--ui);border-bottom:5px solid var(--ink)}

@@ -53,7 +53,7 @@ const state = {
 
   budget:BUDGET_START,
   spend:freshSpend(),          // per SPEND_CATS key
-  delayWeeks:0, extensions:0, rep:100,
+  delayWeeks:0, rep:100,
   hudSeen:{ time:false, rep:false, progress:false },   // gauges appear once their dimension matters
   budgetOpen:false,            // the budget gauge unfolds into the spend chart
 };
@@ -178,7 +178,9 @@ function briefMail({ctaLabel, onCta, highlight=null, intro=true}={}){
     </div>
     <div class="btnbar"></div>
   </div>`);
-  if(ctaLabel){ const c=el(`<button class="btn">${ctaLabel}</button>`); c.onclick=onCta; wrap.querySelector(".btnbar").appendChild(c); }
+  const bar=wrap.querySelector(".btnbar");
+  if(ctaLabel){ const c=el(`<button class="btn">${ctaLabel}</button>`); c.onclick=onCta; bar.appendChild(c); }
+  else bar.remove();
   return wrap;
 }
 
@@ -311,7 +313,7 @@ function renderHandPick(){
       <div class="counter"><span id="cnt">0</span>/${JURY_SIZE}<small>chosen</small></div>
       <div class="checklist" id="checklist"></div>
       <div class="fees" id="fees"></div>
-      <button class="btn" id="confirm" disabled>Confirm jury</button>
+      <button class="btn" id="confirm" disabled>Confirm the board</button>
     </div>`);
   stage.appendChild(bar);
   const list=bar.querySelector("#checklist");
@@ -371,14 +373,17 @@ function refreshSel(){
   c.disabled=!ready;
   if(state.repairing){
     const sw=repairSwaps(), delta=feesOf(state.selected)-feesOf(new Set(state.repairBase));
+    const cost=sw*REPAIR_WEEKS*WEEK_COST+delta, over=cost>state.budget;
     document.getElementById("fees").innerHTML=`Delay <b>+${sw*REPAIR_WEEKS} weeks · ${eur(sw*REPAIR_WEEKS*WEEK_COST)}</b><small>fees ${delta>=0?"+":"−"}${eur(Math.abs(delta))} · budget ${eur(state.budget)}</small>`;
+    if(over) c.disabled=true;
     c.textContent = !ready ? (n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more` : `${missing.length} field${missing.length>1?"s":""} not covered`)
+                  : over ? "Not enough budget left"
                   : sw===0 ? "Keep the board as it is"
                   : `Confirm ${sw} replacement${sw>1?"s":""} (+${sw*REPAIR_WEEKS}w)`;
     return;
   }
   document.getElementById("fees").innerHTML=`Fees <b>${eur(feesOf(state.selected))}</b><small>budget ${eur(state.budget)}</small>`;
-  c.textContent = ready ? "Confirm jury"
+  c.textContent = ready ? "Confirm the board"
                 : n<JURY_SIZE ? `Pick ${JURY_SIZE-n} more`
                 : `${missing.length} field${missing.length>1?"s":""} not covered`;
 }
@@ -393,6 +398,7 @@ function onConfirmHandPick(){
   if(state.selected.size!==JURY_SIZE || missingFields(state.selected).length) return;
   if(state.repairing){
     const sw=repairSwaps();
+    if(sw*REPAIR_WEEKS*WEEK_COST+feesOf(state.selected)-feesOf(new Set(state.repairBase))>state.budget) return;
     spend("experts",feesOf(state.selected)-feesOf(new Set(state.repairBase)));
     if(sw>0) hudAddDelay(sw*REPAIR_WEEKS);
     state.invited=[...state.selected]; state.repairSwaps=sw; state.repairing=false;
@@ -480,7 +486,7 @@ function rOptions(){
       <div class="way">
         <h3>Reopen the search</h3>
         <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*WEEK_COST)} in delay costs, plus the difference in fees.</p>
-        <button class="btn" id="opt-repair">Back to the selection</button>
+        <button class="btn" id="opt-repair">Reopen the search</button>
       </div>
       <div class="way">
         <h3>Sit it out</h3>
@@ -541,7 +547,7 @@ function rConfirm(){
   const list=state.invited.map(id=>{const p=byId(id);return `<li>${p.name} — ${p.spec} <small>${eur(expertFee(p))}</small></li>`;}).join("");
   stage.appendChild(el(`
     <div class="slide">
-      <h1>Jury complete</h1>
+      <h1>Board complete</h1>
       <p class="lede">${state.invited.length} experts, all six fields covered. Fees: ${eur(state.spend.experts)}.</p>
       <div class="verdict"><ul>${list}</ul></div>
       <div class="btnbar">
@@ -596,13 +602,12 @@ function rSendLetter(){
 
 /* ---------- terminal ticker before the pool (ex draft-reveal.js) ---------- */
 function rIntermezzo(){
-  const delay=state.delayWeeks||0, ext=state.extensions||0;
   const lines=[
-    "Jury complete.",
+    "Board complete.",
     "Invitations sent.",
-    delay>0 ? `+${delay} week${delay!==1?"s":""} delay, ${ext} extension${ext!==1?"s":""}.` : "Project starts on schedule.",
-    "Next meeting: the Expert Pool. Thursday, 09:00.",
-    `The organisers prepared ${JURY_SIZE} stations, ${JURY_SIZE} name tags, ${JURY_SIZE} towels.`,
+    state.delayWeeks>0 ? `+${state.delayWeeks} week${state.delayWeeks!==1?"s":""} delay.` : "Project starts on schedule.",
+    "First session: the Expert Pool. Thursday, 09:00.",
+    `The organisers prepared ${JURY_SIZE} cabins, ${JURY_SIZE} name tags, ${JURY_SIZE} towels.`,
   ];
   stage.innerHTML="";
   const term=el(`<div class="im-terminal">
@@ -870,7 +875,7 @@ function drawOutro(){
 function resetGame(){
   state.order=[]; state.selected=new Set(); state.invited=[];
   state.budget=BUDGET_START; state.spend=freshSpend();
-  state.delayWeeks=0; state.extensions=0; state.rep=100;
+  state.delayWeeks=0; state.rep=100;
   state.hudSeen={time:false,rep:false,progress:false}; state.budgetOpen=false;
   state.reactionTier=null; state.chamberOk=true; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0;
