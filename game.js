@@ -338,6 +338,12 @@ function repairSwaps(){ return [...state.selected].filter(id=>!state.repairBase.
 const OWN_SEATS = JURY_SIZE - CHAMBER_SHARE;
 const SENIORITY_LABEL = ["under 5 years","5–10 years","10–20 years","20+ years"];
 function candidateOrder(){ return state.order.filter(id=>!isChamber(id)); }
+/* the piles must agree with the board: whoever is on the board is in Yes,
+   whoever leaves it goes to Maybe (they were once considered) */
+function setPile(id,pile){
+  ["yes","maybe","no"].forEach(k=>{ state.deck[k]=state.deck[k].filter(x=>x!==id); });
+  if(pile) state.deck[pile].push(id);
+}
 
 function renderHandPick(){
   if(state.order.length===0) state.order=shuffle(PROFILES.map(p=>p.id));
@@ -360,6 +366,7 @@ function selectionBar(){
         <p class="hint" id="task"></p>
       </div>
     </div>`);
+  bar.querySelector("#confirm").onclick=onConfirmHandPick;
   return bar;
 }
 
@@ -376,7 +383,7 @@ function refreshSel(){
     const c=el(isChamber(id)
       ? `<div class="hcard chamber" title="Nominated by the Chamber"><b>${p.name.split(" ").pop()}</b><small>Chamber</small></div>`
       : `<button type="button" class="hcard" title="Remove ${p.name}" aria-label="Remove ${p.name} from the board"><b>${p.name.split(" ").pop()}</b><small>${eur(expertFee(p))}</small></button>`);
-    if(!isChamber(id)) c.onclick=()=>{ state.selected.delete(id); SFX.no(); refreshSel(); const card=document.querySelector(`.card[data-id="${id}"]`); if(card){ card.classList.remove("sel"); card.setAttribute("aria-pressed","false"); } };
+    if(!isChamber(id)) c.onclick=()=>{ state.selected.delete(id); if(state.deck.yes.includes(id)) setPile(id,"maybe"); SFX.no(); refreshSel(); const card=document.querySelector(`.card[data-id="${id}"]`); if(card){ card.classList.remove("sel"); card.setAttribute("aria-pressed","false"); card.className=card.className.replace(/pile-\w*/,"pile-maybe"); } };
     hand.appendChild(c); });
   for(let i=n;i<JURY_SIZE;i++) hand.appendChild(el(`<div class="hcard empty"><b>·</b></div>`));
   // the six slots
@@ -443,7 +450,7 @@ function renderDeck(){
   const own=[...state.selected].filter(id=>!isChamber(id)).length;
   const inYes=state.selected.has(p.id);
   const shell=el(`<div class="deck">
-    <div class="deck-progress">Candidate ${i+1} of ${order.length} · <span>Yes ${state.deck.yes.length} · Maybe ${state.deck.maybe.length} · No ${state.deck.no.length}</span></div>
+    <div class="deck-progress">Candidate ${i+1} of ${order.length} · <span>Yes ${state.deck.yes.length} + ${CHAMBER_SHARE} Chamber · Maybe ${state.deck.maybe.length} · No ${state.deck.no.length}</span></div>
     <div class="bigcard">
       <div class="nm">${p.name}</div>
       <div class="ti">${p.title} · ${p.edu}</div>
@@ -461,7 +468,7 @@ function renderDeck(){
   </div>`);
   stage.appendChild(shell);
   const put=(pile)=>{ (pile==="yes"?SFX.yes:pile==="no"?SFX.no:SFX.card)();
-    ["yes","maybe","no"].forEach(k=>{ state.deck[k]=state.deck[k].filter(x=>x!==p.id); }); state.deck[pile].push(p.id);
+    setPile(p.id,pile);
     if(pile==="yes") state.selected.add(p.id); else state.selected.delete(p.id);
     state.deck.idx++; renderDeck(); };
   document.getElementById("d-yes").onclick=()=>put("yes");
@@ -501,7 +508,6 @@ function renderTable(){
   shown.forEach(id=>grid.appendChild(makeCard(byId(id))));
   stage.appendChild(grid);
   const tno=document.getElementById("t-no"); if(tno) tno.onclick=()=>{ state.showNo=!state.showNo; renderTable(); };
-  document.getElementById("confirm").onclick=onConfirmHandPick;
   refreshSel();
 }
 
@@ -524,10 +530,10 @@ function makeCard(p){
 }
 
 function toggleCard(p,c){
-  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); SFX.no(); }
+  if(state.selected.has(p.id)){ state.selected.delete(p.id); c.classList.remove("sel"); if(state.deck.yes.includes(p.id)) setPile(p.id,"maybe"); SFX.no(); }
   else{
     if(state.selected.size>=JURY_SIZE){ flashFull(); return; }
-    state.selected.add(p.id); c.classList.add("sel"); SFX.yes();
+    state.selected.add(p.id); c.classList.add("sel"); setPile(p.id,"yes"); SFX.yes();
   }
   c.setAttribute("aria-pressed",String(state.selected.has(p.id)));
   refreshSel();
