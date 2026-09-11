@@ -120,9 +120,9 @@ function go(screen){
 /* ---------- HUD ---------- */
 const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
 const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
-/* the deadline does not move. 1 August 2026 stays 1 August 2026; what moves
-   is how late you are. */
-const DEADLINE = new Date(2026,7,1);
+/* the deadline does not move. 1 March 2027 stays 1 March 2027; what moves
+   is how late you are. (Game mechanic, see BRIEF_TERMS[0].) */
+const DEADLINE = new Date(2027,2,1);
 const fmtDate = (d,loc="en-GB",opt={day:"2-digit",month:"short",year:"numeric"}) => d.toLocaleDateString(loc,opt);
 function hudDeadline(){ return "deadline: "+fmtDate(DEADLINE); }
 function gameDate(){ const d=new Date(DEADLINE); d.setDate(d.getDate()+state.delayWeeks*7); return d; }
@@ -1024,13 +1024,13 @@ function rPR(){
 /* ---------- Station 2, the event: whatever you planned lands in August ---------- */
 function rPRSeason(){
   stage.innerHTML="";
-  stage.appendChild(kicker("summer"));
+  stage.appendChild(kicker("summer 2027"));
   const a=PR_ACTIONS.find(x=>x.key===state.prAction);
   const card=el(`<div class="appcard wide">
     <span class="badge">Meanwhile</span>
     <div class="art">${ALTEDONAU_SVG}</div>
     <h2>Holiday season</h2>
-    <p>Your ${a.label.toLowerCase()} is ready to go — and half of Vienna is at the Alte Donau. The district office answers in
+    <p>By the time your ${a.label.toLowerCase()} is ready to go, it is July — and half of Vienna is at the Alte Donau. The district office answers in
        September, the neighbourhood association not at all. Nothing you did. Just the calendar.</p>
     <div class="btnbar col mt">
       <button class="btn" id="ps-wait">Wait for September<span class="cost">+2 weeks · ${eur(2*weekCost())} · the measure lands with full effect</span></button>

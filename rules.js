@@ -38,7 +38,7 @@ const SPEND_CATS = [
    begleitende Uni-Paper die Belege braucht.                                */
 const BRIEF_TERMS = [
   { key:"deadline",
-    text:"The advisory board shall be constituted no later than 1 August 2026. Each week of delay is charged to the project at €50,000.",
+    text:"The advisory board shall be constituted no later than 1 March 2027. Each week of delay is charged to the project at €50,000.",
     source:null },   // Spielmechanik, keine Rechtsnorm
   { key:"jurysize",
     text:"An odd number of jurors shall be appointed, no fewer than five. Where a particular professional qualification is required of entrants, at least half of the panel must hold the same or an equivalent qualification.",
