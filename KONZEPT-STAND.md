@@ -453,20 +453,31 @@ grün am 10.09.2026.
 - „Ruf kostet später Geld" (Abschnitt 3) ist nicht verdrahtet — Ruf wirkt nur
   als Anzeige
 
-## 10. Offene Punkte
+## 10. Offene Punkte (Stand 11.09.2026)
 
-1. **Disruptor-Verteilung** final festlegen (Vorschlag in Abschnitt 7)
-2. ~~Recherche zu gesetzlichen Auflagen und Zahlen~~ — **erledigt, 10.09.2026.**
-   Ergebnisse in `../Recherche_Serious-Game_Gender-Jurys-Architektur-AT.md`
-   (1119 Zeilen, mit Primärquellen und Abrufdaten). Alles Relevante ist in
-   `rules.js` eingearbeitet: `BRIEF_TERMS`, `CHAMBER_RULE`, `NON_COMPLIANCE`,
-   `REAL_JURY`, `SOURCES`, `OUTRO_FIGURES`.
-3. **Profil-Audit**: Textlängen angleichen, Seniorität abgleichen, Prestige
-   entkoppeln
-4. ~~**Punkt 8** — Endbildschirm~~ — **gebaut, 10.09.2026** (Abschnitt 9)
-5. **GitHub-Remote** anlegen und pushen (Anne macht das selbst)
-6. ~~**Audio** einbinden~~ — **erledigt, 10.09.2026** (`sound.js`)
-7. ~~**Quellen- und Methodenseite** im Spiel~~ — Quellenseite gebaut (letzter
-   Schritt des Abspanns); Methodenteil offen
-8. **Settings / Barrierefreiheit**: Mute ✓, Tastaturbedienung ✓ (10.09.2026); „weniger
-   Reize" offen (`prefers-reduced-motion` wird respektiert)
+**Braucht das Team:**
+
+1. Blindtests Kathi und Jana nach `TEST-ANLEITUNG.md`; Rückmeldungen an Anne
+2. Textdurchgang der von Claude formulierten Texte (Liste in §9 und in der Testanleitung)
+3. **Profil-Audit** (`data.js`, mit Kathi): Bio-Längen, Seniorität der Frauen, `FIELD_MAP`
+   gegen die Bios prüfen. Kriterien-Punkte sind im UI nicht mehr sichtbar, `prestige: 3`
+   bei fünf von sechs Frauen steht aber weiter in den Daten
+4. Klima-Feld-Notiz („1,5 m Substrat, 30–40 % Beschattung", `FIELDS` in `rules.js`):
+   Quelle klären — wenn nicht STEK 68, aus dem Tooltip nehmen
+5. **Disruptor-Verteilung** (Abschnitt 7) — bleibt Konzept; im Prototyp gibt es ein festes
+   Ereignis (Alte Donau) und die Vorschauen der Stationen 3–6
+
+**Klein, jederzeit machbar:**
+
+6. „Weniger Reize"-Schalter neben dem Lautsprecher (Animationen aus); Systemeinstellung
+   wird schon respektiert
+7. Titel bricht auf Handybreite in zwei Zeilen
+
+**Bewusst nicht vor der Abgabe:** Stationen 3–6 spielbar · Zufalls-Disruptoren ·
+Notlagen-Verhandlung (Abschnitt 5) · Kammer-Ersatzpreisrichter:innen als eigene Mechanik ·
+Architektennamen im Intro (Quelle nur [S])
+
+**Erledigt (10./11.09.2026):** Recherche eingearbeitet · Endbildschirm mit Gebäude ·
+Quellenseite (Dossier) · Audio · Tastatur und Mute · GitHub Pages live · Kammerkontingent ·
+Echos · Station 2 mit Ereignis und Zugangsfrage · Vorschauen 3–6 · Frist 1. März 2027 ·
+Cache-Busting · Fehlerstreifen · Test-Sprungmarken · README

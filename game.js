@@ -648,7 +648,7 @@ function rOptions(){
       <div class="way">
         <h3>Reopen the search</h3>
         <p>Replace members of the board. Every replacement is a new search: ${REPAIR_WEEKS} weeks and ${eur(REPAIR_WEEKS*weekCost())} in delay costs, plus the difference in fees.</p>
-        <button class="btn" id="opt-repair">Reopen the search</button>
+        <button class="btn ghost" id="opt-repair">Reopen the search</button>
       </div>
       <div class="way">
         <h3>Sit it out</h3>
@@ -922,7 +922,7 @@ function rRealWorld(){
     <p class="lede">The competition for Campus Althangrund is real. The BIG launched it on 6 August 2025;
       the jury first met on 25–27 February 2026 and decides at the end of 2026.</p>
     <div class="juries">
-      <div class="jury"><h3>Your board</h3>${yours}${(()=>{const need=echoes().filter(e=>e.when==="absent");const have=echoes().filter(e=>e.when==="present");return `<p class="names">${have.length?`Brings: ${have.map(e=>e.label).join(", ")}.`:""} ${need.length?`Will be bought in later: ${need.map(e=>e.label.toLowerCase()).join(", ")}.`:""}</p>`;})()}</div>
+      <div class="jury"><h3>Your board</h3>${yours}${(()=>{const need=echoes().filter(e=>e.when==="absent");const have=echoes().filter(e=>e.when==="present");return `<p class="names">${have.length?`Brings: ${have.map(e=>e.label).join(", ")}.`:""} ${need.length?`Will be bought in later: ${need.map(e=>e.label).join(", ")}.`:""}</p>`;})()}</div>
       <div class="jury"><h3>Campus Althangrund, 2026</h3>${real}
         <p class="names">${REAL_JURY.women_named.join(" · ")}</p>
         <p class="src">${REAL_JURY.source}</p></div>
