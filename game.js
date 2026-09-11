@@ -23,6 +23,7 @@
 const STATION_OF = { p1:"board", confirm:"board", sendletter:"board", intermezzo:"board",
   reveal:"board", reaction:"board", briefreveal:"board", options:"board", abroad:"board", repaired:"board",
   realworld:"board", dossier:"board", pr:"pr", prseason:"pr", praccess:"pr", latestations:"permits", outro:"build" };
+/* the preview screen belongs to whichever locked station is being looked at */
 
 function freshSpend(){ const o={}; SPEND_CATS.forEach(c=>o[c.key]=0); return o; }
 function freshStations(){ const o={}; STATIONS.forEach(st=>o[st.key]=st.state); return o; }
@@ -49,7 +50,8 @@ const state = {
   // the project map: station key → "done" | "open" | "locked"
   stations:freshStations(),
   prAction:null,               // key from PR_ACTIONS
-  prSeason:null,               // "wait" | "autumn" — the holiday event
+  prSeason:null,               // "wait" | "now" — the holiday event
+  previewKey:null,             // which locked station is being previewed
   accessAction:null,           // key from ACCESS_ACTIONS
 
   budget:BUDGET_START,
@@ -96,7 +98,7 @@ function spend(cat,amount){
    done = green, open = gold, locked = grey, current = outlined */
 function renderPhasebar(){
   phasebar.innerHTML="";
-  const cur = STATION_OF[state.screen] || null;
+  const cur = state.screen==="preview" ? state.previewKey : (STATION_OF[state.screen] || null);
   STATIONS.forEach((st,i)=>{
     const b=document.createElement("b");
     b.className = state.stations[st.key] + (st.key===cur ? " on" : "");
@@ -112,14 +114,14 @@ function go(screen){
   ({ intro:rIntro, p1:rPhase1, confirm:rConfirm, sendletter:rSendLetter, intermezzo:rIntermezzo,
      reveal:rReveal, reaction:rReaction, briefreveal:rBriefReveal, options:rOptions, repaired:rRepaired,
      abroad:rAbroad, realworld:rRealWorld, dossier:rDossier, latestations:rLateStations,
-     prseason:rPRSeason, praccess:rPRAccess,
+     prseason:rPRSeason, praccess:rPRAccess, preview:rPreview,
      map:rMap, pr:rPR,
      outro:rOutro })[screen]();
 }
 
 /* ---------- HUD ---------- */
-const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
-const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","latestations","outro"]);
+const HUD_SCREENS  = new Set(["p1","confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","preview","latestations","outro"]);
+const FEED_SCREENS = new Set(["confirm","sendletter","intermezzo","reveal","reaction","briefreveal","options","abroad","repaired","realworld","dossier","map","pr","prseason","praccess","preview","latestations","outro"]);
 /* the deadline does not move. 1 March 2027 stays 1 March 2027; what moves
    is how late you are. (Game mechanic, see BRIEF_TERMS[0].) */
 const DEADLINE = new Date(2027,2,1);
@@ -988,8 +990,10 @@ function rMap(){
       <p>${st.desc}</p>
       ${s==="done"?`<div class="st-result">${stationResult(st.key)}</div>`:""}
       ${s==="open"?`<button class="btn st-go">Go there</button>`:""}
+      ${s==="locked"&&STATION_PREVIEWS[st.key]?`<button class="link st-peek">What happens here?</button>`:""}
     </div>`);
     if(s==="open") card.querySelector(".st-go").onclick=()=>go(st.key==="board"?"p1":st.key);
+    const peek=card.querySelector(".st-peek"); if(peek) peek.onclick=()=>{ state.previewKey=st.key; go("preview"); };
     map.appendChild(card);
   });
   stage.appendChild(wrap);
@@ -1025,6 +1029,26 @@ function rPR(){
     bar.appendChild(b);
   });
   stage.appendChild(card);
+}
+
+/* ---------- a locked station, looked at: what would happen here ---------- */
+function rPreview(){
+  const st=STATIONS.find(x=>x.key===state.previewKey), pv=STATION_PREVIEWS[state.previewKey];
+  const i=STATIONS.indexOf(st)+1;
+  const mine=echoes().filter(e=>e.station===st.key);
+  stage.innerHTML="";
+  stage.appendChild(el(`<div class="kicker"><b>Station ${i}</b> · ${st.label} · <span>${pv.when}</span></div>`));
+  const card=el(`<div class="appcard wide preview">
+    <span class="badge locked">🔒 Not playable in this prototype</span>
+    <h2>${st.label}</h2>
+    <div class="st-place">${st.place}</div>
+    <p>${pv.text}</p>
+    <div class="btnbar col mt">${pv.options.map(o=>`<button class="btn ghost" disabled>${o.label}<span class="cost">${o.cost}</span></button>`).join("")}</div>
+    ${mine.length?`<div class="echo-list"><b>Your board here:</b><ul>${mine.map(e=>`<li>${e.line}${e.effect.consultants?` <span class="cost">${eur(e.effect.consultants)}</span>`:e.effect.saving?` <span class="gain">+${eur(e.effect.saving)}</span>`:""}</li>`).join("")}</ul></div>`:`<p class="echo-none">Nothing here traces back to your board.</p>`}
+    <div class="btnbar"><button class="btn" id="pv-back">Back to the map</button></div>
+  </div>`);
+  stage.appendChild(card);
+  document.getElementById("pv-back").onclick=()=>go("map");
 }
 
 /* ---------- Station 2, the event: whatever you planned lands in August ---------- */
@@ -1183,7 +1207,7 @@ function resetGame(){
   state.reactionTier=null; state.response=null; state.compensation=null;
   state.repairing=false; state.repairBase=[]; state.repairSwaps=0; state.abroadAsked=false;
   state.lateBilled=false; state.savings=0;
-  state.stations=freshStations(); state.prAction=null; state.prSeason=null; state.accessAction=null;
+  state.stations=freshStations(); state.prAction=null; state.prSeason=null; state.accessAction=null; state.previewKey=null;
   state.dossierReturn=null; introStep=0;
   go("intro");
 }

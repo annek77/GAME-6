@@ -393,7 +393,9 @@ intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftr
  → realworld Stationsende: eigene Jury (Kammer / eigene / gesamt) neben REAL_JURY, OUTRO_FIGURES,
              „Read more" → dossier (8 Notizen aus DOSSIER, alle SOURCES, Auflagen-Quellen) oder Karte
  ── Stationen 2–6 ───────────────────────────────────────────────────────────
- → map       Station 1 erledigt, 2 offen, 3–6 gesperrt
+ → map       Station 1 erledigt, 2 offen, 3–6 gesperrt. Gesperrte Kästen: „What happens here?" →
+ → preview   Vorschau der Station (STATION_PREVIEWS: zwei Sätze Lage, drei graue Optionen mit Preis,
+             die Echo-Zeile des eigenen Beirats, Stempel „Not playable in this prototype")
  → pr        Station 2, Entscheidung 1: Information aus PR_ACTIONS (30 % billiger mit Berger)
  → prseason  Ereignis (fest, kein Zufall; entfällt bei „Do nothing"): Sommer an der Alten Donau —
              warten (+2 Wochen, volle Wirkung) oder jetzt (halber Ruf-Effekt)
@@ -440,7 +442,7 @@ grün am 10.09.2026.
 - Dossier: die acht Notizen in `DOSSIER` (Inhalt aus der Recherche, Formulierung von Claude)
 - Ende: die vier Ausstattungs-Absätze in `FINISH_TEXT`, die Maßnahmen-Sätze in
   `MEASURE_TEXT` (z. B. „340 Besucherinnen" aus Abschnitt 3 übernommen)
-- Options-Screen, Karte, Station 2, Briefing-Anrede
+- Options-Screen, Karte, Station 2, Briefing-Anrede, Vorschauen der Stationen 3–6 (`STATION_PREVIEWS`)
 
 ### Bekannte Altlasten
 

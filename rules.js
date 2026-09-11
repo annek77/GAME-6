@@ -252,6 +252,42 @@ function activeEchoes(ids){
   return ECHOES.filter(e => e.when==="present" ? e.who.some(id=>ids.includes(id)) : !e.who.some(id=>ids.includes(id)));
 }
 
+/* ---------- Vorschau der gesperrten Stationen 3–6 --------------------------
+   Klick auf einen gesperrten Kasten zeigt, was dort zu tun wäre: zwei Sätze
+   Lage, die Entscheidung als graue Knöpfe. Inhalte aus dem Konzept (§6, §7)
+   und dem Projektstand der Recherche (Asbest-Rückbau 2026–27, 40 % Trag-
+   struktur, Rohbau ab 2028). Spielfiktion, nicht spielbar.                 */
+const STATION_PREVIEWS = {
+  permits:{ when:"2027",
+    text:"The Baupolizei checks the escape routes over live tracks, ÖBB checks every load path, and a neighbour objects to the crane over her courtyard. Each objection is a letter, each letter is weeks.",
+    options:[
+      { label:"Pre-clear with ÖBB and MA 37 in a joint workshop", cost:"€80,000 · −3 weeks of objections" },
+      { label:"Submit and wait", cost:"no cost · objections come one by one" },
+      { label:"Hire a permit consultant", cost:"€140,000 · someone else writes the letters" },
+    ]},
+  partners:{ when:"2027–2028",
+    text:"The café on the ground floor, the sports hall, the kindergarten — none of it is in the public budget. Partners bring money, and every euro comes with a wish attached.",
+    options:[
+      { label:"Coffee roaster funds the campus café", cost:"+€200,000 · their logo on the Augasse front" },
+      { label:"Investor pays for the hall", cost:"+€600,000 · marble in the foyer, and a say in the design" },
+      { label:"No partners", cost:"no cost · no café, no hall" },
+    ]},
+  material:{ when:"2028",
+    text:"Forty percent of the old concrete stays — the slab, the columns, the foundations. The rest comes from somewhere. A demolition site three streets away is giving away brick and steel.",
+    options:[
+      { label:"Recycled brick and steel from the neighbourhood", cost:"−€120,000 · 6 weeks of sorting" },
+      { label:"New material, delivered on schedule", cost:"no saving · no delay" },
+      { label:"Timber for the upper floors", cost:"+€90,000 · lighter, faster, and the price moves weekly" },
+    ]},
+  build:{ when:"2028–2032",
+    text:"Four years over a railway that never stops. A heatwave halves the crew's afternoons; an archaeological find stops the pit for a fortnight; the neighbours' street party is your only good press. Everything you decided until now shows up here.",
+    options:[
+      { label:"Night shifts during the heatwave", cost:"€160,000 · schedule holds" },
+      { label:"Accept the delay", cost:"no cost · 4 weeks late" },
+      { label:"Open the site to the neighbourhood once a month", cost:"€40,000 · reputation up, insurance up" },
+    ]},
+};
+
 /* ---------- Endqualität nach Restbudget (Punkt 8, noch nicht gebaut) ----- */
 const FINISH_TIERS = [
   { min:2_200_000, key:"excellent" },

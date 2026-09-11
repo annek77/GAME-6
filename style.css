@@ -250,6 +250,21 @@ button.hcard{font:inherit;color:inherit;text-align:left}
 kbd{font-family:'VT323',monospace;font-size:14px;border:1.5px solid var(--ink-soft);border-radius:4px;padding:0 5px;background:#fff}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ---- locked-station preview ---- */
+.station-card .st-peek{background:none;border:none;padding:0;font:inherit;font-size:12px;color:var(--ink-soft);text-decoration:underline;cursor:pointer;align-self:flex-start}
+.station-card .st-peek:hover{color:var(--ink)}
+.appcard.preview{background:#eef3f6;border-style:dashed}
+.appcard.preview .badge.locked{background:#dfe7eb;border-color:var(--ink-soft);color:var(--ink-soft)}
+.appcard.preview .st-place{margin-bottom:8px}
+.appcard.preview .btn:disabled{opacity:.6;background:#fff;box-shadow:3px 3px 0 rgba(20,48,65,.2)}
+.echo-list{margin-top:14px;border-top:2px dotted var(--line);padding-top:10px;font-size:13px}
+.echo-list b{font-family:'VT323',monospace;font-size:18px}
+.echo-list ul{list-style:none;margin-top:4px}
+.echo-list li{padding:3px 0}
+.echo-list .cost{font-family:'VT323',monospace;font-size:16px;color:var(--danger)}
+.echo-list .gain{font-family:'VT323',monospace;font-size:16px;color:#2c6e54}
+.echo-none{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:12px}
+
 /* ---- stations 3–6 and echoes ---- */
 .echo-note{font-size:13px;color:#2c6e54;background:#e9f7f0;border:2px solid var(--ok);border-radius:8px;padding:6px 10px;margin:8px 0 4px;max-width:none}
 .btn .cost s{color:var(--ink-soft);margin-right:4px}
