@@ -102,7 +102,11 @@ const NON_COMPLIANCE = {
    man wählt nicht "gute Leute", man deckt Anforderungen ab. Drei der sechs
    Felder sind im Bewerberfeld ausschließlich männlich besetzt — nicht als
    Trick, sondern weil die Datenlage in diesen Sparten so aussieht.
-   `short` und `color` sind reine Anzeige (Tags auf den Karten, Checkliste). */
+   `short` und `color` sind reine Anzeige (Tags auf den Karten, Checkliste).
+   Die Notizen zu Tragwerk, Klima (1,5 m Substrat auf mind. 10 % der Dach-/
+   Plattenflächen; 30 % / 40 % Verschattung; Regenwasser) und Nutzer:innen-
+   zahlen stehen wörtlich im STEK-68-Beschluss (Folien 12, 13, 15) — Quelle
+   `stek` in SOURCES, am 11.09.2026 aus dem PDF der MA 21 gegengeprüft.      */
 const FIELDS = [
   { key:"struct",  label:"Structures over live rail",      short:"Structure",   color:"#5cb9da",
     note:"ÖBB freight trains run under the slab. Every load path has to work around them." },
@@ -111,7 +115,7 @@ const FIELDS = [
   { key:"fire",    label:"Fire safety & escape routes",    short:"Fire",        color:"#e8526b",
     note:"Railway escape routes and fire brigade access must stay clear at all times." },
   { key:"climate", label:"Climate repair & open space",    short:"Climate",     color:"#4fb286",
-    note:"Fully sealed site. 1.5 m of substrate on concrete, 30–40% shading, rainwater management." },
+    note:"Fully sealed site. 1.5 m of substrate on at least 10% of the roofs and the slab, 30–40% shading of streets and squares, rainwater management." },
   { key:"procure", label:"Procurement & cost control",     short:"Procurement", color:"#ffcf4d",
     note:"Public money, public tendering, and a budget that has to hold." },
   { key:"edu",     label:"Educational building & accessibility", short:"Education", color:"#ff8a5c",
@@ -323,6 +327,9 @@ const REAL_JURY = {
 
 /* ---------- Quellen für die Quellenseite im Spiel ------------------------ */
 const SOURCES = [
+  { key:"stek",     label:"Stadt Wien, MA 21: „9., Campus Althangrund — Rahmenvorgaben für einen zukunftsfitten Bildungscampus“, 68. STEK, 16.04.2024",
+    url:"https://www.wien.gv.at/pdf/ma21/stek-campus-althangrund.pdf",
+    note:"Grundlage der sechs Pflichtfelder: Bahnbetrieb/Vibrationen, 40 % Tragstruktur, 1,5 m Substrat, 30/40 % Verschattung, rd. 17.000 Studierende." },
   { key:"bvergg",   label:"Bundesvergabegesetz 2018, §165 „Durchführung von Wettbewerben“",
     url:"https://www.ris.bka.gv.at/Dokumente/Bundesnormen/NOR40206866/NOR40206866.html",
     note:"Kennt nur Unabhängigkeit und Qualifikation. Keine Geschlechtervorgabe." },

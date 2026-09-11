@@ -462,8 +462,9 @@ grün am 10.09.2026.
 3. **Profil-Audit** (`data.js`, mit Kathi): Bio-Längen, Seniorität der Frauen, `FIELD_MAP`
    gegen die Bios prüfen. Kriterien-Punkte sind im UI nicht mehr sichtbar, `prestige: 3`
    bei fünf von sechs Frauen steht aber weiter in den Daten
-4. Klima-Feld-Notiz („1,5 m Substrat, 30–40 % Beschattung", `FIELDS` in `rules.js`):
-   Quelle klären — wenn nicht STEK 68, aus dem Tooltip nehmen
+4. ~~Klima-Feld-Notiz~~ — **belegt, 11.09.2026:** STEK 68, Folien 12 und 15 (1,5 m Substrat auf
+   mind. 10 % der Dach-/Plattenflächen; 30 % / 40 % Verschattung; Regenwasser). STEK als
+   Quelle `stek` in `SOURCES` ergänzt
 5. **Disruptor-Verteilung** (Abschnitt 7) — bleibt Konzept; im Prototyp gibt es ein festes
    Ereignis (Alte Donau) und die Vorschauen der Stationen 3–6
 
