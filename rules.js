@@ -206,6 +206,18 @@ const ACCESS_ACTIONS = [
     cost:0, rep:-14 },
 ];
 
+/* ---------- Was an jeder Station zu tun ist (Aufgabenzeilen auf der Karte).
+   Reine Anzeige; ob ein Punkt erledigt ist, entscheidet game.js aus dem
+   Spielstand. Für gesperrte Stationen ist es der Ausblick.                 */
+const STATION_TODOS = {
+  board:    ["Nine seats, three of them the Chamber's", "Six fields covered", "Within budget"],
+  pr:       ["Inform the neighbours", "Access across the platform during construction"],
+  permits:  ["Escape routes over live tracks", "ÖBB load-path assessment", "Objections answered"],
+  partners: ["Café, hall, kindergarten financed", "Conditions negotiated"],
+  material: ["40% of the structure kept", "Sources for the rest"],
+  build:    ["Four years over a running railway", "Opening day"],
+};
+
 /* ---------- Die Stationen auf der Karte ----------------------------------
    Startzustand: die Karte erscheint vor der Auswahl, Station 1 ist offen.
    Mit dem Versand der Einladungen wird 1 erledigt und 2 geöffnet.           */

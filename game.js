@@ -966,6 +966,12 @@ function rDossier(){
    THE MAP — six stations. One done, one open, four visibly locked.
    The locks are part of the statement: this is the size of the real job.
    ======================================================================== */
+/* which to-do lines are ticked, from the state */
+function todoDone(key,i){
+  if(key==="board"){ const ok=state.invited.length===JURY_SIZE; return [ok, ok&&missingFields(new Set(state.invited)).length===0, ok][i]; }
+  if(key==="pr") return [!!state.prAction, !!state.accessAction][i];
+  return state.stations[key]==="done";
+}
 function stationResult(key){
   if(key==="board") return `${state.invited.length} members · fees ${eur(state.spend.experts)}`;
   if(key==="pr" && state.prAction){ const a=PR_ACTIONS.find(x=>x.key===state.prAction), c=ACCESS_ACTIONS.find(x=>x.key===state.accessAction); return `${a.label}${state.prSeason==="now"?" (August)":""} · ${c?c.label:""} · ${eur(prPrice(a.cost)+(c?c.cost:0))}`; }
@@ -988,6 +994,7 @@ function rMap(){
       <h3>${st.label}</h3>
       <div class="st-place">${st.place}</div>
       <p>${st.desc}</p>
+      <ul class="todo">${(STATION_TODOS[st.key]||[]).map((t,j)=>`<li class="${s==="locked"?"":todoDone(st.key,j)?"done":"open"}">${t}</li>`).join("")}</ul>
       ${s==="done"?`<div class="st-result">${stationResult(st.key)}</div>`:""}
       ${s==="open"?`<button class="btn st-go">Go there</button>`:""}
       ${s==="locked"&&STATION_PREVIEWS[st.key]?`<button class="link st-peek">What happens here?</button>`:""}
