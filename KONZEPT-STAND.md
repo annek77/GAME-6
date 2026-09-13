@@ -393,7 +393,8 @@ intro     3 Beats mit Bild: Gebäude · leer seit 2021 (Nacht-SVG) · dein Auftr
  → realworld Stationsende: eigene Jury (Kammer / eigene / gesamt) neben REAL_JURY, OUTRO_FIGURES,
              „Read more" → dossier (8 Notizen aus DOSSIER, alle SOURCES, Auflagen-Quellen) oder Karte
  ── Stationen 2–6 ───────────────────────────────────────────────────────────
- → map       Station 1 erledigt, 2 offen, 3–6 gesperrt. Gesperrte Kästen: „What happens here?" →
+ → map       Station 1 erledigt, 2 offen, 3–6 gesperrt. Jeder Kasten mit Aufgabenliste
+             (STATION_TODOS), Häkchen aus dem Spielstand. Gesperrte Kästen: „What happens here?" →
  → preview   Vorschau der Station (STATION_PREVIEWS: zwei Sätze Lage, drei graue Optionen mit Preis,
              die Echo-Zeile des eigenen Beirats, Stempel „Not playable in this prototype")
  → pr        Station 2, Entscheidung 1: Information aus PR_ACTIONS (30 % billiger mit Berger)

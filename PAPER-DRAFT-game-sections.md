@@ -1,6 +1,7 @@
 # Pool of Experts — draft sections for the paper
 
-Raw text, written from the code and the design documents as they stand on 13 September 2026.
+Raw text, written from the code and the design documents as they stand on 13 September 2026
+(game version 20260913-1).
 Sections 1–6 describe what was built and why; they do not contain a literature review, an
 evaluation, or the team's reflection. Figures and legal statements are taken from `rules.js`
 and the research file `recherche/Recherche_Serious-Game_Gender-Jurys-Architektur-AT.md`
@@ -122,6 +123,13 @@ does not cover the building site. The player can fund a temporary ramp and lift 
 signpost a detour through the station, or defer the question to the new building.
 
 ### 1.3 Stations 3–6, the ending
+
+The map that connects the stations doubles as the project's task list. Every station card
+carries two or three to-do lines — for the board: nine seats, six fields covered, within
+budget; for the neighbourhood: inform the neighbours, access across the platform during
+construction; for the locked stations: what would have to be done there. Lines tick off from
+the game state, so the map always shows where the project stands and what is still open. A
+strip of six numbered stations under the cockpit repeats this on every screen.
 
 The four remaining stations are locked. Each can be opened as a preview: two sentences on the
 situation, three greyed-out decisions with prices, and a line showing what the player's board
